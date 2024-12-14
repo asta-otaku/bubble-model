@@ -2,26 +2,1269 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYREGULAR.OTF") format("opentype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYMEDIUM.OTF") format("opentype");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYBOLD.OTF") format("opentype");
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "FS Mono";
+  src: url("./fonts/SFMONO/SFMonoRegular.otf") format("opentype");
+}
+
+* {
+  font-family: "FS PRO Display", sans-serif;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: #fff;
+  scrollbar-width: none;
+}
+
+.hmtl::-webkit-scrollbar {
+  display: none;
+  /* Hide scrollbar for Webkit browsers */
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background-solid: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.slide-in {
+  animation: slide-in 1s ease-in-out forwards;
+}
+
+/* .slide-out {
+  animation: slide-out 0.5s ease-out forwards;
+} */
+
+.slide-reverse {
+  animation: slide-reverse 1s ease-in-out forwards;
+}
+
+@keyframes slide-reverse {
+  from {
+    transform: translateY(0%);
+  }
+
+  to {
+    transform: translateY(100%);
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* 
+@keyframes slide-out {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+} */
+
+@keyframes slide-in {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+.app-container {
+  min-height: 100vh;
+  /* Full height of the viewport */
+  display: flex;
+  flex-direction: column;
+  /* Stack children vertically */
+}
+
+.main-content {
+  padding: 24px 0px 0px 0px;
+  display: flex;
+  flex-direction: column;
+  /* Keep children in a column */
+  align-items: flex-start;
+  /* Center children horizontally */
+}
+
+.page-content {
+  padding-top: 80px;
+  /* Existing top padding */
+  padding-bottom: 100px;
+  /* Adjust to the height of your buttons-frame */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin: auto;
+  min-height: calc(100vh - 190px);
+  /* Adjust if necessary */
+  height: auto;
+  overflow-y: auto;
+  /* Ensures content is scrollable */
+}
+
+.short-text-input {
+  display: flex;
+  max-width: 320px;
+  height: 100%;
+  max-height: 52px;
+  padding: 0 16px;
+  align-items: center;
+  gap: 10px;
+  flex: 1 0 0;
+  /* Flex grow, flex shrink, and flex basis values */
+  border: none;
+  /* Removes the default border */
+  outline: none;
+  /* Removes the default outline */
+  border-radius: 100px;
+  background: var(--BackgroundBlur, rgba(243, 243, 243, 0.75));
+  backdrop-filter: blur(22px);
+
+  color: var(--label);
+  font-feature-settings: "case" on;
+  font-family: "SF Pro Text", sans-serif;
+  /* Fallback to sans-serif */
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  /* 129.412% */
+  letter-spacing: -0.408px;
+
+  -webkit-appearance: none;
+  /* Removes default styling for WebKit browsers */
+  -moz-appearance: none;
+  /* Removes default styling for Firefox */
+  appearance: none;
+  /* Removes default styling */
+  box-shadow: none;
+
+  justify-content: center;
+  /* Centers children horizontally */
+  align-items: center;
+  /* Centers children vertically */
+}
+
+.input-field {
+  /* Other properties... */
+
+  color: var(--label);
+  font-feature-settings: "case" on;
+  font-family: "SF Pro Text", sans-serif;
+  /* Fallback to sans-serif */
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  /* 129.412% */
+  letter-spacing: -0.408px;
+  border: none;
+  /* Removes the default border */
+  outline: none;
+  /* Removes the default outline */
+  background: none;
+  width: 100%;
+  height: 52px;
+  border-radius: 100px;
+  text-overflow: ellipsis;
+}
+
+/* Container for the country code dropdown */
+.country-code-container {
+  display: flex;
+  height: 52px;
+  padding: 16px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 100px;
+  background: var(--BackgroundBlur, rgba(243, 243, 243, 0.75));
+  backdrop-filter: blur(22px);
+  box-sizing: border-box;
+}
+
+/* Style for the country code dropdown */
+.select-country-code {
+  flex-grow: 1;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  border-radius: 100px;
+  text-align: center;
+  color: var(--label, #191919);
+  font-feature-settings: "case" on;
+  font-family: "SF Pro Text", sans-serif;
+  /* Fallback to sans-serif */
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 22px;
+  /* 129.412% */
+  letter-spacing: -0.408px;
+}
+
+/* Optionally, style the select arrow */
+.select-country-code::-ms-expand {
+  display: none;
+}
+
+.select-country-code {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  flex-basis: 30%;
+}
+
+.phone-country-container {
+  display: flex;
+  width: 345px;
+  align-items: flex-start;
+  gap: 8px;
+  justify-content: center;
+  /*Center horizontally inside the flex container */
+  margin-bottom: 24px;
+}
+
+.phone-input {
+  /* Styles for the phone input, adjust as needed */
+  flex-grow: 1;
+  color: var(--label);
+  font-feature-settings: "case" on;
+  font-family: "SF Pro Text", sans-serif;
+  /* Fallback to sans-serif */
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  /* 129.412% */
+  letter-spacing: -0.408px;
+  border: none;
+  /* Removes the default border */
+  outline: none;
+  /* Removes the default outline */
+  background: none;
+  width: 100%;
+  height: 52px;
+  box-sizing: border-box;
+}
+
+.navigation-buttons-container {
+  position: fixed;
+  /* Fix the position relative to the viewport */
+  left: 50%;
+  /* Centering horizontally */
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 30px;
+}
+
+.button-container {
+  width: 300px;
+  height: 25px;
+  padding: 16px;
+  border-radius: 100px;
+  background: var(--label, #191919);
+  backdrop-filter: blur(22px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button-container button {
+  color: white;
+  /* Adjust as per your design */
+  border: none;
+  background: transparent;
+  width: 300%;
+  /* Make the button fill its container */
+  height: 300%;
+  /* Make the button fill its container */
+  cursor: pointer;
+  /* Add more button styles as needed */
+}
+
+.question-label {
+  display: flex;
+  /* Establish flex container */
+  align-items: center;
+  /* Vertically center children */
+  justify-content: center;
+  /* Horizontally center (if needed) */
+  width: 345px;
+  height: 68px;
+  /* Adjust the height as needed */
+  color: var(--secondaryLabel);
+  text-align: center;
+  font-family: "SF Pro Display", sans-serif;
+  /* Fallback to sans-serif */
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 34px;
+  /* 121.429% */
+  letter-spacing: -0.64px;
+  margin-bottom: 24px;
+}
+
+.success-label {
+  display: flex;
+  /* Establish flex container */
+  align-items: center;
+  /* Vertically center children */
+  justify-content: center;
+  /* Horizontally center (if needed) */
+  width: 345px;
+  height: 68px;
+  /* Adjust the height as needed */
+  color: var(--secondaryLabel);
+  text-align: left;
+  font-family: SF Pro Display;
+  font-size: 1.375rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.75rem;
+  /* 127.273% */
+  letter-spacing: -0.03438rem;
+}
+
+.styled-dropdown {
+  display: flex;
+  justify-content: center;
+  /* Centers the select horizontally */
+  width: 340px;
+  /* Match the width of the styled dropdown */
+  width: 100%;
+  color: var(--label, #191919);
+  font-family: "SF Pro Display", sans-serif;
+  /* Fallback to sans-serif */
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 34px;
+  /* 121.429% */
+  letter-spacing: -0.64px;
+  padding: 8px;
+  border: none;
+  outline: none;
+  background-color: white;
+  text-align: center;
+}
+
+.logo-item {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background-color: transparent;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  /* Default opacity for all logos */
+  cursor: pointer;
+}
+
+.logo-item.selected {
+  opacity: 1;
+  /* Full opacity for selected logo */
+}
+
+.logo-container {
+  display: flex;
+  width: 184px;
+  align-items: center;
+  align-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: auto;
+}
+
+.error-message {
+  color: red;
+  text-align: center;
+  font-family: SF Pro Text;
+  font-size: 0.9375rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.25rem;
+  /* 133.333% */
+  letter-spacing: -0.015rem;
+}
+
+.input-with-button {
+  display: flex;
+  align-items: center;
+}
+
+.send-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.send-button img {
+  width: 20px;
+  /* Adjust size as needed */
+  height: auto;
+}
+
+/* FloatingNavbar Styling */
+
+.floating-navbar {
+  display: flex;
+  flex-direction: row;
+  width: 345px;
+  height: 52px;
+  justify-content: space-between;
+  /* Aligns children to each end */
+  align-items: center;
+  /* Centers children vertically */
+  position: fixed;
+  /* Makes the navbar float */
+  top: 20px;
+  /* Distance from the top */
+  left: 50%;
+  /* Center horizontally */
+  transform: translateX(-50%);
+  /* Adjust horizontal centering */
+  background-color: #f8f8f8;
+  /* Background color of the navbar */
+  border-radius: 100px;
+  /* Optional: for rounded corners */
+  margin-top: 12px;
+  /* Adding a 12px gap between the top of the screen and the navbar*/
+  background: var(--BackgroundBlur, rgba(243, 243, 243, 0.75));
+  backdrop-filter: blur(22px);
+  z-index: 1000;
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: flex-end;
+  /* Align children (links) to the right */
+  align-items: center;
+  /* Center children vertically */
+  width: 100%;
+  /* Take up the full width */
+  padding: 0.75rem 1rem;
+}
+
+.navbar-logo {
+  display: flex;
+  /* Use Flexbox */
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  width: 30px;
+  /* Adjust as needed */
+  height: 30px;
+  /* Adjust as needed */
+  flex-shrink: 0;
+  /* Prevent logo from shrinking */
+  background: none;
+  /* Ensure no background is affecting the view */
+  border: none;
+  /* Ensure no border is affecting the view */
+  outline: none;
+  /* Ensure no outline is affecting the view */
+}
+
+.navbar-logo img {
+  max-height: 100%;
+  /* Ensure it doesn't exceed the container height */
+  height: auto;
+  /* Maintain aspect ratio */
+  width: auto;
+  /* Maintain aspect ratio */
+}
+
+.textbox-frame {
+  display: flex;
+  justify-content: flex-end;
+  /* Align links to the right */
+  align-items: center;
+  /* Center links vertically */
+  gap: 10px;
+  flex-grow: 1;
+  /* Grow to use up available space */
+  height: 30px;
+  /* Ensure a consistent height */
+}
+
+.floating-navbar a {
+  text-decoration: none;
+  color: #333;
+  max-width: 56px;
+  height: 30px;
+  border-radius: 12px;
+  padding-left: 12px;
+  padding-right: 12px;
+
+  /* Add more styles for your navbar links as needed */
+}
+
+.navbar-textbox {
+  color: var(--secondaryLabel, #7e7e7e);
+  text-align: center;
+  font-family: Helvetica, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  /* Adjust as needed */
+  letter-spacing: -0.64px;
+  transition: background-color 0.3s ease-in-out, font-weight 0.3s ease-in-out,
+    transform 0.3s ease, text-shadow 0.3s ease;
+  /* Adjust properties as needed */
+  display: flex;
+  /* Use Flexbox */
+  align-items: center;
+  /* Center vertically */
+  justify-content: center;
+  /* Center horizontally */
+  height: 100%;
+  /* Take full height of parent */
+}
+
+.navbar-textbox:hover,
+.navbar-textbox.active {
+  /*font-weight: bold;*/
+
+  transform: scale(1.05);
+  /* slightly scale up the text */
+
+  background: var(--shading, rgba(25, 25, 25, 0.05));
+}
+
+.navbar-textbox:hover {
+  text-shadow: 0.25px 0 var(--secondaryLabel, #191919);
+}
+
+/*Waitlist styling */
+
+.navigation-button-container {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  padding: 10px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.navigation-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.navigation-button-box:hover {
+  border-radius: 12px;
+  background: var(--shading, rgba(25, 25, 25, 0.05));
+}
+
+.disable-hover:hover {
+  background: transparent;
+  cursor: default;
+}
+
+.waitlist-container {
+  display: flex;
+  height: 14.875rem;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  max-width: 345px;
+}
+
+.join-waitlist-text {
+  color: var(--label, #191919);
+  text-align: center;
+  font-feature-settings: "case" on;
+  font-family: "SF Pro Text", sans-serif;
+  /* Add sans-serif as a fallback */
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  /* 133.333% */
+  letter-spacing: -0.5px;
+}
+
+.waitlist-navigation {
+  display: flex;
+  justify-content: space-between;
+  /* Adjust items spacing */
+  align-items: center;
+  width: 100%;
+}
+
+.progress-frame {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  align-self: stretch;
+  justify-content: space-between;
+}
+
+.navigation-button-box {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.ghost-navigation-button-box {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.question-progress {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 0 0;
+  align-self: stretch;
+  text-align: center;
+  color: var(--secondaryLabel, #7e7e7e);
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: -0.408px;
+  width: 350px;
+}
+
+.home-button-container {
+  display: flex;
+  height: 52px;
+  padding: 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.home-button {
+  border-radius: 36px;
+  background: var(--label, #191919);
+  color: white;
+  /* Set the text color to white for visibility */
+  backdrop-filter: blur(22px);
+  padding: 10px 20px;
+  /* Adjust padding as needed */
+  border: none;
+  /* Remove default border */
+  cursor: pointer;
+  /* Change cursor to pointer */
+  font-size: 16px;
+  /* Adjust font size as needed */
+  width: 150px;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+  /* Adjust properties as needed */
+}
+
+.home-button:hover {
+  background: var(--secondaryLabel, #7e7e7e);
+  /* Background color on hover */
+  /* Other hover styles if needed */
+  color: #fff;
+}
+
+/* 
+.landing-page {
+ 
+} */
+
+.superbubble {
+  display: flex;
+  padding: 12px;
+  align-items: left;
+  align-content: center;
+  gap: 4px;
+  align-self: stretch;
+  flex-wrap: wrap;
+  border-radius: 16px;
+  background: var(--backgroundSolid-Elevated, #f3f3f3);
+  width: 261px;
+  text-align: left;
+}
+
+.superbubbles-frame {
+  display: flex;
+  width: 346px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1 0 0;
+
+  /* Additional styles for superbubbles */
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  margin: auto;
+  display: flex;
+  padding: 12px;
+  background: var(--BackgroundBlur, rgba(255, 255, 255, 0.4));
+  backdrop-filter: blur(22px);
+  z-index: 100;
+}
+
+.buttons-frame {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 345px;
+  width: 100%;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+}
+
+.join-waitlist-button,
+.work-with-us-button {
+  display: flex;
+  height: 52px;
+  padding: 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex: 1 0 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+  /* Adjust properties as needed */
+}
+
+.join-waitlist-button {
+  border-radius: 36px;
+  background: var(--label, #191919);
+  backdrop-filter: blur(22px);
+  color: white;
+  /* Assuming white text */
+  border: none;
+}
+
+.join-waitlist-button:hover {
+  background: var(--secondaryLabel, #7e7e7e);
+  /* Background color on hover */
+  /* Other hover styles if needed */
+  color: #fff;
+}
+
+.work-with-us-button {
+  border-radius: 100px;
+  border: 1px solid var(--label, #191919);
+  backdrop-filter: blur(22px);
+  color: var(--label, #191919);
+  /* Assuming text color matches the border */
+  background: none;
+}
+
+.work-with-us-button:hover {
+  border: 1px solid var(--secondaryLabel, #7e7e7e);
+  /* Border color on hover */
+  background: var(--shading, rgba(25, 25, 25, 0.05));
+  /* Background color on hover */
+  /* Other hover styles if needed */
+}
+
+.bold-italic {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.superbubble-container {
+  display: flex;
+  flex-direction: column;
+  /* Adjust as per layout needs */
+}
+
+/* Default styles for empty superbubbles */
+.empty-superbubble-1,
+.empty-superbubble-2,
+.empty-superbubble-3 {
+  display: flex;
+  padding: 12px;
+  align-items: left;
+  align-content: center;
+  gap: 4px;
+  align-self: stretch;
+  flex-wrap: wrap;
+  width: 261px;
+  text-align: left;
+  background: white;
+  /* Set a default height, if necessary */
+}
+
+/* Larger screens */
+@media (min-width: 768px) {
+  .empty-superbubble-1,
+  .empty-superbubble-2 {
+    height: 205px;
+    /* Adjust as needed */
   }
+
+  .empty-superbubble-3 {
+    height: 429px;
+    /* Adjust as needed */
+  }
+}
+
+/* Smaller screens */
+@media (max-width: 767px) {
+  .empty-superbubble-1,
+  .empty-superbubble-2,
+  .empty-superbubble-3 {
+    height: auto;
+    /* Allow the height to grow as needed */
+  }
+}
+
+.token-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+  background: var(--backgroundSolid, rgba(25, 25, 25, 0.1));
+  max-width: fit-content;
+  cursor: pointer;
+  /* If the tokens are clickable */
+}
+
+.token-container:hover {
+  border: 1px solid var(--secondaryLabel, #7e7e7e);
+}
+
+.token-container:active {
+  background: var(--backgroundSolid, #fff);
+}
+
+.icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.text-box {
+  color: var(--label, #191919);
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.3px;
+}
+
+.bubble {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: 1rem;
+  border-bottom-left-radius: 1.1rem;
+  /* Radius for the bottom-left corner */
+  border-bottom-right-radius: 1.1rem;
+  /* Radius for the bottom-right corner */
+  background: var(--blue, #f3f3f3);
+  max-width: 346px;
+  margin-bottom: 0.5rem;
+  width: auto;
+}
+
+.bubbleVideo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 1rem;
+  border-bottom-left-radius: 1.1rem;
+  /* Radius for the bottom-left corner */
+  border-bottom-right-radius: 1.1rem;
+  /* Radius for the bottom-right corner */
+  background: #ffffff;
+  max-width: 19rem;
+  margin-bottom: 1rem;
+}
+
+.bubble-top {
+  display: flex;
+  padding: 0.75rem 0.75rem 0 0.75rem;
+  align-items: center;
+  align-content: center;
+  gap: 0.25rem;
+  align-self: stretch;
+  flex-wrap: wrap;
+  margin-bottom: 0.69rem;
+}
+
+.bubble-bottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0rem 0rem;
+  align-items: center;
+  justify-content: center;
+}
+
+p {
+  color: #191919;
+  font-size: 1.0625rem;
+  margin: 0;
+}
+
+.line1 {
+  margin-bottom: 0px;
+}
+
+.token {
+  /* padding: 0.125rem 0.5rem; */
+  align-items: flex-start;
+  gap: 0.25rem;
+  border-radius: 7rem;
+  background: rgba(25, 25, 25, 0.1);
+  color: white;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0);
+  vertical-align: middle;
+  letter-spacing: -0.01rem;
+  max-height: 1.35rem;
+  display: flex;
+  transition: all 0.3s ease-in-out;
+}
+
+.token-content {
+  display: flex;
+  padding: 1.5rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+  background: var(--background-solid, #fff);
+  box-sizing: border-box;
+  font-family: "SFPro", Arial;
+
+  position: relative;
+  overflow: hidden;
+  /* Hide anything that goes beyond the container */
+}
+
+.tokenPill {
+  display: flex;
+  align-items: center;
+}
+
+.token:hover {
+  background: #fff;
+  transition: all 0.3s ease-in-out;
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+}
+
+.token.selected {
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+  background: var(--background-solid, #fff);
+  color: var(--blue);
+}
+
+.tokenimg {
+  max-width: 1.5rem;
+  max-height: 1rem;
+  fill: white !important;
+  margin-right: 0.25rem;
+
+  height: 16px;
+}
+
+.tokenText {
+  font-size: 0.75rem;
+  font-family: "SfPro", Arial;
+
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1rem;
+  /* 133.333% */
+  letter-spacing: -0.01875rem;
+  color: var(--label, #191919);
+}
+
+.token.selected .tokenImg {
+  fill: var(--blue) !important;
+}
+
+p.token-text {
+  color: var(--label, #191919);
+  font-family: "SFPro", Arial;
+}
+
+.thumbnail {
+  margin-right: 0.25rem;
+  border-radius: 0.125rem;
+  border: 1px solid rgba(25, 25, 25, 0.05);
+  max-height: 1rem;
+}
+
+.thumbnailImg {
+  width: auto;
+  /* maintain aspect ratio */
+  height: auto;
+  /* auto-scale the height */
+  max-height: 1rem;
+  /* max out at 1rem height */
+}
+
+.token-content iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.token-link {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto;
+  gap: 1em;
+  /* Space between items */
+  padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+  align-items: center;
+  align-self: stretch;
+  width: 100%;
+  height: 3rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+  background: var(--background-solid, #fff);
+  box-sizing: border-box;
+}
+
+.link-image-container {
+  width: 1.5rem;
+  height: 1.5rem;
+  /* Keep aspect ratio */
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.link-image {
+  width: 1.5rem;
+  height: auto;
+  /* Keep aspect ratio */
+  border-radius: 0.25rem;
+}
+
+.link-text {
+  color: var(--label, #191919);
+  /* CaptionBold */
+  font-family: "SFPro Bold", "Arial";
+
+  font-size: 0.75rem;
+  line-height: 1rem;
+  /* 133.333% */
+  letter-spacing: -0.02rem;
+}
+
+.link-button {
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+  background: var(--background-solid, #fff);
+  border-radius: 6.25rem;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  padding: 0.25rem 0.5rem;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-family: "SF Mono", Arial;
+
+  cursor: pointer;
+  color: var(--label, #191919);
+  width: auto;
+}
+
+.link-button:hover {
+  border: 1px solid rgba(25, 25, 25, 0.25);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Target landscape */
+@media (orientation: landscape) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Target portrait */
+@media (orientation: portrait) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.fade-element {
+  opacity: 1;
+  /* Fully visible by default */
+}
+
+.hidden {
+  opacity: 0;
+  /* Fully transparent */
+  visibility: hidden;
+  /* Hide the element to prevent interaction */
+  transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+}
+
+.qr-container {
+  display: flex;
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  height: 100vh;
+  /* Full viewport height */
+  flex-direction: column;
+  /* Align children vertically */
+}
+
+.qr-image {
+  max-width: 15%;
+  /* Adjust as needed */
+  height: auto;
+  /* Maintain aspect ratio */
+  margin: auto;
+  /* Additional centering for single image */
+}
+
+.super-title {
+  color: #000;
+  text-align: center;
+  font-family: "SF Pro Display", sans-serif;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 34px;
+  letter-spacing: -0.64px;
+  margin-bottom: 48px;
+  padding-left: 30px;
+  /* Padding on the left side */
+  padding-right: 30px;
+}
+
+.old-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 1rem;
+  border-bottom-left-radius: 1.1rem;
+  /* Radius for the bottom-left corner */
+  border-bottom-right-radius: 1.1rem;
+  /* Radius for the bottom-right corner */
+  background: var(--blue, #0019ff);
+  max-width: 19rem;
+  margin-bottom: 1rem;
+}
+
+.old-style p {
+  color: white;
+  font-size: 1.0625rem;
+  margin: 0;
+}
+
+.old-main-content {
+  padding: 24px 60px 0px 16px;
+  display: flex;
+  flex-direction: column;
+  /* Keep children in a column */
+  align-items: center;
+  /* Center children horizontally */
+}
+
+/* Targeting the control */
+.my-custom-select__control {
+  background-color: #0019ff;
+}
+
+/* Targeting the value container */
+.my-custom-select__value-container {
+  background-color: #808183;
+}
+
+/* Targeting the input */
+.my-custom-select__input {
+  background-color: rgba(243, 243, 243, 0.75);
+  visibility: visible;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  display: inline-grid;
+  grid-area: 1/1/2/3;
+  grid-template-columns: 0 min-content;
+  margin: 2px;
+  padding-bottom: 2px;
+  padding-top: 2px;
+  color: hwb(30 6% 5%);
+  box-sizing: border-box;
+}
+
+/* Targeting the overall container */
+.my-custom-select__container {
+  background-color: #2abd16;
+  align-items: center;
+  /* Center children horizontally */
+  justify-content: center;
 }

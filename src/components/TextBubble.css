@@ -1,0 +1,64 @@
+.text-bubble {
+  display: flex;
+  padding: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1 0 0;
+  align-self: stretch;
+  border-radius: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  /* background: var(--Gradient-Blue, linear-gradient(180deg, #3076FF 0%, #1D49E5 100%)); */
+}
+
+.text-input {
+    width: 100%;
+    color: #FFF;
+    font-feature-settings: 'case' on;
+    font-family: "SF Pro Text";
+    font-size: 17px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 22px;
+    letter-spacing: -0.408px;
+    background: transparent;
+    border: none;
+    resize: none; 
+    overflow: hidden; 
+    overflow-y: auto; /* Allow vertical scrolling */
+    outline: none;
+    min-height: 250px;
+    text-align: left;
+  }
+  
+  .text-input::placeholder {
+    color: rgba(255, 255, 255, 0.60);
+    font-feature-settings: 'case' on;
+    font-family: "SF Pro Text";
+    font-size: 17px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 22px;
+    letter-spacing: -0.408px;
+  }
+
+    .file-token {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 5px;
+      padding: 0 5px;
+      border-radius: 12px;
+      width: fit-content;
+      cursor: pointer;
+    }
+  
+    .file-token.active-token {
+      background-color: white;
+      color: blue;
+    }
+  
+    .file-token.inactive-token {
+      background-color: #ffffff33;
+      color: white;
+    }

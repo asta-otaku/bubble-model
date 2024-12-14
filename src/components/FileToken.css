@@ -1,0 +1,56 @@
+.file-token-button {
+  display: flex;
+  padding: 2px 8px;
+  align-items: flex-start;
+  gap: 4px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.2);
+  width: 100px;
+}
+
+.file-token-button.selected {
+display: flex;
+  padding: 2px 8px;
+  align-items: flex-start;
+  gap: 4px;
+  border-radius: 100px;
+  border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
+  background: var(--backgroundSolid, #fff);
+  background: rgba(255, 255, 255, 1);
+}
+
+.icon-container {
+  display: flex;
+  align-items: flex-start;
+}
+
+.file-name {
+  /* Caption for unselected file name */
+  color: var(--backgroundSolid, #fff);
+  font-family: "SF Pro Text";
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.3px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.file-name.selected {
+  /* Caption for selected file name */
+  background: var(
+    --Gradient-Blue,
+    linear-gradient(180deg, #3076ff 0%, #1d49e5 100%)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: "SF Pro Text";
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  letter-spacing: -0.3px;
+}
