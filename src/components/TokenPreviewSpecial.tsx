@@ -2,8 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Swiper, SwiperSlide, SwiperRef } from "swiper/react";
 import { AttachmentContentPreview } from "../utils/BubbleSpecialInterfaces";
 import ImageModal from "./ImageModal";
+import dynamic from "next/dynamic";
 import RenderLinkPreview from "./RenderLinkPreview";
-import RenderFilePreview from "./RenderFilePreview";
+const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
+  ssr: false,
+});
 
 // Import Swiper styles
 import "swiper/css";
