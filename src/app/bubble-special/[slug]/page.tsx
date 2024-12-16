@@ -19,7 +19,6 @@ function Page() {
   const [owner, setOwner] = useState<string>("");
   const [selectedAttachment, setSelectedAttachment] =
     useState<Attachment | null>(null);
-  // const [direction, setDirection] = useState<number>(0);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [transitioning, setTransitioning] = useState<boolean>(false);
 
@@ -55,12 +54,10 @@ function Page() {
   const handleAttachmentSelect = (_: Attachment, targetIndex: number) => {
     if (!bubbleData || transitioning) return;
 
-    // const newDirection = targetIndex > currentIndex ? 1 : -1;
     setTransitioning(true);
 
     setSelectedAttachment(bubbleData.attachments[targetIndex]);
     setCurrentIndex(targetIndex);
-    // setDirection(newDirection);
 
     setTimeout(() => {
       setTransitioning(false);
@@ -126,10 +123,10 @@ function Page() {
   }
 
   return (
-    <div className="w-full min-h-screen flex justify-center items-center flex-col py-16 relative p-4">
+    <div className="w-full min-h-screen flex justify-center items-center relative p-4">
       <motion.div
-        className="flex flex-col w-[360px] mx-auto p-6"
-        drag={!isDraggingDisabled} // Disable drag when interactions occur in child
+        className="w-[360px] mx-auto p-6"
+        drag={!isDraggingDisabled}
         dragMomentum={false}
         style={{ x: springX, y: springY }}
         onDrag={(_, info) => {
@@ -160,7 +157,7 @@ function Page() {
                   )
                 }
                 allTokens={bubbleData.attachments}
-                setIsDraggingDisabled={setIsDraggingDisabled} // Pass setter to child
+                setIsDraggingDisabled={setIsDraggingDisabled}
               />
             )}
           </div>

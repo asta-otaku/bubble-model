@@ -12,7 +12,7 @@ interface TokenPreviewSpecialProps {
   currentIndex: number;
   allTokens: AttachmentContentPreview[];
   onTokenSwipe: (index: number) => void;
-  setIsDraggingDisabled: (disabled: boolean) => void; // New prop
+  setIsDraggingDisabled: (disabled: boolean) => void;
 }
 
 function TokenPreviewSpecial({
@@ -79,7 +79,6 @@ function TokenPreviewSpecial({
           setFaviconError={() => {}}
           faviconError={false}
           openImageModal={openImageModal}
-          ContentWrapper={({ children }: any) => <>{children}</>}
           getDisplayUrl={(url: string) => {
             const { hostname, origin } = new URL(url);
             return { hostname, origin };
@@ -103,7 +102,6 @@ function TokenPreviewSpecial({
         isExcel={isExcel}
         formatFileSize={formatFileSize}
         openImageModal={openImageModal}
-        ContentWrapper={({ children }: any) => <>{children}</>}
       />
     );
   };
@@ -111,7 +109,7 @@ function TokenPreviewSpecial({
   return (
     <>
       <div
-        className="flex flex-col w-full bg-white rounded-2xl border relative overflow-hidden"
+        className="w-full bg-white rounded-2xl border relative overflow-hidden"
         onMouseEnter={() => setIsDraggingDisabled(true)}
         onMouseLeave={() => setIsDraggingDisabled(false)}
       >

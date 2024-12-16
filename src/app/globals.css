@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* @font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYTHIN.ttf") format("truetype");
+  font-weight: 300;
+} */
 
 @font-face {
   font-family: "FS PRO Display";
