@@ -112,7 +112,7 @@ function TokenPreviewSpecial({
   return (
     <>
       <div
-        className="w-full bg-white rounded-2xl border relative overflow-hidden"
+        className="w-full bg-white rounded-2xl relative overflow-hidden"
         onMouseEnter={() => setIsDraggingDisabled(true)}
         onMouseLeave={() => setIsDraggingDisabled(false)}
       >
@@ -121,6 +121,7 @@ function TokenPreviewSpecial({
           spaceBetween={0}
           slidesPerView={1}
           initialSlide={currentIndex}
+          autoHeight={true}
           onSlideChange={(swiper) => {
             if (swiper.activeIndex !== currentIndex) {
               onTokenSwipe(swiper.activeIndex);
@@ -129,7 +130,11 @@ function TokenPreviewSpecial({
           className="w-full rounded-none"
         >
           {allTokens.map((token, index) => (
-            <SwiperSlide key={index} className="relative">
+            <SwiperSlide
+              key={index}
+              className="inline-flex items-center justify-center p-0 m-0 w-auto h-auto"
+              style={{ lineHeight: "normal" }}
+            >
               <RenderContent token={token} />
             </SwiperSlide>
           ))}

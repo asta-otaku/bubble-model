@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { SlClose } from "react-icons/sl";
-import Image from "next/image";
+// import Image from "next/image";
 
 function ImageModal({
   isOpen,
@@ -65,7 +65,7 @@ function ImageModal({
             >
               <SlClose size={24} />
             </button>
-            <Image
+            <img
               src={imageUrl}
               alt={altText}
               width={800}

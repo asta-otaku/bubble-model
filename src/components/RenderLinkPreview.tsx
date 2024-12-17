@@ -31,9 +31,9 @@ function RenderLinkPreview({
               alt="Site favicon"
               className="w-full h-full object-contain"
               onError={(e) => {
-                e.currentTarget.onerror = null; // Prevent infinite loop
-                e.currentTarget.src = fallback.src; // Replace with fallback image
-                setFaviconError(true); // Optional: Update the state
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = fallback.src;
+                setFaviconError(true);
               }}
             />
           </div>
