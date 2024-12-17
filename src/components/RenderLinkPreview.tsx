@@ -22,13 +22,19 @@ function RenderLinkPreview({
           <div className="w-6 h-6 rounded border border-solid border-[#1919191a] flex items-center justify-center">
             <img
               src={
-                faviconError ? fallback : token.metaData?.faviconUrl ?? fallback
+                faviconError || !token.metaData?.faviconUrl
+                  ? fallback
+                  : token.metaData.faviconUrl
               }
               width={24}
               height={24}
               alt="Site favicon"
               className="w-full h-full object-contain"
-              onError={() => setFaviconError(true)}
+              onError={(e) => {
+                e.currentTarget.onerror = null; // Prevent infinite loop
+                e.currentTarget.src = fallback.src; // Replace with fallback image
+                setFaviconError(true); // Optional: Update the state
+              }}
             />
           </div>
           <div className="inline-block items-center gap-1.5 text-xs font-medium text-primary whitespace-nowrap max-w-[137px] truncate overflow-hidden">

@@ -31,21 +31,20 @@
   src: url("./fonts/SFMONO/SFMonoRegular.otf") format("opentype");
 }
 
-* {
-  font-family: "FS PRO Display", sans-serif;
-  font-weight: 400;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  box-sizing: border-box;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+@layer base {
+  * {
+    font-family: "FS PRO Display", sans-serif;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    letter-spacing: 0.4px;
+  }
 
-html {
-  scroll-behavior: smooth;
-  background-color: #fff;
-  scrollbar-width: none;
+  html {
+    scroll-behavior: smooth;
+    background-color: #fff;
+  }
 }
 
 .hmtl::-webkit-scrollbar {
