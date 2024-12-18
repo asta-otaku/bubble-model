@@ -83,7 +83,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       <div className="relative flex justify-center items-center">
         <Image alt="" src={Subtract} />
-        <div className="absolute text-xs text-center text-[#7E7E7E] font-mono">
+        <div className="absolute text-[10px] text-center text-[#7E7E7E] font-mono">
           {currentTime} / {totalDuration}
         </div>
       </div>

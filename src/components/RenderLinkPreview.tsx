@@ -15,17 +15,23 @@ function RenderLinkPreview({
 }) {
   const { hostname } = getDisplayUrl(token.content?.url || "");
 
+  // Helper function to construct the favicon URL based on hostname
+  const getFaviconUrl = (hostname: string): string => {
+    return `https://${hostname}/favicon.ico`;
+  };
+
+  const faviconSrc =
+    faviconError || !token.metaData?.faviconUrl
+      ? getFaviconUrl(hostname) // Dynamically generate the favicon URL
+      : token.metaData.faviconUrl;
+
   return (
     <div className="flex max-w-xs w-full p-3 flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
       <div className="flex justify-between items-center self-stretch gap-3">
         <div className="flex justify-between items-center self-stretch gap-3 flex-nowrap">
           <div className="w-6 h-6 rounded border border-solid border-[#1919191a] flex items-center justify-center">
             <img
-              src={
-                faviconError || !token.metaData?.faviconUrl
-                  ? fallback
-                  : token.metaData.faviconUrl
-              }
+              src={faviconSrc}
               width={24}
               height={24}
               alt="Site favicon"
