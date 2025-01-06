@@ -1,15 +1,21 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Swiper, SwiperSlide, SwiperRef } from "swiper/react";
+import dynamic from "next/dynamic";
 import { AttachmentContentPreview } from "../utils/BubbleSpecialInterfaces";
 import ImageModal from "./ImageModal";
-import dynamic from "next/dynamic";
 import RenderLinkPreview from "./RenderLinkPreview";
+
+const Swiper = dynamic(() => import("swiper/react").then((mod) => mod.Swiper), {
+  ssr: false,
+});
+const SwiperSlide = dynamic(
+  () => import("swiper/react").then((mod) => mod.SwiperSlide),
+  { ssr: false }
+);
 
 const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
   ssr: false,
 });
 
-// Import Swiper styles
 import "swiper/css";
 
 interface TokenPreviewSpecialProps {
@@ -25,18 +31,39 @@ function TokenPreviewSpecial({
   onTokenSwipe,
   setIsDraggingDisabled,
 }: TokenPreviewSpecialProps) {
-  const swiperRef = useRef<SwiperRef>(null);
+  const swiperRef = useRef<any>(null); // Updated to handle swiperRef without TypeScript issues
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImage, setModalImage] = useState<{ url: string; alt: string }>({
     url: "",
     alt: "",
   });
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.swiper.slideTo(currentIndex);
+    // Force a re-render of the swiper after a short delay
+    const timer = setTimeout(() => {
+      if (swiperRef.current?.swiper) {
+        swiperRef.current.swiper.update();
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized && swiperRef.current?.swiper) {
+      setIsInitialized(true);
+      swiperRef.current.swiper.slideTo(currentIndex, 0);
+      swiperRef.current.swiper.update();
     }
-  }, [currentIndex]);
+  }, [currentIndex, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized && swiperRef.current?.swiper) {
+      swiperRef.current.swiper.slideTo(currentIndex, 0);
+      swiperRef.current.swiper.update();
+    }
+  }, [currentIndex, isInitialized]);
 
   const openImageModal = useCallback((url: string, alt: string) => {
     setModalImage({ url, alt });
@@ -148,17 +175,16 @@ function TokenPreviewSpecial({
           initialSlide={currentIndex}
           autoHeight={true}
           onSlideChange={handleSlideChange}
+          onInit={() => setIsInitialized(true)}
           className="w-full rounded-none"
         >
-          {allTokens.map((token, index) => (
-            <SwiperSlide
-              key={index}
-              className="inline-flex items-center justify-center p-0 m-0 w-auto h-auto"
-              style={{ lineHeight: "normal" }}
-            >
-              <RenderContent token={token} />
-            </SwiperSlide>
-          ))}
+          <SwiperSlide
+            key={currentIndex}
+            className="inline-flex items-center justify-center p-0 m-0 w-auto h-auto"
+            style={{ lineHeight: "normal" }}
+          >
+            <RenderContent token={allTokens[currentIndex]} />
+          </SwiperSlide>
         </Swiper>
       </div>
 

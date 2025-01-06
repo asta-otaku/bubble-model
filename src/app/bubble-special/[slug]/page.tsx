@@ -21,15 +21,25 @@ function Page() {
     useState<Attachment | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [transitioning, setTransitioning] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 400, damping: 50 });
   const springY = useSpring(y, { stiffness: 400, damping: 50 });
   const [isDraggingDisabled, setIsDraggingDisabled] = useState(false);
+  const [screenWidth, setScreenWidth] = useState<number>(0);
+
+  useEffect(() => {
+    setScreenWidth(window.innerWidth);
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchBubbleData = async () => {
+      setIsLoading(true);
       try {
         const response = await axios.post(
           `${SPECIAL_BUBBLE_BASE_URL}/api/artifacts/details`,
@@ -39,10 +49,16 @@ function Page() {
         const artifact = response.data.artifact;
         setOwner(response.data.ownerProfile.displayName);
         setBubbleData(artifact);
-        setSelectedAttachment(artifact.attachments[0]);
-        setCurrentIndex(0);
+
+        // Immediately set the selected attachment and current index
+        if (artifact.attachments?.length > 0) {
+          setSelectedAttachment(artifact.attachments[0]);
+          setCurrentIndex(0);
+        }
       } catch (error) {
         console.error("Error fetching bubble data", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -55,7 +71,6 @@ function Page() {
     if (!bubbleData || transitioning) return;
 
     setTransitioning(true);
-
     setSelectedAttachment(bubbleData.attachments[targetIndex]);
     setCurrentIndex(targetIndex);
 
@@ -118,15 +133,19 @@ function Page() {
     );
   };
 
-  if (!bubbleData) {
+  if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (!bubbleData) {
+    return <div>No data available</div>;
   }
 
   return (
     <div className="w-full min-h-screen flex justify-center items-center relative p-4">
       <motion.div
         className="w-[360px] mx-auto p-6"
-        drag={!isDraggingDisabled}
+        drag={!isDraggingDisabled && screenWidth > 768}
         dragMomentum={false}
         style={{ x: springX, y: springY }}
         onDrag={(_, info) => {
@@ -147,7 +166,7 @@ function Page() {
           </div>
 
           <div className="bubble-bottom mt-2 w-full">
-            {selectedAttachment && (
+            {selectedAttachment && bubbleData.attachments && (
               <TokenPreviewSpecial
                 currentIndex={currentIndex}
                 onTokenSwipe={(newIndex) =>

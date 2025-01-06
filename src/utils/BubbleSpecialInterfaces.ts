@@ -52,5 +52,6 @@ export interface AttachmentContentPreview {
     height?: number | null;
     thumbnailImage?: string | null;
     url?: string;
+    id?: string;
   };
 }
