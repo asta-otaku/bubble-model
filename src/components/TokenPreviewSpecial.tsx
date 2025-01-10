@@ -3,26 +3,26 @@ import dynamic from "next/dynamic";
 import { AttachmentContentPreview } from "../utils/BubbleSpecialInterfaces";
 import ImageModal from "./ImageModal";
 import RenderLinkPreview from "./RenderLinkPreview";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper as SwiperType } from "swiper";
+import { motion } from "framer-motion";
 
-const Swiper = dynamic(() => import("swiper/react").then((mod) => mod.Swiper), {
-  ssr: false,
-});
-const SwiperSlide = dynamic(
-  () => import("swiper/react").then((mod) => mod.SwiperSlide),
-  { ssr: false }
-);
+import "swiper/css";
+
+// Dynamically import if desired (already simplified here)
+// const Swiper = dynamic(() => import("swiper/react").then((mod) => mod.Swiper), { ssr: false });
+// const SwiperSlide = dynamic(() => import("swiper/react").then((mod) => mod.SwiperSlide), { ssr: false });
 
 const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
   ssr: false,
 });
-
-import "swiper/css";
 
 interface TokenPreviewSpecialProps {
   currentIndex: number;
   allTokens: AttachmentContentPreview[];
   onTokenSwipe: (index: number) => void;
   setIsDraggingDisabled: (disabled: boolean) => void;
+  direction: number; // If you want to use direction for custom framer-motion
 }
 
 function TokenPreviewSpecial({
@@ -30,46 +30,27 @@ function TokenPreviewSpecial({
   allTokens,
   onTokenSwipe,
   setIsDraggingDisabled,
+  direction,
 }: TokenPreviewSpecialProps) {
-  const swiperRef = useRef<any>(null); // Updated to handle swiperRef without TypeScript issues
+  const swiperRef = useRef<{ swiper: SwiperType }>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalImage, setModalImage] = useState<{ url: string; alt: string }>({
-    url: "",
-    alt: "",
-  });
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [modalImage, setModalImage] = useState({ url: "", alt: "" });
+  const [startX, setStartX] = useState(0);
 
+  // Whenever the parent sets a new currentIndex,
+  // tell Swiper to animate to that slide with a chosen speed (e.g., 300ms).
   useEffect(() => {
-    // Force a re-render of the swiper after a short delay
-    const timer = setTimeout(() => {
-      if (swiperRef.current?.swiper) {
-        swiperRef.current.swiper.update();
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialized && swiperRef.current?.swiper) {
-      setIsInitialized(true);
-      swiperRef.current.swiper.slideTo(currentIndex, 0);
-      swiperRef.current.swiper.update();
+    if (swiperRef.current?.swiper) {
+      // Pass a speed parameter for a smooth transition
+      swiperRef.current.swiper.slideTo(currentIndex, 300);
     }
-  }, [currentIndex, isInitialized]);
+  }, [currentIndex]);
 
-  useEffect(() => {
-    if (isInitialized && swiperRef.current?.swiper) {
-      swiperRef.current.swiper.slideTo(currentIndex, 0);
-      swiperRef.current.swiper.update();
-    }
-  }, [currentIndex, isInitialized]);
-
+  // Open/close the image modal
   const openImageModal = useCallback((url: string, alt: string) => {
     setModalImage({ url, alt });
     setIsModalOpen(true);
   }, []);
-
   const closeImageModal = useCallback(() => setIsModalOpen(false), []);
 
   const handleMouseEnter = useCallback(
@@ -81,8 +62,9 @@ function TokenPreviewSpecial({
     [setIsDraggingDisabled]
   );
 
+  // Called whenever user swipes to a new slide in the carousel
   const handleSlideChange = useCallback(
-    (swiper: any) => {
+    (swiper: SwiperType) => {
       if (swiper.activeIndex !== currentIndex) {
         onTokenSwipe(swiper.activeIndex);
       }
@@ -90,12 +72,13 @@ function TokenPreviewSpecial({
     [currentIndex, onTokenSwipe]
   );
 
+  // Basic logic for file/link previews
   const RenderContent = useMemo(
     () =>
       ({ token }: { token: AttachmentContentPreview }) => {
         const filename = token.content?.name || token.name || "";
-        const getFileExtension = (filename: string) =>
-          filename.split(".").pop()?.toLowerCase() || "";
+        const getFileExtension = (name: string) =>
+          name.split(".").pop()?.toLowerCase() || "";
         const fileExtension = getFileExtension(filename);
 
         const isLink =
@@ -116,12 +99,10 @@ function TokenPreviewSpecial({
           const units = ["B", "KB", "MB", "GB"];
           let size = bytes;
           let unitIndex = 0;
-
           while (size >= 1024 && unitIndex < units.length - 1) {
             size /= 1024;
             unitIndex++;
           }
-
           return `${size.toFixed(1)} ${units[unitIndex]}`;
         };
 
@@ -142,7 +123,7 @@ function TokenPreviewSpecial({
 
         return (
           <RenderFilePreview
-            url={token?.cloudFrontDownloadLink ?? ""}
+            url={token.cloudFrontDownloadLink ?? ""}
             filename={filename}
             fileExtension={fileExtension}
             token={token}
@@ -172,19 +153,36 @@ function TokenPreviewSpecial({
           ref={swiperRef}
           spaceBetween={0}
           slidesPerView={1}
-          initialSlide={currentIndex}
-          autoHeight={true}
+          autoHeight
+          // Called whenever a new slide becomes active
           onSlideChange={handleSlideChange}
-          onInit={() => setIsInitialized(true)}
+          // Let Swiper handle pointer/touch dragging
+          onTouchStart={() => setIsDraggingDisabled(true)}
+          onTouchEnd={() => setIsDraggingDisabled(false)}
           className="w-full rounded-none"
         >
-          <SwiperSlide
-            key={currentIndex}
-            className="inline-flex items-center justify-center p-0 m-0 w-auto h-auto"
-            style={{ lineHeight: "normal" }}
-          >
-            <RenderContent token={allTokens[currentIndex]} />
-          </SwiperSlide>
+          {allTokens.map((token, idx) => (
+            <SwiperSlide key={token.id ?? idx}>
+              <motion.div
+                // If you want manual detection, you can also do:
+                onMouseDown={(e) => setStartX(e.clientX)}
+                onMouseUp={(e) => {
+                  const delta = e.clientX - startX;
+                  if (delta > 50) {
+                    swiperRef.current?.swiper.slidePrev(300);
+                  } else if (delta < -50) {
+                    swiperRef.current?.swiper.slideNext(300);
+                  }
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <RenderContent token={token} />
+              </motion.div>
+            </SwiperSlide>
+          ))}
         </Swiper>
       </div>
 
