@@ -10,20 +10,26 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   try {
-    // Fetch bubble data
-    const artifactResponse = await axios.post(
+    // Fetch bubble data using the new API endpoint
+    const response = await axios.post(
       `${SPECIAL_BUBBLE_BASE_URL}/api/artifacts/details`,
       { artifactId: params.slug, isDev: true },
-      { headers: { "x-user-id": USER_ID, accept: "*/*" } }
+      {
+        headers: {
+          "x-user-id": USER_ID,
+          accept: "*/*",
+          "Content-Type": "application/json",
+        },
+      }
     );
 
-    const artifact = artifactResponse.data.artifact;
+    const message = response.data.artifact;
 
-    // Prepare metadata
-    const title = artifact.subjectLine || "Bubble Special";
-    const description = artifact.contentText || "Explore this bubble.";
+    // Prepare metadata from the response
+    const title = message.title || "Bubble Special";
+    const description = message.description || "Explore this bubble.";
     const imageUrl =
-      artifact.imageUrl ||
+      message.image ||
       "https://typo-user-images-dev.s3.us-east-1.amazonaws.com/metadata-images/a81add1a-b2d9-4ac8-9e08-9a7fd8ad3cfc/.png";
 
     return {
