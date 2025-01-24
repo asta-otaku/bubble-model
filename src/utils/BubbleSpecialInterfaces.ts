@@ -7,6 +7,7 @@ export interface AttachmentContent {
   width?: number | null;
   height?: number | null;
   startTime?: number;
+  thumnailImage: string;
 }
 
 export interface MetaDataContent {

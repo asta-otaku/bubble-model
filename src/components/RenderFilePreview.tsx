@@ -3,7 +3,6 @@ import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import Image from "next/image";
 
 function RenderFilePreview({
   url,
@@ -19,6 +18,7 @@ function RenderFilePreview({
   isZip,
   isCSV,
   isExcel,
+  thumbnailImage,
 }: {
   url: string | undefined;
   formatFileSize: (bytes?: number) => string;
@@ -33,6 +33,7 @@ function RenderFilePreview({
   isZip: boolean;
   isCSV: boolean;
   isExcel: boolean;
+  thumbnailImage: string;
 }) {
   const fileUrl = url;
   const fileSize = formatFileSize(token.content?.size);
@@ -72,7 +73,7 @@ function RenderFilePreview({
 
     return (
       <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
-        <video controls className="w-full h-auto">
+        <video poster={thumbnailImage} controls className="w-full h-auto">
           <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
           Your browser does not support the video tag.
         </video>

@@ -17,12 +17,12 @@ function Page() {
   const { slug } = router;
 
   const [bubbleData, setBubbleData] = useState<BubbleData | null>(null);
-  const [owner, setOwner] = useState<string>("");
+  const [owner, setOwner] = useState("");
   const [selectedAttachment, setSelectedAttachment] =
     useState<Attachment | null>(null);
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [transitioning, setTransitioning] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [direction, setDirection] = useState(0);
   const [mounted, setMounted] = useState(false);
   const firstTokenRef = useRef<HTMLButtonElement>(null);
@@ -32,7 +32,7 @@ function Page() {
   const springX = useSpring(x, { stiffness: 400, damping: 50 });
   const springY = useSpring(y, { stiffness: 400, damping: 50 });
   const [isDraggingDisabled, setIsDraggingDisabled] = useState(false);
-  const [screenWidth, setScreenWidth] = useState<number>(0);
+  const [screenWidth, setScreenWidth] = useState(0);
 
   useEffect(() => {
     setScreenWidth(window.innerWidth);
@@ -45,20 +45,31 @@ function Page() {
     const fetchBubbleData = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.post(
+        const { data } = await axios.post(
           `${SPECIAL_BUBBLE_BASE_URL}/api/artifacts/details`,
           { artifactId: slug, isDev: true },
           { headers: { "x-user-id": USER_ID, accept: "*/*" } }
         );
-        const artifact = response.data.artifact;
-        setOwner(response.data.ownerProfile.firstName || "");
-        setBubbleData(artifact);
 
-        if (artifact.attachments?.length > 1) {
-          setSelectedAttachment(artifact.attachments[1]);
-          setCurrentIndex(1);
-          setDirection(-1);
-        }
+        const artifact = data.artifact;
+        setOwner(data.ownerProfile.firstName || "");
+
+        const processedAttachments =
+          artifact.attachments.length === 1
+            ? [...artifact.attachments, artifact.attachments[0]]
+            : artifact.attachments;
+
+        const processedArtifact = {
+          ...artifact,
+          attachments: processedAttachments,
+        };
+        setBubbleData(processedArtifact);
+
+        setSelectedAttachment(
+          processedAttachments.length > 1 ? processedAttachments[1] : null
+        );
+        setCurrentIndex(processedAttachments.length > 1 ? 1 : 0);
+        setDirection(processedAttachments.length > 1 ? -1 : 0);
       } catch (error) {
         console.error("Error fetching bubble data", error);
       } finally {
@@ -66,19 +77,24 @@ function Page() {
       }
     };
 
-    if (slug) {
-      fetchBubbleData();
-    }
+    if (slug) fetchBubbleData();
   }, [slug]);
 
   useEffect(() => {
-    if (
-      !isLoading &&
-      bubbleData?.attachments &&
-      bubbleData.attachments.length > 0
-    ) {
+    if (!isLoading && bubbleData?.attachments?.length) {
       const timer = setTimeout(() => {
         firstTokenRef.current?.click();
+
+        if (
+          bubbleData.attachments.length > 1 &&
+          bubbleData.attachments[0].content.id ===
+            bubbleData.attachments[1].content.id
+        ) {
+          setBubbleData((prev) =>
+            prev ? { ...prev, attachments: prev.attachments.slice(0, 1) } : null
+          );
+        }
+
         setMounted(true);
       }, 500);
 
@@ -89,16 +105,12 @@ function Page() {
   const handleAttachmentSelect = (_: Attachment, targetIndex: number) => {
     if (!bubbleData || transitioning) return;
 
-    const newDirection = targetIndex > currentIndex ? 1 : -1;
-    setDirection(newDirection);
+    setDirection(targetIndex > currentIndex ? 1 : -1);
     setTransitioning(true);
-
     setSelectedAttachment(bubbleData.attachments[targetIndex]);
     setCurrentIndex(targetIndex);
 
-    setTimeout(() => {
-      setTransitioning(false);
-    }, 200);
+    setTimeout(() => setTransitioning(false), 200);
   };
 
   const renderContent = (content: string, attachments: Attachment[]) => {
@@ -161,7 +173,7 @@ function Page() {
     return <div>Loading...</div>;
   }
 
-  if (!bubbleData || !bubbleData.attachments?.length) {
+  if (!bubbleData) {
     return <div>No data available</div>;
   }
 

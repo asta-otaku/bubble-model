@@ -136,6 +136,7 @@ function TokenPreviewSpecial({
             isExcel={isExcel}
             formatFileSize={formatFileSize}
             openImageModal={openImageModal}
+            thumbnailImage={token.content?.thumbnailImage || ""}
           />
         );
       },
