@@ -6,7 +6,11 @@ import axios from "axios";
 import TokenPreviewSpecial from "@/components/TokenPreviewSpecial";
 import { truncateFilename } from "@/components/TruncateText";
 import { getFileIcon } from "@/utils/getFileIcon";
-import { BubbleData, Attachment } from "@/utils/BubbleSpecialInterfaces";
+import {
+  BubbleData,
+  Attachment,
+  Message,
+} from "@/utils/BubbleSpecialInterfaces";
 import { motion, useSpring, useMotionValue } from "framer-motion";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -16,7 +20,7 @@ function Page() {
   const router = useParams();
   const { slug } = router;
 
-  const [bubbleData, setBubbleData] = useState<BubbleData | null>(null);
+  const [bubbleData, setBubbleData] = useState<Message | null>(null);
   const [owner, setOwner] = useState("");
   const [selectedAttachment, setSelectedAttachment] =
     useState<Attachment | null>(null);
@@ -46,12 +50,12 @@ function Page() {
       setIsLoading(true);
       try {
         const { data } = await axios.post(
-          `${SPECIAL_BUBBLE_BASE_URL}/api/artifacts/details`,
-          { artifactId: slug, isDev: true },
+          `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/details`,
+          { messageId: slug, isDev: true },
           { headers: { "x-user-id": USER_ID, accept: "*/*" } }
         );
 
-        const artifact = data.artifact;
+        const artifact = data.message;
         setOwner(data.ownerProfile.firstName || "");
 
         const processedAttachments =
@@ -144,6 +148,11 @@ function Page() {
     const displayName = truncateFilename(
       attachment.type === "LINK"
         ? new URL(attachment.content.url || "").hostname.replace("www.", "")
+        : attachment.type === "TIMESTAMP" || attachment.type === "REFERENCE"
+        ? new URL(attachment.cloudFrontDownloadLink || "").hostname.replace(
+            "www.",
+            ""
+          )
         : attachment.content.name || ""
     );
 
@@ -152,7 +161,11 @@ function Page() {
         ref={index === 0 ? firstTokenRef : null}
         key={`attachment-${attachment.content.id}-${index}`}
         onClick={() => handleAttachmentSelect(attachment, index)}
-        className={`inline-flex items-center gap-0.5 text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass}`}
+        className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
+          attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
+            ? "max-w-[172px] justify-between gap-1"
+            : ""
+        }`}
       >
         <span>
           {getFileIcon(
@@ -162,7 +175,7 @@ function Page() {
             transitioning
           )}
         </span>
-        <span className="text-inherit max-w-20 w-full truncate">
+        <span className="text-inherit max-w-20 w-full truncate ml-1">
           {displayName}
         </span>
       </button>

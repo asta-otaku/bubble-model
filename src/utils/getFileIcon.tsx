@@ -4,6 +4,12 @@ import audioIcon from "../assets/musicIcon.svg";
 import blueAudio from "../assets/blueMusicIcon.svg";
 import links from "../assets/chain.svg";
 import whitelinks from "../assets/whitechain.svg";
+import whitestamp from "../assets/whitestamp.svg";
+import bluestamp from "../assets/bluestamp.svg";
+import whitereference from "../assets/whitereference.svg";
+import bluereference from "../assets/bluereference.svg";
+import whitevideo from "../assets/whitevideo.svg";
+import bluevideo from "../assets/bluevideo.svg";
 import { Attachment } from "./BubbleSpecialInterfaces";
 import Image from "next/image";
 
@@ -14,6 +20,10 @@ export const getFileIcon = (
   transitioning: boolean
 ) => {
   const fileExtension = fileName.split(".").pop()?.toLowerCase();
+
+  const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(
+    attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
+  );
 
   // If the content is a URL, we should handle it differently.
   if (attachment.type === "LINK" && attachment.content.url) {
@@ -26,8 +36,66 @@ export const getFileIcon = (
             : whitelinks
         }
         alt="link icon"
-        className="w-4 h-4"
       />
+    );
+  }
+
+  if (attachment.type === "TIMESTAMP" && attachment.cloudFrontDownloadLink) {
+    return (
+      <div className="flex items-center gap-1 mr-2">
+        <Image
+          src={
+            selectedAttachment?.content.id === attachment.content.id &&
+            !transitioning
+              ? bluestamp
+              : whitestamp
+          }
+          alt="stamp icon"
+          className="w-4 h-4"
+        />
+        <span>{attachment.content.startTime}</span>
+        {isAudio ? (
+          <Image
+            src={
+              selectedAttachment?.content.id === attachment.content.id &&
+              !transitioning
+                ? blueAudio
+                : audioIcon
+            }
+            alt="audio icon"
+            className="w-4 h-4"
+          />
+        ) : (
+          <Image
+            src={
+              selectedAttachment?.content.id === attachment.content.id &&
+              !transitioning
+                ? bluevideo
+                : whitevideo
+            }
+            alt="video icon"
+            className="w-4 h-4"
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (attachment.type === "REFERENCE" && attachment.cloudFrontDownloadLink) {
+    return (
+      <div className="flex items-center gap-1">
+        <Image
+          src={
+            selectedAttachment?.content.id === attachment.content.id &&
+            !transitioning
+              ? bluereference
+              : whitereference
+          }
+          alt="reference icon"
+          className="w-4 h-4"
+        />
+        <Image src={videoIcon} alt="video icon" className="w-4 h-4" />
+      </div>
     );
   }
 

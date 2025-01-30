@@ -1,25 +1,25 @@
 export interface AttachmentContent {
+  startTime?: number;
+  contentId?: string;
+  id: string;
   url?: string;
-  id?: string;
+  thumbnailImage?: string | null;
   name?: string;
-  s3Url?: string;
   size?: number;
   width?: number | null;
   height?: number | null;
-  startTime?: number;
-  thumnailImage: string;
 }
 
 export interface MetaDataContent {
-  username: null | string;
-  avatarUrl: null | string;
-  mediaUrl: string;
-  faviconUrl: string;
-  dataText: string;
-  title: string;
-  fileType: number;
-  size: null | number;
-  streamAudioUrl: string;
+  username?: string | null;
+  avatarUrl?: string | null;
+  mediaUrl?: string;
+  faviconUrl?: string;
+  dataText?: string;
+  title?: string;
+  fileType?: number;
+  size?: number | null;
+  streamAudioUrl?: string | null;
 }
 
 export interface Attachment {
@@ -39,6 +39,17 @@ export interface BubbleData {
   updatedAt: string;
 }
 
+export interface Message {
+  id: string;
+  createdAt: number;
+  ownerId: string;
+  contentText: string;
+  attachments: Attachment[];
+  streamId: string;
+  title: string;
+  description: string;
+  image: string;
+}
 export interface AttachmentContentPreview {
   url?: string;
   name?: string;

@@ -22,7 +22,7 @@ interface TokenPreviewSpecialProps {
   allTokens: AttachmentContentPreview[];
   onTokenSwipe: (index: number) => void;
   setIsDraggingDisabled: (disabled: boolean) => void;
-  direction: number; // If you want to use direction for custom framer-motion
+  direction: number;
 }
 
 function TokenPreviewSpecial({
@@ -37,16 +37,12 @@ function TokenPreviewSpecial({
   const [modalImage, setModalImage] = useState({ url: "", alt: "" });
   const [startX, setStartX] = useState(0);
 
-  // Whenever the parent sets a new currentIndex,
-  // tell Swiper to animate to that slide with a chosen speed (e.g., 300ms).
   useEffect(() => {
     if (swiperRef.current?.swiper) {
-      // Pass a speed parameter for a smooth transition
       swiperRef.current.swiper.slideTo(currentIndex, 300);
     }
   }, [currentIndex]);
 
-  // Open/close the image modal
   const openImageModal = useCallback((url: string, alt: string) => {
     setModalImage({ url, alt });
     setIsModalOpen(true);
@@ -84,6 +80,8 @@ function TokenPreviewSpecial({
         const isLink =
           token.type === "LINK" ||
           (!fileExtension && (token.url ?? "").startsWith("http"));
+        const isTimestamp = token.type === "TIMESTAMP";
+        const isReference = token.type === "REFERENCE";
         const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(
           fileExtension
         );
@@ -117,6 +115,33 @@ function TokenPreviewSpecial({
                 const { hostname, origin } = new URL(url);
                 return { hostname, origin };
               }}
+            />
+          );
+        }
+
+        if (isTimestamp || isReference) {
+          const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(
+            token.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
+          );
+          const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(
+            token.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
+          );
+          return (
+            <RenderFilePreview
+              url={token.cloudFrontDownloadLink ?? ""}
+              filename={filename}
+              fileExtension={fileExtension}
+              token={token}
+              isImage={isImage}
+              isVideo={isVideo}
+              isAudio={isAudio}
+              isPDF={isPDF}
+              isZip={isZip}
+              isCSV={isCSV}
+              isExcel={isExcel}
+              formatFileSize={formatFileSize}
+              openImageModal={openImageModal}
+              thumbnailImage={token.content?.thumbnailImage || ""}
             />
           );
         }
