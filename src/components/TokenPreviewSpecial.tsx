@@ -9,10 +9,6 @@ import { motion } from "framer-motion";
 
 import "swiper/css";
 
-// Dynamically import if desired (already simplified here)
-// const Swiper = dynamic(() => import("swiper/react").then((mod) => mod.Swiper), { ssr: false });
-// const SwiperSlide = dynamic(() => import("swiper/react").then((mod) => mod.SwiperSlide), { ssr: false });
-
 const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
   ssr: false,
 });
@@ -58,7 +54,6 @@ function TokenPreviewSpecial({
     [setIsDraggingDisabled]
   );
 
-  // Called whenever user swipes to a new slide in the carousel
   const handleSlideChange = useCallback(
     (swiper: SwiperType) => {
       if (swiper.activeIndex !== currentIndex) {
@@ -68,7 +63,14 @@ function TokenPreviewSpecial({
     [currentIndex, onTokenSwipe]
   );
 
-  // Basic logic for file/link previews
+  function formatTime(seconds: number) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
   const RenderContent = useMemo(
     () =>
       ({ token }: { token: Attachment }) => {
@@ -142,9 +144,7 @@ function TokenPreviewSpecial({
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
               thumbnailImage={token.content?.thumbnailImage || ""}
-              startTimestamp={"00:06"}
-              //pass the time stamp here when you update it and it works perfectly using the below line
-              // startTimestamp={token.content?.startTime || ""}
+              startTimestamp={formatTime(token.content.startTime || 0)}
             />
           );
         }
