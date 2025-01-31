@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { AttachmentContentPreview } from "../utils/BubbleSpecialInterfaces";
+import { Attachment } from "../utils/BubbleSpecialInterfaces";
 import ImageModal from "./ImageModal";
 import RenderLinkPreview from "./RenderLinkPreview";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -19,7 +19,7 @@ const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
 
 interface TokenPreviewSpecialProps {
   currentIndex: number;
-  allTokens: AttachmentContentPreview[];
+  allTokens: Attachment[];
   onTokenSwipe: (index: number) => void;
   setIsDraggingDisabled: (disabled: boolean) => void;
   direction: number;
@@ -71,15 +71,15 @@ function TokenPreviewSpecial({
   // Basic logic for file/link previews
   const RenderContent = useMemo(
     () =>
-      ({ token }: { token: AttachmentContentPreview }) => {
-        const filename = token.content?.name || token.name || "";
+      ({ token }: { token: Attachment }) => {
+        const filename = token.content?.name || "";
         const getFileExtension = (name: string) =>
           name.split(".").pop()?.toLowerCase() || "";
         const fileExtension = getFileExtension(filename);
 
         const isLink =
           token.type === "LINK" ||
-          (!fileExtension && (token.url ?? "").startsWith("http"));
+          (!fileExtension && (token.content.url ?? "").startsWith("http"));
         const isTimestamp = token.type === "TIMESTAMP";
         const isReference = token.type === "REFERENCE";
         const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(
@@ -191,7 +191,7 @@ function TokenPreviewSpecial({
           className="w-full rounded-none"
         >
           {allTokens.map((token, idx) => (
-            <SwiperSlide key={token.id ?? idx}>
+            <SwiperSlide key={idx}>
               <motion.div
                 // If you want manual detection, you can also do:
                 onMouseDown={(e) => setStartX(e.clientX)}

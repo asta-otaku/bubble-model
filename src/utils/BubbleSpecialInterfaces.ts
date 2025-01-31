@@ -51,21 +51,21 @@ export interface Message {
   description: string;
   image: string;
 }
-export interface AttachmentContentPreview {
-  url?: string;
-  name?: string;
-  type: string;
-  id?: string;
-  index: number;
-  cloudFrontDownloadLink: null | string;
-  metaData: null | MetaDataContent;
-  content?: {
-    name?: string;
-    size?: number;
-    height?: number | null;
-    thumbnailImage?: string | null;
-    url?: string;
-    id?: string;
-    startTime?: string; 
-  };
-}
+// export interface AttachmentContentPreview {
+//   url?: string;
+//   name?: string;
+//   type: string;
+//   id?: string;
+//   index: number;
+//   cloudFrontDownloadLink: null | string;
+//   metaData: null | MetaDataContent;
+//   content?: {
+//     name?: string;
+//     size?: number;
+//     height?: number | null;
+//     thumbnailImage?: string | null;
+//     url?: string;
+//     id?: string;
+//     startTime?: string; 
+//   };
+// }
