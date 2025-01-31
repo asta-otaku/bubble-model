@@ -8,6 +8,7 @@ export interface AttachmentContent {
   size?: number;
   width?: number | null;
   height?: number | null;
+  fileName?: string;
 }
 
 export interface MetaDataContent {
@@ -65,5 +66,6 @@ export interface AttachmentContentPreview {
     thumbnailImage?: string | null;
     url?: string;
     id?: string;
+    startTime?: string; 
   };
 }

@@ -142,6 +142,9 @@ function TokenPreviewSpecial({
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
               thumbnailImage={token.content?.thumbnailImage || ""}
+              startTimestamp={"00:06"}
+              //pass the time stamp here when you update it and it works perfectly using the below line
+              // startTimestamp={token.content?.startTime || ""}
             />
           );
         }

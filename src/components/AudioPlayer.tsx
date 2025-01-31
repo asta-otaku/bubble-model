@@ -11,16 +11,22 @@ interface AudioPlayerProps {
   audioUrl: string;
   filename: string;
   fileSize: string;
+  startTime?: string;
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({
   audioUrl,
   filename,
   fileSize,
+  startTime,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState("00:00");
   const [totalDuration, setTotalDuration] = useState("00:00");
+  const parseTimestamp = (timestamp: string): number => {
+    const [minutes, seconds] = timestamp.split(":").map(Number);
+    return minutes * 60 + seconds;
+  };
 
   const { wavesurfer, isPlaying } = useWavesurfer({
     barWidth: 2,
@@ -58,11 +64,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const updateDuration = () => {
         const duration = wavesurfer.getDuration();
         setTotalDuration(formatTime(duration));
+
+        // Set initial position if startTime exists
+        if (startTime) {
+          const startSeconds = parseTimestamp(startTime);
+          if (startSeconds <= duration) {
+            wavesurfer.setTime(startSeconds);
+            setCurrentTime(formatTime(startSeconds));
+          }
+        }
       };
 
-      // Set initial duration when loaded
       wavesurfer.on("ready", updateDuration);
-      // Update current time during playback
       wavesurfer.on("timeupdate", updateTime);
 
       return () => {
@@ -70,7 +83,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         wavesurfer.un("timeupdate", updateTime);
       };
     }
-  }, [wavesurfer]);
+  }, [wavesurfer, startTime]);
 
   return (
     <div className="max-w-xs w-full p-3 flex flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">

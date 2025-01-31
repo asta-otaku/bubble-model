@@ -149,10 +149,7 @@ function Page() {
       attachment.type === "LINK"
         ? new URL(attachment.content.url || "").hostname.replace("www.", "")
         : attachment.type === "TIMESTAMP" || attachment.type === "REFERENCE"
-        ? new URL(attachment.cloudFrontDownloadLink || "").hostname.replace(
-            "www.",
-            ""
-          )
+        ? attachment.content.fileName || ""
         : attachment.content.name || ""
     );
 

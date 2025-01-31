@@ -3,6 +3,7 @@ import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import { useEffect, useRef } from "react";
 
 function RenderFilePreview({
   url,
@@ -19,6 +20,7 @@ function RenderFilePreview({
   isCSV,
   isExcel,
   thumbnailImage,
+  startTimestamp,
 }: {
   url: string | undefined;
   formatFileSize: (bytes?: number) => string;
@@ -34,9 +36,16 @@ function RenderFilePreview({
   isCSV: boolean;
   isExcel: boolean;
   thumbnailImage: string;
+  startTimestamp?: string;
 }) {
   const fileUrl = url;
   const fileSize = formatFileSize(token.content?.size);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const parseTimestamp = (timestamp: string): number => {
+    const [minutes, seconds] = timestamp.split(":").map(Number);
+    return minutes * 60 + seconds;
+  };
 
   // Image Preview with animation
   if (isImage && url) {
@@ -59,6 +68,13 @@ function RenderFilePreview({
 
   // Video Preview with animation
   if (isVideo && fileUrl) {
+    useEffect(() => {
+      if (startTimestamp && videoRef.current) {
+        const startSeconds = parseTimestamp(startTimestamp);
+        videoRef.current.currentTime = startSeconds;
+      }
+    }, [startTimestamp]);
+
     const getVideoMimeType = (extension: string) => {
       const extensionToMimeType: { [key: string]: string } = {
         mp4: "video/mp4",
@@ -73,7 +89,18 @@ function RenderFilePreview({
 
     return (
       <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
-        <video poster={thumbnailImage} controls className="w-full h-auto">
+        <video
+          ref={videoRef}
+          poster={thumbnailImage}
+          controls
+          className="w-full h-auto"
+          onLoadedMetadata={() => {
+            if (startTimestamp && videoRef.current) {
+              const startSeconds = parseTimestamp(startTimestamp);
+              videoRef.current.currentTime = startSeconds;
+            }
+          }}
+        >
           <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
           Your browser does not support the video tag.
         </video>
