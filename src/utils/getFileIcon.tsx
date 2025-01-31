@@ -12,6 +12,7 @@ import whitevideo from "../assets/whitevideo.svg";
 import bluevideo from "../assets/bluevideo.svg";
 import { Attachment } from "./BubbleSpecialInterfaces";
 import Image from "next/image";
+import { formatTime } from ".";
 
 export const getFileIcon = (
   fileName: string,
@@ -22,6 +23,9 @@ export const getFileIcon = (
   const fileExtension = fileName.split(".").pop()?.toLowerCase();
 
   const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(
+    attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
+  );
+  const isVideo = /^(mp4|avi|mkv)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
 
@@ -53,7 +57,7 @@ export const getFileIcon = (
           alt="stamp icon"
           className="w-4 h-4"
         />
-        <span>{attachment.content.startTime}</span>
+        <span>{formatTime(attachment.content.startTime || 0)}</span>
         {isAudio ? (
           <Image
             src={
@@ -83,7 +87,7 @@ export const getFileIcon = (
 
   if (attachment.type === "REFERENCE" && attachment.cloudFrontDownloadLink) {
     return (
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 mr-2">
         <Image
           src={
             selectedAttachment?.content.id === attachment.content.id &&
@@ -94,7 +98,30 @@ export const getFileIcon = (
           alt="reference icon"
           className="w-4 h-4"
         />
-        <Image src={videoIcon} alt="video icon" className="w-4 h-4" />
+        <span>{formatTime(attachment.content.startTime || 0)}</span>
+        {isAudio ? (
+          <Image
+            src={
+              selectedAttachment?.content.id === attachment.content.id &&
+              !transitioning
+                ? blueAudio
+                : audioIcon
+            }
+            alt="audio icon"
+            className="w-4 h-4"
+          />
+        ) : isVideo ? (
+          <Image
+            src={
+              selectedAttachment?.content.id === attachment.content.id &&
+              !transitioning
+                ? bluevideo
+                : whitevideo
+            }
+            alt="video icon"
+            className="w-4 h-4"
+          />
+        ) : null}
       </div>
     );
   }

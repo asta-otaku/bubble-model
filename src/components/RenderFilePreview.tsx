@@ -1,3 +1,4 @@
+import { parseTimestamp } from "@/utils";
 import AudioPlayer from "./AudioPlayer";
 import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
@@ -41,11 +42,6 @@ function RenderFilePreview({
   const fileUrl = url;
   const fileSize = formatFileSize(token.content?.size);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  const parseTimestamp = (timestamp: string): number => {
-    const [minutes, seconds] = timestamp.split(":").map(Number);
-    return minutes * 60 + seconds;
-  };
 
   // Image Preview with animation
   if (isImage && url) {
@@ -111,7 +107,12 @@ function RenderFilePreview({
   // Audio Preview with animation
   if (isAudio && fileUrl) {
     return (
-      <AudioPlayer audioUrl={fileUrl} filename={filename} fileSize={fileSize} />
+      <AudioPlayer
+        audioUrl={fileUrl}
+        filename={filename}
+        fileSize={fileSize}
+        startTime={startTimestamp}
+      />
     );
   }
 

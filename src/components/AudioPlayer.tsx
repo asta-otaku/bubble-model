@@ -6,6 +6,7 @@ import PlayIcon from "../assets/Play.svg";
 import Subtract from "../assets/Subtract.svg";
 import { useWavesurfer } from "@wavesurfer/react";
 import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js";
+import { formatTime, parseTimestamp } from "@/utils";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -23,10 +24,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState("00:00");
   const [totalDuration, setTotalDuration] = useState("00:00");
-  const parseTimestamp = (timestamp: string): number => {
-    const [minutes, seconds] = timestamp.split(":").map(Number);
-    return minutes * 60 + seconds;
-  };
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { wavesurfer, isPlaying } = useWavesurfer({
     barWidth: 2,
@@ -40,19 +38,24 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     plugins: useMemo(() => [Timeline.create()], []),
   });
 
-  const formatTime = (timeInSeconds: number): string => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = Math.floor(timeInSeconds % 60);
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
   const handlePlayPause = useCallback(() => {
     if (wavesurfer) {
       wavesurfer.playPause();
     }
   }, [wavesurfer]);
+
+  // Handle initial setup and startTime changes
+  useEffect(() => {
+    if (wavesurfer && startTime) {
+      const startSeconds = parseTimestamp(startTime);
+
+      // Only set the time if the audio is ready
+      if (wavesurfer.getDuration() > 0) {
+        wavesurfer.setTime(startSeconds);
+        setCurrentTime(formatTime(startSeconds));
+      }
+    }
+  }, [wavesurfer, startTime]);
 
   useEffect(() => {
     if (wavesurfer) {
@@ -61,29 +64,32 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         setCurrentTime(formatTime(current));
       };
 
-      const updateDuration = () => {
+      const handleReady = () => {
         const duration = wavesurfer.getDuration();
         setTotalDuration(formatTime(duration));
 
-        // Set initial position if startTime exists
-        if (startTime) {
+        // Set initial position if startTime exists and hasn't been initialized
+        if (startTime && !isInitialized) {
           const startSeconds = parseTimestamp(startTime);
           if (startSeconds <= duration) {
             wavesurfer.setTime(startSeconds);
             setCurrentTime(formatTime(startSeconds));
+            setIsInitialized(true);
           }
         }
       };
 
-      wavesurfer.on("ready", updateDuration);
+      // Add event listeners
+      wavesurfer.on("ready", handleReady);
       wavesurfer.on("timeupdate", updateTime);
 
+      // Cleanup
       return () => {
-        wavesurfer.un("ready", updateDuration);
+        wavesurfer.un("ready", handleReady);
         wavesurfer.un("timeupdate", updateTime);
       };
     }
-  }, [wavesurfer, startTime]);
+  }, [wavesurfer, startTime, isInitialized]);
 
   return (
     <div className="max-w-xs w-full p-3 flex flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">

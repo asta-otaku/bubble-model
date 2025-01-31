@@ -8,6 +8,7 @@ import { Swiper as SwiperType } from "swiper";
 import { motion } from "framer-motion";
 
 import "swiper/css";
+import { formatTime } from "@/utils";
 
 const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
   ssr: false,
@@ -62,14 +63,6 @@ function TokenPreviewSpecial({
     },
     [currentIndex, onTokenSwipe]
   );
-
-  function formatTime(seconds: number) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
 
   const RenderContent = useMemo(
     () =>
