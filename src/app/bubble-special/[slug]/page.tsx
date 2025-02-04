@@ -6,11 +6,7 @@ import axios from "axios";
 import TokenPreviewSpecial from "@/components/TokenPreviewSpecial";
 import { truncateFilename } from "@/components/TruncateText";
 import { getFileIcon } from "@/utils/getFileIcon";
-import {
-  BubbleData,
-  Attachment,
-  Message,
-} from "@/utils/BubbleSpecialInterfaces";
+import { Attachment, Message } from "@/utils/BubbleSpecialInterfaces";
 import { motion, useSpring, useMotionValue } from "framer-motion";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -184,7 +180,10 @@ function Page() {
   }
 
   if (!bubbleData) {
-    return <div>No data available</div>;
+    if (typeof window !== "undefined") {
+      window.location.href = "/not-found";
+    }
+    return null;
   }
 
   return (

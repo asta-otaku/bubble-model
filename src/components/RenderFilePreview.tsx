@@ -4,7 +4,14 @@ import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const isSafari = () => {
+  const ua = navigator.userAgent.toLowerCase();
+  return (
+    ua.includes("safari") && !ua.includes("chrome") && !ua.includes("android")
+  );
+};
 
 function RenderFilePreview({
   url,
@@ -42,23 +49,41 @@ function RenderFilePreview({
   const fileUrl = url;
   const fileSize = formatFileSize(token.content?.size);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
+
+  useEffect(() => {
+    setBrowserSupportsVideo(isSafari());
+  }, []);
 
   // Image Preview with animation
   if (isImage && url) {
     return (
-      <div
-        className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
-        onClick={() => openImageModal(url, filename)}
-      >
-        <img
-          src={url}
-          alt={filename}
-          width={500}
-          height={500}
-          className="w-full h-auto transition-opacity group-hover:opacity-90"
-        />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
-      </div>
+      <>
+        {browserSupportsVideo ? (
+          <div
+            className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
+            onClick={() => openImageModal(url, filename)}
+          >
+            <img
+              src={url}
+              alt={filename}
+              width={500}
+              height={500}
+              className="w-full h-auto transition-opacity group-hover:opacity-90"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+          </div>
+        ) : (
+          <div className="space-y-1 p-4">
+            <h2 className="text-primary text-[15px] font-medium">
+              Typo URLs are in beta
+            </h2>
+            <p className="text-xs text-[#7E7E7E]">
+              Currently, this file is only supported on Safari
+            </p>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -168,7 +193,16 @@ function RenderFilePreview({
   if (isCSV) return getPreviewBox("📊", "CSV", "text-green-500");
   if (isExcel) return getPreviewBox("📑", "Excel", "text-emerald-500");
 
-  return getPreviewBox("📎", "File", "text-gray-500");
+  return (
+    <div className="space-y-1 p-4">
+      <h2 className="text-primary text-[15px] font-medium">
+        Typo URLs are in beta
+      </h2>
+      <p className="text-xs text-[#7E7E7E]">
+        Currently, this file type is not supported
+      </p>
+    </div>
+  );
 }
 
 export default RenderFilePreview;

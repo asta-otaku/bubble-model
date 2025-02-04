@@ -148,7 +148,14 @@ export const getFileIcon = (
     case "mp4":
     case "avi":
     case "mkv":
-      return <Image src={videoIcon} alt="video icon" className="w-4 h-4" />; // Video file icon
+      return (
+        <video
+          src={attachment.cloudFrontDownloadLink}
+          className="w-4 h-4 rounded-sm object-cover"
+          muted
+          loop
+        />
+      );
     case "pdf":
     case "doc":
     case "docx":

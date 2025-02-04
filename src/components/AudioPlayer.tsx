@@ -7,6 +7,7 @@ import Subtract from "../assets/Subtract.svg";
 import { useWavesurfer } from "@wavesurfer/react";
 import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js";
 import { formatTime, parseTimestamp } from "@/utils";
+import { timeStamp } from "console";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -31,7 +32,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     cursorWidth: 1,
     cursorColor: "transparent",
     container: containerRef,
-    height: 80,
+    height: startTime ? 49 : 80,
     waveColor: "#B2B2B2",
     progressColor: "#2C6BF8",
     url: audioUrl,
@@ -110,12 +111,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       <div className="flex items-center gap-2 -mt-3 bg-[#F3F3F3] px-2 rounded-2xl py-0.5 overflow-hidden">
         <button onClick={handlePlayPause} className="">
           {isPlaying ? (
-            <Image src={PauseIcon} alt="Pause" className="w-8 h-8" />
+            <Image
+              src={PauseIcon}
+              alt="Pause"
+              className={`${startTime ? "h-6 w-6" : "w-8 h-8"}`}
+            />
           ) : (
-            <Image src={PlayIcon} alt="Play" className="w-8 h-8" />
+            <Image
+              src={PlayIcon}
+              alt="Play"
+              className={`${startTime ? "h-6 w-6" : "w-8 h-8"}`}
+            />
           )}
         </button>
-        <div ref={containerRef} className="flex-1 cursor-pointer h-20" />
+        <div
+          ref={containerRef}
+          className={`flex-1 cursor-pointer ${startTime ? "h-12" : "h-20"}`}
+        />
       </div>
     </div>
   );
