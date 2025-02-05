@@ -115,17 +115,18 @@ function TokenPreviewSpecial({
         }
 
         if (isTimestamp || isReference) {
-          const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(
-            token.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
-          );
-          const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(
-            token.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
-          );
+          const extension = token.cloudFrontDownloadLink
+            ?.split(".")
+            .pop()
+            ?.toLowerCase();
+          const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(extension || "");
+          const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(extension || "");
+
           return (
             <RenderFilePreview
               url={token.cloudFrontDownloadLink ?? ""}
               filename={token.content.parentAttachment?.fileName || ""}
-              fileExtension={fileExtension}
+              fileExtension={extension || ""}
               token={token}
               isImage={isImage}
               isVideo={isVideo}
