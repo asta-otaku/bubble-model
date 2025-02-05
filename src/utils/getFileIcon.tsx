@@ -1,5 +1,4 @@
 import imageIcon from "../assets/imageIcon.svg";
-import videoIcon from "../assets/videoIcon.svg";
 import audioIcon from "../assets/musicIcon.svg";
 import blueAudio from "../assets/blueMusicIcon.svg";
 import links from "../assets/chain.svg";
@@ -170,7 +169,17 @@ export const getFileIcon = (
     case "png":
     case "gif":
     case "heic":
-      return <Image src={imageIcon} alt="image icon" className="w-4 h-4" />; // Image file icon
+      return (
+        <img
+          src={attachment.cloudFrontDownloadLink}
+          alt="image icon"
+          className="w-4 h-4 rounded-sm object-cover"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = imageIcon.src;
+          }}
+        />
+      );
     default:
       return "📄"; // Default file icon for unsupported types
   }

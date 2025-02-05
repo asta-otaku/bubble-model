@@ -50,6 +50,7 @@ function RenderFilePreview({
   const fileSize = formatFileSize(token.content?.size);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
+  console.log(fileExtension, "fileExtension");
 
   useEffect(() => {
     setBrowserSupportsVideo(isSafari());
@@ -57,34 +58,53 @@ function RenderFilePreview({
 
   // Image Preview with animation
   if (isImage && url) {
-    return (
-      <>
-        {browserSupportsVideo ? (
-          <div
-            className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
-            onClick={() => openImageModal(url, filename)}
-          >
-            <img
-              src={url}
-              alt={filename}
-              width={500}
-              height={500}
-              className="w-full h-auto transition-opacity group-hover:opacity-90"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
-          </div>
-        ) : (
-          <div className="space-y-1 p-4">
-            <h2 className="text-primary text-[15px] font-medium">
-              Typo URLs are in beta
-            </h2>
-            <p className="text-xs text-[#7E7E7E]">
-              Currently, this file is only supported on Safari
-            </p>
-          </div>
-        )}
-      </>
-    );
+    const isHeic = fileExtension.toLowerCase() === "heic";
+    if (isHeic) {
+      return (
+        <>
+          {browserSupportsVideo ? (
+            <div
+              className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
+              onClick={() => openImageModal(url, filename)}
+            >
+              <img
+                src={url}
+                alt={filename}
+                width={500}
+                height={500}
+                className="w-full h-auto transition-opacity group-hover:opacity-90"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+            </div>
+          ) : (
+            <div className="space-y-1 p-4">
+              <h2 className="text-primary text-[15px] font-medium">
+                Typo URLs are in beta
+              </h2>
+              <p className="text-xs text-[#7E7E7E]">
+                Currently, this file is only supported on Safari
+              </p>
+            </div>
+          )}
+        </>
+      );
+    } else {
+      return (
+        <div
+          className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
+          onClick={() => openImageModal(url, filename)}
+        >
+          <img
+            src={url}
+            alt={filename}
+            width={500}
+            height={500}
+            className="w-full h-auto transition-opacity group-hover:opacity-90"
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+        </div>
+      );
+    }
   }
 
   // Video Preview with animation
