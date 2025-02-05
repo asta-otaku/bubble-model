@@ -124,7 +124,7 @@ function TokenPreviewSpecial({
           return (
             <RenderFilePreview
               url={token.cloudFrontDownloadLink ?? ""}
-              filename={token.content.fileName || ""}
+              filename={token.content.parentAttachment?.fileName || ""}
               fileExtension={fileExtension}
               token={token}
               isImage={isImage}

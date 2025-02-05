@@ -9,6 +9,11 @@ export interface AttachmentContent {
   width?: number | null;
   height?: number | null;
   fileName?: string;
+  parentAttachment?: {
+    cloudFrontDownloadLink: string;
+    fileName: string;
+    fileSize: number;
+  }
 }
 
 export interface MetaDataContent {

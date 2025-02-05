@@ -145,7 +145,7 @@ function Page() {
       attachment.type === "LINK"
         ? new URL(attachment.content.url || "").hostname.replace("www.", "")
         : attachment.type === "TIMESTAMP" || attachment.type === "REFERENCE"
-        ? attachment.content.fileName || ""
+        ? attachment.content.parentAttachment?.fileName || ""
         : attachment.content.name || ""
     );
 

@@ -5,6 +5,7 @@ import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { useEffect, useRef, useState } from "react";
+import { Attachment } from "@/utils/BubbleSpecialInterfaces";
 
 const isSafari = () => {
   const ua = navigator.userAgent.toLowerCase();
@@ -32,7 +33,7 @@ function RenderFilePreview({
 }: {
   url: string | undefined;
   formatFileSize: (bytes?: number) => string;
-  token: any;
+  token: Attachment;
   isImage: boolean;
   openImageModal: (url: string, alt: string) => void;
   filename: string;
@@ -47,10 +48,13 @@ function RenderFilePreview({
   startTimestamp?: string;
 }) {
   const fileUrl = url;
-  const fileSize = formatFileSize(token.content?.size);
+  const fileSize = formatFileSize(
+    token.type === "REFERENCE" || token.type === "TIMESTAMP"
+      ? token.content.parentAttachment?.fileSize
+      : token.content?.size
+  );
   const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
-  console.log(fileExtension, "fileExtension");
 
   useEffect(() => {
     setBrowserSupportsVideo(isSafari());
