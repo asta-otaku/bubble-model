@@ -121,6 +121,9 @@ function TokenPreviewSpecial({
             ?.toLowerCase();
           const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(extension || "");
           const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(extension || "");
+          const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(
+            extension || ""
+          );
 
           return (
             <RenderFilePreview
