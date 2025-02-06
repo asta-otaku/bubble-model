@@ -141,7 +141,9 @@ function TokenPreviewSpecial({
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
               thumbnailImage={token.content?.thumbnailImage || ""}
-              startTimestamp={formatTime(token.content.startTime || 0)}
+              startTimestamp={
+                formatTime(token.content.startTime || 0) || undefined
+              }
             />
           );
         }

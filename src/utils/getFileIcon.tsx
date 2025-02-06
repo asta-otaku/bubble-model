@@ -27,6 +27,9 @@ export const getFileIcon = (
   const isVideo = /^(mp4|avi|mkv)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
+  const isImage = /^(jpg|jpeg|png|gif|heic)$/i.test(
+    attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
+  );
 
   // If the content is a URL, we should handle it differently.
   if (attachment.type === "LINK" && attachment.content.url) {
@@ -119,6 +122,16 @@ export const getFileIcon = (
             }
             alt="video icon"
             className="w-4 h-4"
+          />
+        ) : isImage ? (
+          <img
+            src={attachment.cloudFrontDownloadLink}
+            alt="image icon"
+            className="w-4 h-4 rounded-sm object-cover"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = imageIcon.src;
+            }}
           />
         ) : null}
       </div>
