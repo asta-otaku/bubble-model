@@ -53,7 +53,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       // Only set the time if the audio is ready
       if (wavesurfer.getDuration() > 0) {
         wavesurfer.setTime(startSeconds);
-        setCurrentTime(formatTime(startSeconds));
+        setCurrentTime(formatTime(startSeconds) || "00:00");
       }
     }
   }, [wavesurfer, startTime]);
@@ -62,19 +62,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     if (wavesurfer) {
       const updateTime = () => {
         const current = wavesurfer.getCurrentTime();
-        setCurrentTime(formatTime(current));
+        setCurrentTime(formatTime(current) || "00:00");
       };
 
       const handleReady = () => {
         const duration = wavesurfer.getDuration();
-        setTotalDuration(formatTime(duration));
+        setTotalDuration(
+          formatTime(duration) ||
+            formatTime(wavesurfer.getDuration()) ||
+            "00:00"
+        );
 
         // Set initial position if startTime exists and hasn't been initialized
         if (startTime && !isInitialized) {
           const startSeconds = parseTimestamp(startTime);
           if (startSeconds <= duration) {
             wavesurfer.setTime(startSeconds);
-            setCurrentTime(formatTime(startSeconds));
+            setCurrentTime(formatTime(startSeconds) || "00:00");
             setIsInitialized(true);
           }
         }
