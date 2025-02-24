@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Attachment } from "../utils/BubbleSpecialInterfaces";
+import { Message } from "../utils/BubbleSpecialInterfaces";
 import ImageModal from "./ImageModal";
 import RenderLinkPreview from "./RenderLinkPreview";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -16,7 +16,7 @@ const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
 
 interface TokenPreviewSpecialProps {
   currentIndex: number;
-  allTokens: Attachment[];
+  allTokens: Message[];
   onTokenSwipe: (index: number) => void;
   setIsDraggingDisabled: (disabled: boolean) => void;
   direction: number;
@@ -66,15 +66,16 @@ function TokenPreviewSpecial({
 
   const RenderContent = useMemo(
     () =>
-      ({ token }: { token: Attachment }) => {
-        const filename = token.content?.name || "";
+      ({ token }: { token: Message }) => {
+        const filename = token.cloudFrontDownloadLink || "";
         const getFileExtension = (name: string) =>
           name.split(".").pop()?.toLowerCase() || "";
         const fileExtension = getFileExtension(filename);
 
         const isLink =
           token.type === "LINK" ||
-          (!fileExtension && (token.content.url ?? "").startsWith("http"));
+          (!fileExtension &&
+            (token.cloudFrontDownloadLink ?? "").startsWith("http"));
         const isTimestamp = token.type === "TIMESTAMP";
         const isReference = token.type === "REFERENCE";
         const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(
@@ -128,7 +129,7 @@ function TokenPreviewSpecial({
           return (
             <RenderFilePreview
               url={token.cloudFrontDownloadLink ?? ""}
-              filename={token.content.parentAttachment?.fileName || ""}
+              filename={token.cloudFrontDownloadLink || ""}
               fileExtension={extension || ""}
               token={token}
               isImage={isImage}
@@ -140,7 +141,9 @@ function TokenPreviewSpecial({
               isExcel={isExcel}
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
-              thumbnailImage={token.content?.thumbnailImage || ""}
+              thumbnailImage={
+                token.content.referencedAttachment?.thumbnailImage || ""
+              }
               startTimestamp={
                 formatTime(token.content.startTime || 0) || undefined
               }
@@ -163,7 +166,9 @@ function TokenPreviewSpecial({
             isExcel={isExcel}
             formatFileSize={formatFileSize}
             openImageModal={openImageModal}
-            thumbnailImage={token.content?.thumbnailImage || ""}
+            thumbnailImage={
+              token.content.referencedAttachment?.thumbnailImage || ""
+            }
           />
         );
       },

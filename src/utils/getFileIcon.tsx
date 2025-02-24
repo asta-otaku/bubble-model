@@ -9,46 +9,103 @@ import whitereference from "../assets/whitereference.svg";
 import bluereference from "../assets/bluereference.svg";
 import whitevideo from "../assets/whitevideo.svg";
 import bluevideo from "../assets/bluevideo.svg";
-import { Attachment } from "./BubbleSpecialInterfaces";
+import { Message } from "./BubbleSpecialInterfaces";
 import Image from "next/image";
 import { formatTime } from ".";
 
 export const getFileIcon = (
   fileName: string,
-  attachment: Attachment,
-  selectedAttachment: Attachment | null,
+  attachment: Message,
+  selectedAttachment: Message | null,
   transitioning: boolean
 ) => {
-  const fileExtension = fileName.split(".").pop()?.toLowerCase();
-
+  const fileExtension =
+    attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || "";
+  const isSelected =
+    selectedAttachment?.content.contentId === attachment.content.contentId &&
+    !transitioning;
   const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
-  const isVideo = /^(mp4|avi|mkv)$/i.test(
+  const isVideo = /^(mp4|avi|mkv|mov)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
-  const isImage = /^(jpg|jpeg|png|gif|heic)$/i.test(
+  const isImage = /^(jpg|jpeg|png|gif|heic|webp)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
 
-  // If the content is a URL, we should handle it differently.
-  if (attachment.type === "LINK" && attachment.content.url) {
+  // Helper function to render file icons based on extension
+  const renderFileIcon = () => {
+    switch (fileExtension) {
+      case "zip":
+      case "rar":
+        return "📦";
+      case "mp3":
+      case "wav":
+      case "ogg":
+        return (
+          <Image
+            src={isSelected ? blueAudio : audioIcon}
+            alt="audio icon"
+            className="w-4 h-4"
+          />
+        );
+      case "mp4":
+      case "avi":
+      case "mkv":
+      case "mov":
+        return (
+          <video
+            src={attachment.cloudFrontDownloadLink}
+            className="w-4 h-4 rounded-sm object-cover"
+            muted
+            loop
+          />
+        );
+      case "pdf":
+      case "doc":
+      case "docx":
+        return "📄";
+      case "xls":
+      case "xlsx":
+        return "📊";
+      case "csv":
+        return "📑";
+      case "jpg":
+      case "jpeg":
+      case "png":
+      case "gif":
+      case "heic":
+      case "webp":
+        return (
+          <img
+            src={attachment.cloudFrontDownloadLink}
+            alt="image icon"
+            className="w-4 h-4 rounded-sm object-cover"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = imageIcon.src;
+            }}
+          />
+        );
+      default:
+        return "📄";
+    }
+  };
+
+  if (attachment.type === "LINK") {
     return (
       <Image
-        src={
-          selectedAttachment?.content.id === attachment.content.id &&
-          !transitioning
-            ? links
-            : whitelinks
-        }
+        src={isSelected ? links : whitelinks}
         alt="link icon"
+        className="w-4 h-4"
       />
     );
   }
 
   if (attachment.type === "TIMESTAMP" && attachment.cloudFrontDownloadLink) {
     return (
-      <div className="flex items-center gap-1 mr-2">
+      <div className="flex items-center gap-1">
         <Image
           src={
             selectedAttachment?.content.id === attachment.content.id &&
@@ -89,7 +146,7 @@ export const getFileIcon = (
 
   if (attachment.type === "REFERENCE" && attachment.cloudFrontDownloadLink) {
     return (
-      <div className="flex items-center gap-1 mr-2">
+      <div className="flex items-center gap-1">
         <Image
           src={
             selectedAttachment?.content.id === attachment.content.id &&
@@ -133,67 +190,12 @@ export const getFileIcon = (
               e.currentTarget.src = imageIcon.src;
             }}
           />
-        ) : null}
+        ) : (
+          renderFileIcon()
+        )}
       </div>
     );
   }
 
-  switch (fileExtension) {
-    case "zip":
-    case "rar":
-      return "📦"; // Compressed files icon
-    case "mp3":
-    case "wav":
-    case "ogg":
-      return (
-        <Image
-          src={
-            selectedAttachment?.content.id === attachment.content.id &&
-            !transitioning
-              ? blueAudio
-              : audioIcon
-          }
-          alt="audio icon"
-          className="w-4 h-4"
-        />
-      ); // Audio file icon
-    case "mp4":
-    case "avi":
-    case "mkv":
-      return (
-        <video
-          src={attachment.cloudFrontDownloadLink}
-          className="w-4 h-4 rounded-sm object-cover"
-          muted
-          loop
-        />
-      );
-    case "pdf":
-    case "doc":
-    case "docx":
-      return "📄"; // Document file icon
-    case "xls":
-    case "xlsx":
-      return "📊"; // Spreadsheet file icon
-    case "csv":
-      return "📑"; // CSV file icon
-    case "jpg":
-    case "jpeg":
-    case "png":
-    case "gif":
-    case "heic":
-      return (
-        <img
-          src={attachment.cloudFrontDownloadLink}
-          alt="image icon"
-          className="w-4 h-4 rounded-sm object-cover"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = imageIcon.src;
-          }}
-        />
-      );
-    default:
-      return "📄"; // Default file icon for unsupported types
-  }
+  return renderFileIcon();
 };

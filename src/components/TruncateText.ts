@@ -6,7 +6,7 @@ export const truncateFilename = (filename: string) => {
     const extension = filename.slice(lastDotIndex);
     const baseName = filename.slice(0, lastDotIndex);
 
-    if (baseName.length <= 10) return filename;
+    if (baseName.length <= 6) return filename;
 
     return `${baseName.slice(0, 5)}...${extension}`;
   };

@@ -6,7 +6,7 @@ import axios from "axios";
 import TokenPreviewSpecial from "@/components/TokenPreviewSpecial";
 import { truncateFilename } from "@/components/TruncateText";
 import { getFileIcon } from "@/utils/getFileIcon";
-import { Attachment, Message } from "@/utils/BubbleSpecialInterfaces";
+import { BubbleData, Message } from "@/utils/BubbleSpecialInterfaces";
 import { motion, useSpring, useMotionValue } from "framer-motion";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -16,10 +16,11 @@ function Page() {
   const router = useParams();
   const { slug } = router;
 
-  const [bubbleData, setBubbleData] = useState<Message | null>(null);
+  const [bubbleData, setBubbleData] = useState<BubbleData | null>(null);
   const [owner, setOwner] = useState("");
-  const [selectedAttachment, setSelectedAttachment] =
-    useState<Attachment | null>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<Message | null>(
+    null
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +103,7 @@ function Page() {
     }
   }, [isLoading, bubbleData]);
 
-  const handleAttachmentSelect = (_: Attachment, targetIndex: number) => {
+  const handleAttachmentSelect = (_: Message, targetIndex: number) => {
     if (!bubbleData || transitioning) return;
 
     setDirection(targetIndex > currentIndex ? 1 : -1);
@@ -113,7 +114,7 @@ function Page() {
     setTimeout(() => setTransitioning(false), 200);
   };
 
-  const renderContent = (content: string, attachments: Attachment[]) => {
+  const renderContent = (content: string, attachments: Message[]) => {
     if (!content) return <p>No content available</p>;
 
     const contentParts = content.split("$");
@@ -133,7 +134,7 @@ function Page() {
     });
   };
 
-  const renderAttachmentButton = (attachment: Attachment, index: number) => {
+  const renderAttachmentButton = (attachment: Message, index: number) => {
     const isSelected =
       selectedAttachment?.content.id === attachment.content.id &&
       !transitioning;
@@ -141,13 +142,24 @@ function Page() {
       isSelected && mounted
         ? "bg-white text-secondary"
         : "bg-[#FFFFFF33] text-white";
-    const displayName = truncateFilename(
-      attachment.type === "LINK"
-        ? new URL(attachment.content.url || "").hostname.replace("www.", "")
-        : attachment.type === "TIMESTAMP" || attachment.type === "REFERENCE"
-        ? attachment.content.parentAttachment?.fileName || ""
-        : attachment.content.name || ""
-    );
+    let displayName = "";
+    if (attachment.type === "LINK" && attachment?.cloudFrontDownloadLink) {
+      try {
+        displayName = new URL(
+          attachment.cloudFrontDownloadLink
+        ).hostname.replace("www.", "");
+      } catch (error) {
+        console.error("Invalid URL", error);
+      }
+    } else if (
+      attachment.type === "TIMESTAMP" ||
+      attachment.type === "REFERENCE"
+    ) {
+      displayName = attachment.content.referencedAttachment?.name || "";
+    } else {
+      displayName = attachment.metaData?.title || "";
+    }
+    displayName = truncateFilename(displayName);
 
     return (
       <button
@@ -162,7 +174,7 @@ function Page() {
       >
         <span>
           {getFileIcon(
-            attachment.content.name || "",
+            attachment.cloudFrontDownloadLink || "",
             attachment,
             selectedAttachment,
             transitioning
