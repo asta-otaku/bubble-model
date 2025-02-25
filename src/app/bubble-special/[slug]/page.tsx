@@ -155,7 +155,10 @@ function Page() {
       attachment.type === "TIMESTAMP" ||
       attachment.type === "REFERENCE"
     ) {
-      displayName = attachment.content.referencedAttachment?.name || "";
+      displayName =
+        attachment.content.referencedAttachment?.name ||
+        attachment.metaData?.title ||
+        "";
     } else {
       displayName = attachment.metaData?.title || "";
     }

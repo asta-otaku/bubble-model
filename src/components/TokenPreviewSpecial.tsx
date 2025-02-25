@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 
 import "swiper/css";
 import { formatTime } from "@/utils";
+import PDFModal from "./PdfModal";
 
 const RenderFilePreview = dynamic(() => import("./RenderFilePreview"), {
   ssr: false,
@@ -45,6 +46,12 @@ function TokenPreviewSpecial({
     setIsModalOpen(true);
   }, []);
   const closeImageModal = useCallback(() => setIsModalOpen(false), []);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [modalPdf, setModalPdf] = useState({ pdfUrl: "", filename: "" });
+  const openPdfModal = useCallback((pdfUrl: string, filename: string) => {
+    setModalPdf({ pdfUrl, filename });
+    setIsPdfModalOpen(true);
+  }, []);
 
   const handleMouseEnter = useCallback(
     () => setIsDraggingDisabled(true),
@@ -129,7 +136,7 @@ function TokenPreviewSpecial({
           return (
             <RenderFilePreview
               url={token.cloudFrontDownloadLink ?? ""}
-              filename={token.cloudFrontDownloadLink || ""}
+              filename={token.content.referencedAttachment.name || ""}
               fileExtension={extension || ""}
               token={token}
               isImage={isImage}
@@ -141,6 +148,7 @@ function TokenPreviewSpecial({
               isExcel={isExcel}
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
+              openPdfModal={openPdfModal}
               thumbnailImage={
                 token.content.referencedAttachment?.thumbnailImage || ""
               }
@@ -166,6 +174,7 @@ function TokenPreviewSpecial({
             isExcel={isExcel}
             formatFileSize={formatFileSize}
             openImageModal={openImageModal}
+            openPdfModal={openPdfModal}
             thumbnailImage={
               token.content.referencedAttachment?.thumbnailImage || ""
             }
@@ -224,6 +233,12 @@ function TokenPreviewSpecial({
         onClose={closeImageModal}
         imageUrl={modalImage.url}
         altText={modalImage.alt}
+      />
+      <PDFModal
+        isOpen={isPdfModalOpen}
+        onClose={() => setIsPdfModalOpen(false)}
+        pdfUrl={modalPdf.pdfUrl}
+        filename={modalPdf.filename}
       />
     </>
   );

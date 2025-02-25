@@ -20,6 +20,7 @@ function RenderFilePreview({
   token,
   isImage,
   openImageModal,
+  openPdfModal,
   filename,
   isVideo,
   fileExtension,
@@ -36,6 +37,7 @@ function RenderFilePreview({
   token: Message;
   isImage: boolean;
   openImageModal: (url: string, alt: string) => void;
+  openPdfModal: (pdfUrl: string, filename: string) => void;
   filename: string;
   isVideo: boolean;
   fileExtension: string;
@@ -113,6 +115,7 @@ function RenderFilePreview({
 
   // Video Preview with animation
   if (isVideo && fileUrl) {
+    const mov = fileExtension.toLowerCase() === "mov";
     useEffect(() => {
       if (startTimestamp && videoRef.current) {
         const startSeconds = parseTimestamp(startTimestamp);
@@ -132,25 +135,59 @@ function RenderFilePreview({
       return extensionToMimeType[extension] || `video/${extension}`;
     };
 
-    return (
-      <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
-        <video
-          ref={videoRef}
-          poster={thumbnailImage}
-          controls
-          className="w-full h-auto"
-          onLoadedMetadata={() => {
-            if (startTimestamp && videoRef.current) {
-              const startSeconds = parseTimestamp(startTimestamp);
-              videoRef.current.currentTime = startSeconds;
-            }
-          }}
-        >
-          <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    );
+    if (mov) {
+      return (
+        <>
+          {browserSupportsVideo ? (
+            <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
+              <video
+                ref={videoRef}
+                poster={thumbnailImage}
+                controls
+                className="w-full h-auto"
+                onLoadedMetadata={() => {
+                  if (startTimestamp && videoRef.current) {
+                    const startSeconds = parseTimestamp(startTimestamp);
+                    videoRef.current.currentTime = startSeconds;
+                  }
+                }}
+              >
+                <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          ) : (
+            <div className="space-y-1 p-4">
+              <h2 className="text-primary text-[15px] font-medium">
+                Typo URLs are in beta
+              </h2>
+              <p className="text-xs text-[#7E7E7E]">
+                Currently, this file is only supported on Safari
+              </p>
+            </div>
+          )}
+        </>
+      );
+    } else {
+      return (
+        <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
+          <video
+            ref={videoRef}
+            poster={thumbnailImage}
+            className="w-full h-auto"
+            onLoadedMetadata={() => {
+              if (startTimestamp && videoRef.current) {
+                const startSeconds = parseTimestamp(startTimestamp);
+                videoRef.current.currentTime = startSeconds;
+              }
+            }}
+          >
+            <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      );
+    }
   }
 
   // Audio Preview with animation
@@ -168,17 +205,23 @@ function RenderFilePreview({
   // PDF Preview with animation
   if (isPDF && fileUrl) {
     return (
-      <div className="rounded-[14px] max-w-xs w-full overflow-hidden">
-        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          <div className="h-[350px]">
-            <Viewer
-              fileUrl={fileUrl}
-              defaultScale={SpecialZoomLevel.PageWidth}
-              scrollMode={ScrollMode.Page}
-            />
-          </div>
-        </Worker>
-      </div>
+      <>
+        <div
+          className="rounded-[14px] max-w-xs w-full overflow-hidden cursor-pointer"
+          onClick={() => openPdfModal(fileUrl, filename)}
+        >
+          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+            <div className="h-[360px] relative group">
+              <Viewer
+                fileUrl={fileUrl}
+                defaultScale={SpecialZoomLevel.PageWidth}
+                scrollMode={ScrollMode.Page}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg pointer-events-none" />
+            </div>
+          </Worker>
+        </div>
+      </>
     );
   }
 
