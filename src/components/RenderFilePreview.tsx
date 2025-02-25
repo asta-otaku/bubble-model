@@ -175,6 +175,7 @@ function RenderFilePreview({
             ref={videoRef}
             poster={thumbnailImage}
             className="w-full h-auto"
+            controls
             onLoadedMetadata={() => {
               if (startTimestamp && videoRef.current) {
                 const startSeconds = parseTimestamp(startTimestamp);
