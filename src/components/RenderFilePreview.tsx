@@ -6,6 +6,7 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { useEffect, useRef, useState } from "react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
+import RenderLinkPreview from "./RenderLinkPreview";
 
 const isSafari = () => {
   const ua = navigator.userAgent.toLowerCase();
@@ -57,6 +58,7 @@ function RenderFilePreview({
   );
   const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
+  const [faviconError, setFaviconError] = useState(false);
 
   useEffect(() => {
     setBrowserSupportsVideo(isSafari());
@@ -223,6 +225,48 @@ function RenderFilePreview({
           </Worker>
         </div>
       </>
+    );
+  }
+
+  // *** New: Referenced Link Preview ***
+  // If the token is a REFERENCE but not any supported media type,
+  // display a link preview.
+  if (
+    token.type === "REFERENCE" &&
+    token.content?.referencedAttachment?.url &&
+    !isImage &&
+    !isVideo &&
+    !isAudio &&
+    !isPDF &&
+    !isZip &&
+    !isCSV &&
+    !isExcel
+  ) {
+    // Helper function to parse the URL and extract hostname/origin
+    const getDisplayUrl = (url: string) => {
+      try {
+        const parsed = new URL(url);
+        return { hostname: parsed.hostname, origin: parsed.origin };
+      } catch (error) {
+        return { hostname: "", origin: "" };
+      }
+    };
+
+    return (
+      <RenderLinkPreview
+        getDisplayUrl={getDisplayUrl}
+        token={{
+          ...token,
+          // Ensure token.content.url is populated using the referencedAttachment URL
+          content: {
+            ...token.content,
+            url: token.content.referencedAttachment.url,
+          },
+        }}
+        setFaviconError={() => {}}
+        faviconError={false}
+        openImageModal={openImageModal}
+      />
     );
   }
 

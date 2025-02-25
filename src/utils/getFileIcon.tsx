@@ -144,7 +144,73 @@ export const getFileIcon = (
     );
   }
 
-  if (attachment.type === "REFERENCE" && attachment.cloudFrontDownloadLink) {
+  if (
+    attachment.type === "REFERENCE" &&
+    (attachment.cloudFrontDownloadLink ||
+      attachment.content.referencedAttachment?.url)
+  ) {
+    const effectiveUrl =
+      attachment.cloudFrontDownloadLink ||
+      attachment.content.referencedAttachment?.url ||
+      "";
+    const fileExtension = effectiveUrl.split(".").pop()?.toLowerCase() || "";
+
+    // Define a list of known file extensions for media
+    const knownExtensions = [
+      "zip",
+      "rar",
+      "mp3",
+      "wav",
+      "ogg",
+      "mp4",
+      "webm",
+      "m4a",
+      "avi",
+      "mkv",
+      "mov",
+      "pdf",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "csv",
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "heic",
+      "webp",
+      "json",
+      "js",
+      "txt",
+      "md",
+      "yaml",
+      "yml",
+      "toml",
+      "css",
+      "html",
+      "xml",
+      "jsonl",
+      "jsonl.gz",
+    ];
+
+    if (!knownExtensions.includes(fileExtension)) {
+      return (
+        <div className="flex items-center gap-1">
+          <Image
+            src={isSelected ? bluereference : whitereference}
+            alt="reference icon"
+            className="w-4 h-4"
+          />
+          <Image
+            src={isSelected ? links : whitelinks}
+            alt="link icon"
+            className="w-4 h-4"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center gap-1">
         <Image
