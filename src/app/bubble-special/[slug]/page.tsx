@@ -159,34 +159,42 @@ function Page() {
         attachment.content.referencedAttachment?.name ||
         attachment.metaData?.title ||
         "";
+    } else if (attachment.type === "USER") {
+      displayName = attachment.content.name || "";
     } else {
       displayName = attachment.metaData?.title || "";
     }
     displayName = truncateFilename(displayName);
 
     return (
-      <button
-        ref={index === 0 ? firstTokenRef : null}
-        key={`attachment-${attachment.content.id}-${index}`}
-        onClick={() => handleAttachmentSelect(attachment, index)}
-        className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
-          attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
-            ? "max-w-[172px] justify-between gap-1"
-            : ""
-        }`}
-      >
-        <span>
-          {getFileIcon(
-            attachment.cloudFrontDownloadLink || "",
-            attachment,
-            selectedAttachment,
-            transitioning
-          )}
-        </span>
-        <span className="text-inherit max-w-20 w-full truncate ml-1">
-          {displayName}
-        </span>
-      </button>
+      <>
+        {attachment.type === "USER" ? (
+          <span className="font-semibold">@{displayName}</span>
+        ) : (
+          <button
+            ref={index === 0 ? firstTokenRef : null}
+            key={`attachment-${attachment.content.id}-${index}`}
+            onClick={() => handleAttachmentSelect(attachment, index)}
+            className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
+              attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
+                ? "max-w-[172px] justify-between gap-1"
+                : ""
+            }`}
+          >
+            <span>
+              {getFileIcon(
+                attachment.cloudFrontDownloadLink || "",
+                attachment,
+                selectedAttachment,
+                transitioning
+              )}
+            </span>
+            <span className="text-inherit max-w-20 w-full truncate ml-1">
+              {displayName}
+            </span>
+          </button>
+        )}
+      </>
     );
   };
 

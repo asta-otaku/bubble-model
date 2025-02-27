@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mux/mux-player-react": "^3.3.0",
+    "@mux/videojs-kit": "^0.12.0",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",
     "@tiptap/core": "^2.10.3",
@@ -24,6 +25,9 @@
     "react-dom": "^18",
     "react-icons": "^5.4.0",
     "swiper": "^11.1.15",
+    "video.js": "^8.21.0",
+    "videojs-contrib-quality-levels": "^4.1.0",
+    "videojs-http-source-selector": "^1.1.6",
     "wavesurfer.js": "^7.8.10"
   },
   "devDependencies": {

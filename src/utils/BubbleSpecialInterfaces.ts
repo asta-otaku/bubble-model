@@ -29,6 +29,8 @@ export interface Message {
       url: string;
     };
     id: string;
+    name: string;
+    userId: string;
   };
 }
 
