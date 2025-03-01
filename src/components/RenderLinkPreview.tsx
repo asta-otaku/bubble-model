@@ -57,7 +57,7 @@ function RenderLinkPreview({
         </a>
       </div>
       <h2 className="text-[#7e7e7e] text-sm line-clamp-1">
-        {token.metaData?.title}
+        {token.metaData?.title || token.content?.url || "Link"}
       </h2>
       <p className="inline-block self-stretch text-[#7e7e7e] text-sm">
         {token.metaData?.dataText}

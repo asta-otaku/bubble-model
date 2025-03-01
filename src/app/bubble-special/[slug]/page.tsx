@@ -181,7 +181,7 @@ function Page() {
             onClick={() => handleAttachmentSelect(attachment, index)}
             className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
               attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
-                ? "max-w-[172px] justify-between gap-1"
+                ? "max-w-[160px] justify-between gap-1"
                 : ""
             }`}
           >

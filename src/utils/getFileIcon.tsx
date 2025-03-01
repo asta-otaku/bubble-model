@@ -98,7 +98,7 @@ export const getFileIcon = (
       <Image
         src={isSelected ? links : whitelinks}
         alt="link icon"
-        className="w-4 h-4"
+        className="w-6"
       />
     );
   }

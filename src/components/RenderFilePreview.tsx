@@ -58,7 +58,6 @@ function RenderFilePreview({
   );
   const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
-  const [faviconError, setFaviconError] = useState(false);
 
   useEffect(() => {
     setBrowserSupportsVideo(isSafari());
