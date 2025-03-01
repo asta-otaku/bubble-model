@@ -17,7 +17,6 @@ export interface Message {
   content: {
     contentId: string;
     startTime: number;
-    url: string;
     referencedAttachment: {
       thumbnailImage: string;
       name: string;
@@ -28,8 +27,14 @@ export interface Message {
       id: string;
       url: string;
     };
-    id: string;
-    name: string;
+     thumbnailImage: string;
+      name: string;
+      size: number;
+      width: number;
+      height: number;
+      muxPlaybackId: string;
+      id: string;
+      url: string;
     userId: string;
   };
 }

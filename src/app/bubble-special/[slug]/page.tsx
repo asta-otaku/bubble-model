@@ -143,10 +143,10 @@ function Page() {
         ? "bg-white text-secondary"
         : "bg-[#FFFFFF33] text-white";
     let displayName = "";
-    if (attachment.type === "LINK" && attachment?.cloudFrontDownloadLink) {
+    if (attachment.type === "LINK") {
       try {
         displayName = new URL(
-          attachment.cloudFrontDownloadLink
+          attachment.cloudFrontDownloadLink || attachment.content.url
         ).hostname.replace("www.", "");
       } catch (error) {
         console.error("Invalid URL", error);
@@ -158,11 +158,15 @@ function Page() {
       displayName =
         attachment.content.referencedAttachment?.name ||
         attachment.metaData?.title ||
+        new URL(attachment.content.referencedAttachment.url).hostname.replace(
+          "www.",
+          ""
+        ) ||
         "";
     } else if (attachment.type === "USER") {
       displayName = attachment.content.name || "";
     } else {
-      displayName = attachment.metaData?.title || "";
+      displayName = attachment.content.name || attachment.metaData?.title || "";
     }
     displayName = truncateFilename(displayName);
 
