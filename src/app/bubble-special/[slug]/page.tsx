@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import TokenPreviewSpecial from "@/components/TokenPreviewSpecial";
 import { truncateFilename } from "@/components/TruncateText";
@@ -117,21 +117,88 @@ function Page() {
   const renderContent = (content: string, attachments: Message[]) => {
     if (!content) return <p>No content available</p>;
 
-    const contentParts = content.split("$");
-    return contentParts.flatMap((part, index) => {
-      const textElement = (
+    // Clone attachments to avoid modifying the original array
+    const processedAttachments = [...attachments]
+      .filter((att) => typeof att.index === "number")
+      .sort((a, b) => a.index - b.index);
+
+    // Find all dollar sign positions in the content string
+    const dollarPositions: number[] = [];
+    for (let i = 0; i < content.length; i++) {
+      if (content[i] === "$") {
+        dollarPositions.push(i);
+      }
+    }
+
+    // Create a mapping between attachment indices and actual dollar sign positions
+    // This handles cases where attachment.index doesn't exactly match a dollar sign position
+    const indexMapping = new Map<number, number>();
+
+    // Try to match each attachment to the closest dollar sign
+    processedAttachments.forEach((attachment) => {
+      // Find the closest dollar sign position to this attachment's index
+      const closestDollarPos = dollarPositions.reduce((closest, current) => {
+        return Math.abs(current - attachment.index) <
+          Math.abs(closest - attachment.index)
+          ? current
+          : closest;
+      }, Infinity);
+
+      // Only map if we found a reasonably close dollar sign (within 3 characters)
+      if (
+        closestDollarPos !== Infinity &&
+        Math.abs(closestDollarPos - attachment.index) <= 3
+      ) {
+        indexMapping.set(attachment.index, closestDollarPos);
+      } else {
+        // Keep the original index if no close dollar sign was found
+        indexMapping.set(attachment.index, attachment.index);
+      }
+    });
+
+    // Now render the content with our refined positions
+    const elements: JSX.Element[] = [];
+    let lastIndex = 0;
+
+    processedAttachments.forEach((attachment) => {
+      const mappedIndex =
+        indexMapping.get(attachment.index) || attachment.index;
+
+      // Add text before this token
+      if (mappedIndex > lastIndex) {
+        elements.push(
+          <span
+            key={`text-${lastIndex}`}
+            className="text-white inline"
+            dangerouslySetInnerHTML={{
+              __html: content.substring(lastIndex, mappedIndex),
+            }}
+          />
+        );
+      }
+
+      // Add the token button
+      const attachmentIndex = attachments.findIndex(
+        (a) => a.content.id === attachment.content.id
+      );
+      elements.push(renderAttachmentButton(attachment, attachmentIndex));
+
+      // Move past the dollar sign if we're at one
+      lastIndex = content[mappedIndex] === "$" ? mappedIndex + 1 : mappedIndex;
+    });
+
+    // Add any remaining text
+    if (lastIndex < content.length) {
+      elements.push(
         <span
-          key={`text-${index}`}
+          key={`text-${lastIndex}`}
           className="text-white inline"
-          dangerouslySetInnerHTML={{ __html: part }}
+          dangerouslySetInnerHTML={{ __html: content.substring(lastIndex) }}
         />
       );
-      const attachmentElement =
-        index < contentParts.length - 1 && attachments[index]
-          ? renderAttachmentButton(attachments[index], index)
-          : null;
-      return [textElement, attachmentElement];
-    });
+    }
+
+    return elements;
   };
 
   const renderAttachmentButton = (attachment: Message, index: number) => {
@@ -181,7 +248,7 @@ function Page() {
             onClick={() => handleAttachmentSelect(attachment, index)}
             className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
               attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
-                ? "max-w-[160px] justify-between gap-1"
+                ? "max-w-[172px] justify-between gap-1"
                 : ""
             }`}
           >
@@ -216,7 +283,7 @@ function Page() {
   return (
     <div className="w-full min-h-screen flex justify-center items-center relative p-4">
       <motion.div
-        className="w-[360px] mx-auto p-6"
+        className="w-[370px] mx-auto p-6"
         drag={!isDraggingDisabled && screenWidth > 768}
         dragMomentum={false}
         style={{ x: springX, y: springY }}

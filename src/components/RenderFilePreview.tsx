@@ -1,12 +1,12 @@
-import { parseTimestamp } from "@/utils";
 import AudioPlayer from "./AudioPlayer";
 import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import RenderLinkPreview from "./RenderLinkPreview";
+import VideoJSPreview, { NativeVideoPreview } from "./VideoPlayer";
 
 const isSafari = () => {
   const ua = navigator.userAgent.toLowerCase();
@@ -53,12 +53,10 @@ function RenderFilePreview({
   const fileUrl = url;
   const fileSize = formatFileSize(
     token.type === "REFERENCE" || token.type === "TIMESTAMP"
-      ? token.content?.referencedAttachment?.size
-      : token.metaData?.size
+      ? token.content.referencedAttachment?.size
+      : token.content?.size
   );
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
-
   useEffect(() => {
     setBrowserSupportsVideo(isSafari());
   }, []);
@@ -71,7 +69,7 @@ function RenderFilePreview({
         <>
           {browserSupportsVideo ? (
             <div
-              className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
+              className="w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
               onClick={() => openImageModal(url, filename)}
             >
               <img
@@ -81,7 +79,7 @@ function RenderFilePreview({
                 height={500}
                 className="w-full h-auto transition-opacity group-hover:opacity-90"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+              <div className="absolute inset-0 bg-black group-hover:bg-black/10 transition-colors rounded-lg" />
             </div>
           ) : (
             <div className="space-y-1 p-4">
@@ -98,7 +96,7 @@ function RenderFilePreview({
     } else {
       return (
         <div
-          className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
+          className="w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
           onClick={() => openImageModal(url, filename)}
         >
           <img
@@ -113,81 +111,27 @@ function RenderFilePreview({
       );
     }
   }
-
-  // Video Preview with animation
+  // Video Preview
   if (isVideo && fileUrl) {
-    const mov = fileExtension.toLowerCase() === "mov";
-    useEffect(() => {
-      if (startTimestamp && videoRef.current) {
-        const startSeconds = parseTimestamp(startTimestamp);
-        videoRef.current.currentTime = startSeconds;
-      }
-    }, [startTimestamp]);
+    const muxPlaybackId =
+      token.content?.muxPlaybackId ||
+      token.content?.referencedAttachment?.muxPlaybackId;
 
-    const getVideoMimeType = (extension: string) => {
-      const extensionToMimeType: { [key: string]: string } = {
-        mp4: "video/mp4",
-        webm: "video/webm",
-        ogg: "video/ogg",
-        mov: "video/quicktime",
-        avi: "video/x-msvideo",
-        MOV: "video/quicktime",
-      };
-      return extensionToMimeType[extension] || `video/${extension}`;
-    };
-
-    if (mov) {
+    if (muxPlaybackId) {
       return (
-        <>
-          {browserSupportsVideo ? (
-            <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
-              <video
-                ref={videoRef}
-                poster={thumbnailImage}
-                controls
-                className="w-full h-auto"
-                onLoadedMetadata={() => {
-                  if (startTimestamp && videoRef.current) {
-                    const startSeconds = parseTimestamp(startTimestamp);
-                    videoRef.current.currentTime = startSeconds;
-                  }
-                }}
-              >
-                <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          ) : (
-            <div className="space-y-1 p-4">
-              <h2 className="text-primary text-[15px] font-medium">
-                Typo URLs are in beta
-              </h2>
-              <p className="text-xs text-[#7E7E7E]">
-                Currently, this file is only supported on Safari
-              </p>
-            </div>
-          )}
-        </>
+        <VideoJSPreview
+          muxPlaybackId={muxPlaybackId}
+          startTimestamp={startTimestamp}
+        />
       );
     } else {
       return (
-        <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
-          <video
-            ref={videoRef}
-            poster={thumbnailImage}
-            className="w-full h-auto"
-            controls
-            onLoadedMetadata={() => {
-              if (startTimestamp && videoRef.current) {
-                const startSeconds = parseTimestamp(startTimestamp);
-                videoRef.current.currentTime = startSeconds;
-              }
-            }}
-          >
-            <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
-            Your browser does not support the video tag.
-          </video>
-        </div>
+        <NativeVideoPreview
+          fileUrl={fileUrl}
+          fileExtension={fileExtension}
+          thumbnailImage={thumbnailImage}
+          startTimestamp={startTimestamp}
+        />
       );
     }
   }
@@ -209,7 +153,7 @@ function RenderFilePreview({
     return (
       <>
         <div
-          className="rounded-[14px] max-w-xs w-full overflow-hidden cursor-pointer"
+          className="rounded-[14px] w-full overflow-hidden cursor-pointer"
           onClick={() => openPdfModal(fileUrl, filename)}
         >
           <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
@@ -227,9 +171,6 @@ function RenderFilePreview({
     );
   }
 
-  // *** New: Referenced Link Preview ***
-  // If the token is a REFERENCE but not any supported media type,
-  // display a link preview.
   if (
     token.type === "REFERENCE" &&
     token.content?.referencedAttachment?.url &&
@@ -271,7 +212,7 @@ function RenderFilePreview({
 
   // For other file types with animation
   const getPreviewBox = (icon: string, title: string, color: string) => (
-    <div className="flex max-w-xs w-full p-3 flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
+    <div className="flex w-full p-3 flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
       <div className="flex justify-between items-center self-stretch gap-3">
         <div className="flex justify-between items-center self-stretch gap-3 flex-nowrap">
           <div className="w-6 h-6 rounded border border-solid border-[#1919191a] flex items-center justify-center">
@@ -294,7 +235,7 @@ function RenderFilePreview({
           </a>
         )}
       </div>
-      <div className="inline-block self-stretch text-[#7e7e7e] max-w-xs truncate overflow-hidden text-sm">
+      <div className="inline-block self-stretch text-[#7e7e7e] truncate overflow-hidden text-sm">
         {fileSize && `File size: ${fileSize}`}
       </div>
     </div>

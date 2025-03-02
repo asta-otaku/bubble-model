@@ -26,7 +26,7 @@ function RenderLinkPreview({
       : token.metaData.faviconUrl;
 
   return (
-    <div className="flex max-w-xs w-full p-3 flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
+    <div className="flex w-full p-3 flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
       <div className="flex justify-between items-center self-stretch gap-3">
         <div className="flex justify-between items-center self-stretch gap-3 flex-nowrap">
           <div className="w-6 h-6 rounded border border-solid border-[#1919191a] flex items-center justify-center">
@@ -65,7 +65,7 @@ function RenderLinkPreview({
       {token.metaData?.mediaUrl && (
         <>
           <div
-            className="max-w-xs max-h-[175px] rounded-lg cursor-pointer relative group"
+            className="max-h-[175px] rounded-lg cursor-pointer relative group"
             onClick={() =>
               openImageModal(token.metaData?.mediaUrl!, `${hostname} Preview`)
             }
