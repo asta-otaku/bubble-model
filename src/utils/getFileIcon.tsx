@@ -14,7 +14,6 @@ import Image from "next/image";
 import { formatTime } from ".";
 
 export const getFileIcon = (
-  fileName: string,
   attachment: Message,
   selectedAttachment: Message | null,
   transitioning: boolean

@@ -253,12 +253,7 @@ function Page() {
             }`}
           >
             <span>
-              {getFileIcon(
-                attachment.cloudFrontDownloadLink || "",
-                attachment,
-                selectedAttachment,
-                transitioning
-              )}
+              {getFileIcon(attachment, selectedAttachment, transitioning)}
             </span>
             <span className="text-inherit max-w-20 w-full truncate ml-1">
               {displayName}
