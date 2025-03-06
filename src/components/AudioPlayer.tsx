@@ -50,28 +50,29 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     if (wavesurfer && startTime) {
       const startSeconds = parseTimestamp(startTime);
 
-      // Only set the time if the audio is ready
-      if (wavesurfer.getDuration() > 0) {
-        wavesurfer.setTime(startSeconds);
-        setCurrentTime(formatTime(startSeconds) || "00:00");
-      }
-    }
-  }, [wavesurfer, startTime]);
-
-  useEffect(() => {
-    if (wavesurfer) {
-      const updateTime = () => {
-        const current = wavesurfer.getCurrentTime();
-        setCurrentTime(formatTime(current) || "00:00");
-      };
-
-      const handleReady = () => {
-        const duration = wavesurfer.getDuration();
-        setTotalDuration(
-          formatTime(duration) ||
-            formatTime(wavesurfer.getDuration()) ||
-            "00:00"
-        );
+            // Only set the time if the audio is ready
+            if (wavesurfer.getDuration() > 0) {
+              wavesurfer.setTime(startSeconds);
+              setCurrentTime(formatTime(startSeconds) || "00:00");
+            }
+          }
+        }, [wavesurfer, startTime]);
+      
+        useEffect(() => {
+          if (wavesurfer) {
+            const updateTime = () => {
+              const current = wavesurfer.getCurrentTime();
+              setCurrentTime(formatTime(current) || "00:00");
+            };
+      
+            const handleReady = () => {
+              const duration = wavesurfer.getDuration();
+              setTotalDuration(
+                formatTime(duration) ||
+                  formatTime(wavesurfer.getDuration()) ||
+                  "00:00"
+              );
+      
 
         // Set initial position if startTime exists and hasn't been initialized
         if (startTime && !isInitialized) {
@@ -114,7 +115,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       <div className="flex items-center gap-2 -mt-3 bg-[#F3F3F3] px-2 rounded-2xl py-0.5 overflow-hidden">
         <button onClick={handlePlayPause} className="">
-          {isPlaying ? (
+        {isPlaying ? (
             <Image
               src={PauseIcon}
               alt="Pause"

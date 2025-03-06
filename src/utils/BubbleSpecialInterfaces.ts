@@ -19,22 +19,22 @@ export interface Message {
     startTime: number;
     referencedAttachment: {
       thumbnailImage: string;
-      name: string;
+      name?: string;
       size: number;
       width: number;
       height: number;
       muxPlaybackId: string;
       id: string;
-      url: string;
+      url?: string;
     };
-     thumbnailImage: string;
-      name: string;
-      size: number;
-      width: number;
-      height: number;
-      muxPlaybackId: string;
-      id: string;
-      url: string;
+    thumbnailImage: string;
+    name: string;
+    size: number;
+    width: number;
+    height: number;
+    muxPlaybackId: string;
+    id: string;
+    url: string;
     userId: string;
   };
 }

@@ -69,6 +69,7 @@ function PDFModal({
               <object
                 data={pdfUrl}
                 type="application/pdf"
+                // title={filename}
                 width="100%"
                 height="100%"
               >

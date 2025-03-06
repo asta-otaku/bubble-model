@@ -14,6 +14,7 @@ import Image from "next/image";
 import { formatTime } from ".";
 
 export const getFileIcon = (
+  fileName: string,
   attachment: Message,
   selectedAttachment: Message | null,
   transitioning: boolean
@@ -58,6 +59,8 @@ export const getFileIcon = (
             src={attachment.cloudFrontDownloadLink}
             className="w-4 h-4 rounded-sm object-cover"
             muted
+            playsInline
+            autoPlay
             loop
           />
         );
@@ -148,6 +151,7 @@ export const getFileIcon = (
     (attachment.cloudFrontDownloadLink ||
       attachment.content.referencedAttachment?.url)
   ) {
+    // Use cloudFrontDownloadLink if available; otherwise use the referencedAttachment URL
     const effectiveUrl =
       attachment.cloudFrontDownloadLink ||
       attachment.content.referencedAttachment?.url ||
@@ -193,6 +197,8 @@ export const getFileIcon = (
       "jsonl.gz",
     ];
 
+    // If the file extension isn't one of our known media types,
+    // assume it's a link and render both the reference and link icons.
     if (!knownExtensions.includes(fileExtension)) {
       return (
         <div className="flex items-center gap-1">
@@ -210,6 +216,7 @@ export const getFileIcon = (
       );
     }
 
+    // Otherwise, render as a reference with additional info
     return (
       <div className="flex items-center gap-1">
         <Image

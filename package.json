@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@mux/mux-player-react": "^3.3.0",
@@ -19,18 +20,18 @@
     "@wavesurfer/react": "^1.0.7",
     "axios": "^1.7.9",
     "framer-motion": "^11.14.1",
-    "next": "14.2.18",
+    "mime-types": "^2.1.35",
+    "next": "^15.2.1",
     "pdfjs-dist": "^3.11.174",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.4.0",
+    "sharp": "^0.33.5",
     "swiper": "^11.1.15",
-    "video.js": "^8.21.0",
-    "videojs-contrib-quality-levels": "^4.1.0",
-    "videojs-http-source-selector": "^1.1.6",
     "wavesurfer.js": "^7.8.10"
   },
   "devDependencies": {
+    "@types/mime-types": "^2.1.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
