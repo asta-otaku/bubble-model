@@ -274,12 +274,7 @@ function Page() {
             }`}
           >
             <span>
-              {getFileIcon(
-                attachment.cloudFrontDownloadLink || "",
-                attachment,
-                selectedAttachment,
-                transitioning
-              )}
+              {getFileIcon(attachment, selectedAttachment, transitioning)}
             </span>
             <span className="text-inherit max-w-20 w-full truncate ml-1">
               {displayName}
@@ -303,7 +298,7 @@ function Page() {
   return (
     <div className="w-full min-h-screen flex justify-center items-center relative p-4">
       <motion.div
-        className="w-[360px] mx-auto p-6"
+        className="w-[370px] mx-auto p-6"
         drag={!isDraggingDisabled && screenWidth > 768}
         dragMomentum={false}
         style={{ x: springX, y: springY }}
