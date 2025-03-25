@@ -254,9 +254,6 @@ function FilePreview({
           </a>
         )}
       </div>
-      <div className="inline-block self-stretch text-[#7e7e7e] max-w-xs truncate overflow-hidden text-sm">
-        {"2Kb" && `File size: ${"2Kb"}`}
-      </div>
     </div>
   );
 
