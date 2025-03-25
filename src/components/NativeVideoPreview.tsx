@@ -1,17 +1,19 @@
 import React, { useRef, useEffect, useState } from "react";
 import { parseTimestamp } from "@/utils";
-import { isSafari , getVideoMimeType } from "@/utils/videoUtils";
+import { isSafari, getVideoMimeType } from "@/utils/videoUtils";
 
 export default function NativeVideoPreview({
   fileUrl,
   fileExtension,
   thumbnailImage,
   startTimestamp,
+  isFileSpecial,
 }: {
   fileUrl: string;
   fileExtension: string;
   thumbnailImage: string;
   startTimestamp?: string;
+  isFileSpecial?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
@@ -23,7 +25,6 @@ export default function NativeVideoPreview({
 
   // Set the video start time when metadata is loaded
   useEffect(() => {
-
     if (startTimestamp && videoRef.current) {
       const startSeconds = parseTimestamp(startTimestamp);
       videoRef.current.currentTime = startSeconds;
@@ -34,7 +35,11 @@ export default function NativeVideoPreview({
     return (
       <>
         {browserSupportsVideo ? (
-          <div className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px]">
+          <div
+            className={`min-h-full overflow-hidden ${
+              isFileSpecial ? "" : "rounded-[14px] w-full"
+            }`}
+          >
             <video
               ref={videoRef}
               poster={thumbnailImage}
@@ -64,25 +69,29 @@ export default function NativeVideoPreview({
       </>
     );
   } else {
-
-  return (
-    <div className="w-full min-h-full overflow-hidden rounded-[14px]">
-      <video
-        ref={videoRef}
-        poster={thumbnailImage}
-        controls
-        preload="auto"
-        width="100%"
-        onLoadedMetadata={() => {
-          if (startTimestamp && videoRef.current) {
-            const startSeconds = parseTimestamp(startTimestamp);
-            videoRef.current.currentTime = startSeconds;
-          }
-        }}
+    return (
+      <div
+        className={`w-full min-h-full overflow-hidden ${
+          isFileSpecial ? "" : "rounded-[14px"
+        }`}
       >
-        <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
-        Your browser does not support the video tag.
-      </video>
-    </div>
-  );
-}}
+        <video
+          ref={videoRef}
+          poster={thumbnailImage}
+          controls
+          preload="auto"
+          width="100%"
+          onLoadedMetadata={() => {
+            if (startTimestamp && videoRef.current) {
+              const startSeconds = parseTimestamp(startTimestamp);
+              videoRef.current.currentTime = startSeconds;
+            }
+          }}
+        >
+          <source src={fileUrl} type={getVideoMimeType(fileExtension)} />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    );
+  }
+}
