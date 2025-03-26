@@ -11,224 +11,12 @@ import videoIcon from "@/assets/videoIcon.svg";
 import userIcon from "@/assets/user.svg";
 import ticktock from "@/assets/ticktock.svg";
 import { truncateFilename } from "@/components/TruncateText";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import { FileContent, FileData } from "@/utils/BubbleSpecialInterfaces";
 
-const output = [
-  {
-    textAttachment: {
-      index: 20,
-      type: "FILE",
-      attachedContent: {
-        id: "d4517880-d924-4b1f-bcf1-1e59081b503a",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/d4517880-d924-4b1f-bcf1-1e59081b503a/IMG_0002.jpeg",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "ba084979-7b37-465e-83fe-b627340556ed",
-    streamId: "a1d6a69e-8870-47e3-b616-9c28df8866cd",
-    title: "2 Kelton shared a file with you",
-    description: "File: IMG_0002.jpeg",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/ba084979-7b37-465e-83fe-b627340556ed.png",
-  },
-
-  {
-    textAttachment: {
-      index: 0,
-      type: "FILE",
-      attachedContent: {
-        id: "b29404da-568b-4dc7-baea-1450ea25fc94",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/b29404da-568b-4dc7-baea-1450ea25fc94/IMG_6598-6795AE2F-4007-4301-BC38-2C73CEE5E1FF.heic",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "1a822f28-e717-438d-95cd-0f34ca466842",
-    streamId: "a1d6a69e-8870-47e3-b616-9c28df8866cd",
-    title: "2 Kelton shared a file with you",
-    description: "File: IMG_6598-6795AE2F-4007-4301-BC38-2C73CEE5E1FF.heic",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/1a822f28-e717-438d-95cd-0f34ca466842.png",
-  },
-
-  {
-    textAttachment: {
-      index: 2,
-      type: "FILE",
-      attachedContent: {
-        id: "877203e4-dc05-4f8e-ad54-676a1fcdd98f",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/877203e4-dc05-4f8e-ad54-676a1fcdd98f/IMG_6214-9C8AFCBC-2D48-403D-99AA-EB48F5877E43.mov",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "5135e71e-98f1-4c11-9cba-3a38ae32f791",
-    streamId: "a1d6a69e-8870-47e3-b616-9c28df8866cd",
-    title: "2 Kelton shared a file with you",
-    description: "File: IMG_6214-9C8AFCBC-2D48-403D-99AA-EB48F5877E43.mov",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/5135e71e-98f1-4c11-9cba-3a38ae32f791.png",
-  },
-
-  {
-    textAttachment: {
-      index: 0,
-      type: "FILE",
-      attachedContent: {
-        id: "9839a773-6526-4954-a2be-eee53c103e49",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/9839a773-6526-4954-a2be-eee53c103e49/mp4test1-01AAE41A-FF7D-40BB-80A3-CBD4DBF0EBDC.mp4",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "5135e71e-98f1-4c11-9cba-3a38ae32f791",
-    streamId: "a1d6a69e-8870-47e3-b616-9c28df8866cd",
-    title: "2 Kelton shared a file with you",
-    description: "File: mp4test1-01AAE41A-FF7D-40BB-80A3-CBD4DBF0EBDC.mp4",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/5135e71e-98f1-4c11-9cba-3a38ae32f791.png",
-  },
-  {
-    textAttachment: {
-      index: 0,
-      type: "FILE",
-      attachedContent: {
-        id: "639d5d1a-849a-4f5b-99dc-6e3a12aad477",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/639d5d1a-849a-4f5b-99dc-6e3a12aad477/gif2-7904BFF7-8D9A-471D-976F-F0BB42F08040.gif",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "1a12e4ae-bb97-4bc5-bd3a-18e1c64a269d",
-    streamId: "a1d6a69e-8870-47e3-b616-9c28df8866cd",
-    title: "2 Kelton shared a file with you",
-    description: "File: gif2-7904BFF7-8D9A-471D-976F-F0BB42F08040.gif",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/1a12e4ae-bb97-4bc5-bd3a-18e1c64a269d.png",
-  },
-  {
-    textAttachment: {
-      index: 112,
-      type: "FILE",
-      attachedContent: {
-        id: "66c84df9-a519-476d-8daf-60e8840b590c",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/66c84df9-a519-476d-8daf-60e8840b590c/Salter_Light Years.pdf",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "e626ef25-811d-4578-be89-21dabe39cbe9",
-    streamId: "ee3f636e-42f1-42e1-acde-1b32bb7b817e",
-    title: "2 Kelton shared a file with you",
-    description: "File: Salter_Light Years.pdf",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/e626ef25-811d-4578-be89-21dabe39cbe9.png",
-  },
-  {
-    textAttachment: {
-      index: 42,
-      type: "FILE",
-      attachedContent: {
-        id: "a8cff989-105f-46d7-b746-8d3912e8624f",
-      },
-      cloudFrontDownloadLink:
-        "https://da0hzjj0t72aj.cloudfront.net/a8cff989-105f-46d7-b746-8d3912e8624f/1hour_HegelsPhenomenologyofSpirit.mp3",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "e626ef25-811d-4578-be89-21dabe39cbe9",
-    streamId: "ee3f636e-42f1-42e1-acde-1b32bb7b817e",
-    title: "2 Kelton shared a file with you",
-    description: "File: 1hour_HegelsPhenomenologyofSpirit.mp3",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/e626ef25-811d-4578-be89-21dabe39cbe9.png",
-  },
-
-  {
-    textAttachment: {
-      index: 24,
-      type: "FILE",
-      attachedContent: {
-        id: "f71f6db3-badb-4a9c-8074-3deee13d5092",
-      },
-      cloudFrontDownloadLink:
-        "https://d28nmw8joqfmpg.cloudfront.net/30b970e8-4b42-4a82-b671-9d2f410d499a/mp3test2.mp3",
-      metaData: null,
-    },
-    ownerProfile: {
-      id: "717d854d-ee90-43a8-9a30-442954d09b79",
-      firstName: "2 Kelton",
-      lastName: "Reichert",
-      phoneNumber: "+12222222222",
-      lastUpdatedTime: 0,
-      isShadowProfile: false,
-    },
-    publicItemId: "e626ef25-811d-4578-be89-21dabe39cbe9",
-    streamId: "ee3f636e-42f1-42e1-acde-1b32bb7b817e",
-    title: "2 Kelton shared a file with you",
-    description: "File: CantinaBand60.wav",
-    image:
-      "https://da0hzjj0t72aj.cloudfront.net/metadata-images/e626ef25-811d-4578-be89-21dabe39cbe9.png",
-  },
-];
-
-// Select the output to display
-const exampleOutput = output[7];
+const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_FILE_PREVIEW_URL;
+const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 
 function Modal({
   children,
@@ -251,6 +39,7 @@ function Modal({
 }
 
 function Page() {
+  const { slug } = useParams();
   const [textValue, setTextValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState({
@@ -261,8 +50,28 @@ function Page() {
   });
   const [showName, setShowName] = useState(false);
   const [allowSubmit, setAllowSubmit] = useState(false);
+  const [bubbleData, setBubbleData] = useState<FileData | null>(null);
+  const [exampleOutput, setExampleOutput] = useState<FileContent | null>(null);
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchBubbleData = async () => {
+      try {
+        const { data } = await axios.post(
+          `${SPECIAL_BUBBLE_BASE_URL}/api/artifacts/details`,
+          { artifactId: slug, isDev: true },
+          { headers: { "x-user-id": USER_ID, accept: "*/*" } }
+        );
+        setBubbleData(data.artifact);
+        setExampleOutput(data.artifact[0]);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (slug) fetchBubbleData();
+  }, [slug]);
 
   useEffect(() => {
     if (user.phone && user.countryCode && user.code) {
@@ -278,19 +87,15 @@ function Page() {
   }, [user]);
 
   const filename =
-    exampleOutput.description ||
-    exampleOutput.textAttachment.cloudFrontDownloadLink ||
-    "";
+    bubbleData?.description || exampleOutput?.cloudFrontDownloadLink || "";
   const getFileExtension = (name: string) =>
     name.split(".").pop()?.toLowerCase() || "";
   const fileExtension = getFileExtension(filename);
 
   const isLink =
-    exampleOutput.textAttachment.type === "LINK" ||
+    exampleOutput?.type === "LINK" ||
     (!fileExtension &&
-      (exampleOutput.textAttachment.cloudFrontDownloadLink ?? "").startsWith(
-        "http"
-      ));
+      (exampleOutput?.cloudFrontDownloadLink ?? "").startsWith("http"));
   const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(fileExtension);
   const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
   const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
@@ -336,7 +141,7 @@ function Page() {
         <div className="bg-gradient-to-b from-[#7E7E7E] to-[#191919E5] rounded-full px-3 flex items-center gap-2">
           <Image src={videoIcon} alt="Video" width={0} height={0} />
           <span className="text-white text-sm font-light">
-            {truncateFilename(exampleOutput.description, true)}
+            {truncateFilename(bubbleData?.description || "", true)}
           </span>
         </div>
         <Image src={userIcon} alt="User" width={0} height={0} />
@@ -345,10 +150,10 @@ function Page() {
       <div className="min-h-[75vh] flex-grow flex justify-center items-center">
         <div className="w-full flex justify-center h-full">
           <FilePreview
-            url={exampleOutput.textAttachment.cloudFrontDownloadLink}
-            filename={exampleOutput.title}
+            url={exampleOutput?.cloudFrontDownloadLink}
+            filename={bubbleData?.title || ""}
             fileExtension={
-              exampleOutput.textAttachment.cloudFrontDownloadLink
+              exampleOutput?.cloudFrontDownloadLink
                 .split(".")
                 .pop()
                 ?.toLowerCase() || ""
@@ -368,7 +173,7 @@ function Page() {
             openPdfModal={() => {
               /* Add PDF modal handler if needed */
             }}
-            thumbnailImage={exampleOutput.image}
+            thumbnailImage={bubbleData?.image || ""}
           />
         </div>
       </div>

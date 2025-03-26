@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import axios from "axios";
 
-const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_FILE_PREVIEW_URL;
+const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 
 function cleanAttachmentReferences(
   description: string,
@@ -28,11 +29,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const response = await axios.post(
-      `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/shared-item/fbf6ff9e-ae5f-40ff-89ce-747b4ec5b441`,
+    const response = await axios.get(
+      `${SPECIAL_BUBBLE_BASE_URL}/api/bubbles/${slug}/metadata`,
       {
         headers: {
-          "x-user-id": "5eb23daa-13b1-4428-9fd3-048f3afdf69f",
+          "x-user-id": USER_ID,
           accept: "*/*",
           "Content-Type": "application/json",
         },

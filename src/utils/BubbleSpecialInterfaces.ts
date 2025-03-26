@@ -50,3 +50,30 @@ export interface BubbleData {
   description: string;
   image: string;
 }
+
+export interface FileContent {
+  index: number;
+  type: string;
+  cloudFrontDownloadLink: string;
+  metaData: any;
+  content: {
+    thumbnailImage: string;
+    name: string;
+    size: number;
+    width: number;
+    height: number;
+    id: string;
+  };
+}
+
+export interface FileData {
+  id: string;
+  createdAt: string;
+  ownerId: string;
+  contentText: string;
+  attachments: FileContent[];
+  streamId: string;
+  title: string;
+  description: string;
+  image: string;
+}

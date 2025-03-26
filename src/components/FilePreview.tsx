@@ -187,11 +187,8 @@ function FilePreview({
     );
   }
 
-  // *** New: Referenced Link Preview ***
-  // If the token is a REFERENCE but not any supported media type,
-  // display a link preview.
   if (
-    token.type === "REFERENCE" &&
+    token?.type === "REFERENCE" &&
     token.content?.referencedAttachment?.url &&
     !isImage &&
     !isVideo &&

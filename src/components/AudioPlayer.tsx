@@ -36,7 +36,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     cursorWidth: 1,
     cursorColor: "transparent",
     container: containerRef,
-    height: isFileSpecial ? 420 : startTime ? 49 : 80,
+    height: isFileSpecial ? 300 : startTime ? 49 : 80,
     waveColor: "#B2B2B2",
     progressColor: "#2C6BF8",
     url: audioUrl,
@@ -109,7 +109,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <>
       {isFileSpecial ? (
         <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="w-full h-[50%] bg-white">
+          <div className="w-full h-[50%] bg-white mb-24">
             <div
               ref={containerRef}
               className="relative flex-1 cursor-pointer"
@@ -119,7 +119,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <p className="font-mono text-xs text-primary">
             {currentTime} / {totalDuration}
           </p>
-          <div className="flex items-center gap-4 mt-3">
+          <div className="flex items-center gap-4">
             <button onClick={() => handleSkip(-15)}>
               <Image src={backTimer} alt="Back 15 seconds" />
             </button>
