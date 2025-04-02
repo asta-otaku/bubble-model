@@ -9,6 +9,7 @@ import MuxVideoPreview from "./MuxVideoPreview";
 import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
 import NativeVideoPreview from "./NativeVideoPreview";
 import { isSafari } from "@/utils/videoUtils";
+import JsonPreview from "./JsonPreview";
 
 function FilePreview({
   url,
@@ -24,6 +25,7 @@ function FilePreview({
   isPDF,
   isZip,
   isCSV,
+  isJSON,
   isExcel,
   thumbnailImage,
   startTimestamp,
@@ -42,6 +44,7 @@ function FilePreview({
   isZip: boolean;
   isCSV: boolean;
   isExcel: boolean;
+  isJSON: boolean;
   thumbnailImage: string;
   startTimestamp?: string;
 }) {
@@ -55,7 +58,9 @@ function FilePreview({
 
   // Image Preview with animation
   if (isImage && url) {
-    const isHeic = fileExtension.toLowerCase() === "heic";
+    const isHeic =
+      fileExtension.toLowerCase() === "heic" ||
+      fileExtension.toLowerCase() === "tif";
     if (isHeic) {
       return (
         <>
@@ -86,15 +91,14 @@ function FilePreview({
     } else {
       return (
         <div
-          className="w-full overflow-hidden cursor-pointer relative group"
+          className="w-full h-full overflow-hidden cursor-pointer relative group"
           onClick={() => openImageModal(url, filename)}
         >
           <img
             src={url}
             alt={filename}
-            className="w-full h-full transition-opacity object-cover"
+            className="w-full h-full transition-opacity object-contain"
           />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
         </div>
       );
     }
@@ -145,7 +149,7 @@ function FilePreview({
           fileExtension={fileExtension}
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
-          isFileSpecial
+          isFileSpecial={true}
         />
       );
     }
@@ -176,15 +180,18 @@ function FilePreview({
             <div className="h-full relative group">
               <Viewer
                 fileUrl={fileUrl}
-                defaultScale={SpecialZoomLevel.PageWidth}
-                scrollMode={ScrollMode.Page}
+                defaultScale={SpecialZoomLevel.PageFit}
+                scrollMode={ScrollMode.Vertical}
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg pointer-events-none" />
             </div>
           </Worker>
         </div>
       </>
     );
+  }
+
+  if (isJSON && fileUrl) {
+    return <JsonPreview url={fileUrl} />;
   }
 
   if (
@@ -228,14 +235,14 @@ function FilePreview({
 
   // For other file types with animation
   const getPreviewBox = (icon: string, title: string, color: string) => (
-    <div className="flex max-w-xs w-full p-3 flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
+    <div className="flex w-full p-3 flex-col gap-3 bg-gray-100">
       <div className="flex justify-between items-center self-stretch gap-3">
         <div className="flex justify-between items-center self-stretch gap-3 flex-nowrap">
           <div className="w-6 h-6 rounded border border-solid border-[#1919191a] flex items-center justify-center">
             <span className="text-base">{icon}</span>
           </div>
           <div
-            className={`inline-block items-center gap-1.5 text-xs font-medium ${color} whitespace-nowrap max-w-[137px] truncate overflow-hidden`}
+            className={`inline-block items-center gap-1.5 text-sm font-medium ${color} whitespace-nowrap max-w-[137px] truncate overflow-hidden`}
           >
             {filename}
           </div>
@@ -245,7 +252,7 @@ function FilePreview({
             href={fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
+            className="bg-white border border-solid border-[#1919191A] text-sm text-[#191919] px-4 py-2 rounded-full"
           >
             Open {title}
           </a>

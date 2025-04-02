@@ -52,6 +52,11 @@
   /* Hide scrollbar for Webkit browsers */
 }
 
+.hide-scrollbar {
+  scrollbar-width: none;
+  
+}
+
 :root {
   --background-solid: #fff;
 }

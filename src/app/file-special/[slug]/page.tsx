@@ -96,13 +96,14 @@ function Page() {
     exampleOutput?.type === "LINK" ||
     (!fileExtension &&
       (exampleOutput?.cloudFrontDownloadLink ?? "").startsWith("http"));
-  const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(fileExtension);
+  const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic|tif)$/i.test(fileExtension);
   const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
   const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
   const isPDF = /^pdf$/i.test(fileExtension);
   const isZip = /^(zip|rar|7z)$/i.test(fileExtension);
   const isCSV = /^csv$/i.test(fileExtension);
   const isExcel = /^(xls|xlsx)$/i.test(fileExtension);
+  const isJSON = /^json$/i.test(fileExtension);
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return "";
@@ -166,6 +167,7 @@ function Page() {
             isZip={isZip}
             isCSV={isCSV}
             isExcel={isExcel}
+            isJSON={isJSON}
             formatFileSize={formatFileSize}
             openImageModal={() => {
               /* Add image modal handler if needed */

@@ -10,6 +10,7 @@ import MuxVideoPreview from "./MuxVideoPreview";
 import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
 import NativeVideoPreview from "./NativeVideoPreview";
 import { isSafari } from "@/utils/videoUtils";
+import JsonPreview from "./JsonPreview";
 
 function RenderFilePreview({
   url,
@@ -26,6 +27,7 @@ function RenderFilePreview({
   isZip,
   isCSV,
   isExcel,
+  isJSON,
   thumbnailImage,
   startTimestamp,
 }: {
@@ -43,6 +45,7 @@ function RenderFilePreview({
   isZip: boolean;
   isCSV: boolean;
   isExcel: boolean;
+  isJSON: boolean;
   thumbnailImage: string;
   startTimestamp?: string;
 }) {
@@ -195,6 +198,10 @@ function RenderFilePreview({
         </div>
       </>
     );
+  }
+
+  if (isJSON && fileUrl) {
+    return <JsonPreview url={fileUrl} />;
   }
 
   // *** New: Referenced Link Preview ***

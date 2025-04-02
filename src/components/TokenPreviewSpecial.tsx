@@ -95,6 +95,7 @@ function TokenPreviewSpecial({
         const isZip = /^(zip|rar|7z)$/i.test(fileExtension);
         const isCSV = /^csv$/i.test(fileExtension);
         const isExcel = /^(xls|xlsx)$/i.test(fileExtension);
+        const isJSON = /^json$/i.test(fileExtension);
 
         const formatFileSize = (bytes?: number) => {
           if (!bytes) return "";
@@ -147,6 +148,7 @@ function TokenPreviewSpecial({
               isZip={isZip}
               isCSV={isCSV}
               isExcel={isExcel}
+              isJSON={isJSON}
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
               openPdfModal={openPdfModal}
@@ -173,6 +175,7 @@ function TokenPreviewSpecial({
             isZip={isZip}
             isCSV={isCSV}
             isExcel={isExcel}
+            isJSON={isJSON}
             formatFileSize={formatFileSize}
             openImageModal={openImageModal}
             openPdfModal={openPdfModal}

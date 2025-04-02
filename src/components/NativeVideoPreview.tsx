@@ -31,20 +31,19 @@ export default function NativeVideoPreview({
     }
   }, [startTimestamp]);
 
+  const containerClass = "overflow-hidden rounded-[14px] w-full";
+  const videoClass = isFileSpecial ? "w-full h-full" : "w-full h-full";
+
   if (mov) {
     return (
       <>
         {browserSupportsVideo ? (
-          <div
-            className={`min-h-full overflow-hidden ${
-              isFileSpecial ? "" : "rounded-[14px] w-full"
-            }`}
-          >
+          <div className={containerClass}>
             <video
               ref={videoRef}
               poster={thumbnailImage}
               controls
-              className="w-full h-auto"
+              className={videoClass}
               onLoadedMetadata={() => {
                 if (startTimestamp && videoRef.current) {
                   const startSeconds = parseTimestamp(startTimestamp);
@@ -70,17 +69,14 @@ export default function NativeVideoPreview({
     );
   } else {
     return (
-      <div
-        className={`w-full min-h-full overflow-hidden ${
-          isFileSpecial ? "" : "rounded-[14px"
-        }`}
-      >
+      <div className={containerClass}>
         <video
           ref={videoRef}
           poster={thumbnailImage}
           controls
           preload="auto"
           width="100%"
+          className={videoClass}
           onLoadedMetadata={() => {
             if (startTimestamp && videoRef.current) {
               const startSeconds = parseTimestamp(startTimestamp);
