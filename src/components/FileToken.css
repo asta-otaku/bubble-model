@@ -9,7 +9,7 @@
 }
 
 .file-token-button.selected {
-display: flex;
+  display: flex;
   padding: 2px 8px;
   align-items: flex-start;
   gap: 4px;

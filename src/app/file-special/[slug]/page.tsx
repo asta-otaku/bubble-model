@@ -3,99 +3,118 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UploadIcon } from "@/assets/uploadIcon";
-import CountryCode from "@/components/CountryCode";
+// import { UploadIcon } from "@/assets/uploadIcon";
+// import CountryCode from "@/components/CountryCode";
 import FilePreview from "@/components/FilePreview";
 import blackTypo from "@/assets/blackTypo.svg";
 import videoIcon from "@/assets/videoIcon.svg";
 import userIcon from "@/assets/user.svg";
-import ticktock from "@/assets/ticktock.svg";
+// import ticktock from "@/assets/ticktock.svg";
 import { truncateFilename } from "@/components/TruncateText";
 import axios from "axios";
-import { useParams } from "next/navigation";
-import { FileContent, FileData } from "@/utils/BubbleSpecialInterfaces";
+import { useParams, useRouter } from "next/navigation";
+import {
+  FileContent,
+  FileData,
+  BackendResponse,
+  OwnerProfile,
+  AttachedContent,
+} from "@/utils/BubbleSpecialInterfaces";
+import {
+  getFileTypeIcon,
+  getFileNameFromDescription,
+} from "@/utils/getFileTypeIcon";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_FILE_PREVIEW_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 
-function Modal({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 flex justify-center items-center z-50 w-full mx-auto">
-      <div
-        className="absolute inset-0 bg-black opacity-50"
-        onClick={onClose}
-      ></div>
-      <div className="relative bg-[#F3F3F3BF] text-primary px-4 py-3 rounded-2xl z-50 mx-auto flex justify-center items-center">
-        {children}
-      </div>
-    </div>
-  );
-}
+// function Modal({
+//   children,
+//   onClose,
+// }: {
+//   children: React.ReactNode;
+//   onClose: () => void;
+// }) {
+//   return (
+//     <div className="fixed inset-0 flex justify-center items-center z-50 w-full mx-auto">
+//       <div
+//         className="absolute inset-0 bg-black opacity-50"
+//         onClick={onClose}
+//       ></div>
+//       <div className="relative bg-[#F3F3F3BF] text-primary px-4 py-3 rounded-2xl z-50 mx-auto flex justify-center items-center">
+//         {children}
+//       </div>
+//     </div>
+//   );
+// }
 
 function Page() {
   const { slug } = useParams();
-  const [textValue, setTextValue] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [user, setUser] = useState({
-    name: "",
-    phone: "",
-    countryCode: "",
-    code: "",
-  });
-  const [showName, setShowName] = useState(false);
-  const [allowSubmit, setAllowSubmit] = useState(false);
-  const [bubbleData, setBubbleData] = useState<FileData | null>(null);
+  const router = useRouter();
+  // const [textValue, setTextValue] = useState("");
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [user, setUser] = useState({
+  //   name: "",
+  //   phone: "",
+  //   countryCode: "",
+  //   code: "",
+  // });
+  // const [showName, setShowName] = useState(false);
+  // const [allowSubmit, setAllowSubmit] = useState(false);
+  const [fileData, setFileData] = useState<FileData | null>(null);
   const [exampleOutput, setExampleOutput] = useState<FileContent | null>(null);
-
+  const [isLoading, setIsLoading] = useState(true);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
-    const fetchBubbleData = async () => {
+    const fetchFileData = async () => {
+      setIsLoading(true);
       try {
-        const { data } = await axios.post(
-          `${SPECIAL_BUBBLE_BASE_URL}/api/artifacts/details`,
-          { artifactId: slug, isDev: true },
+        const { data } = await axios.get(
+          `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/single-file/${slug}`,
           { headers: { "x-user-id": USER_ID, accept: "*/*" } }
         );
-        setBubbleData(data.artifact);
-        setExampleOutput(data.artifact[0]);
+        setFileData(data);
+        setExampleOutput(data.textAttachment);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (slug) fetchBubbleData();
+    if (slug) fetchFileData();
   }, [slug]);
 
   useEffect(() => {
-    if (user.phone && user.countryCode && user.code) {
-      setShowName(true);
-    } else {
-      setShowName(false);
+    if (!isLoading && !fileData) {
+      router.replace("/not-found");
     }
-    if (user.name !== "") {
-      setAllowSubmit(true);
-    } else {
-      setAllowSubmit(false);
-    }
-  }, [user]);
+  }, [fileData, isLoading, router]);
+
+  if (isLoading || !fileData) {
+    return <div>Loading...</div>;
+  }
+
+  // useEffect(() => {
+  //   if (user.phone && user.countryCode && user.code) {
+  //     setShowName(true);
+  //   } else {
+  //     setShowName(false);
+  //   }
+  //   if (user.name !== "") {
+  //     setAllowSubmit(true);
+  //   } else {
+  //     setAllowSubmit(false);
+  //   }
+  // }, [user]);
 
   const filename =
-    bubbleData?.description || exampleOutput?.cloudFrontDownloadLink || "";
+    fileData?.description || exampleOutput?.cloudFrontDownloadLink || "";
   const getFileExtension = (name: string) =>
     name.split(".").pop()?.toLowerCase() || "";
   const fileExtension = getFileExtension(filename);
 
-  const isLink =
-    exampleOutput?.type === "LINK" ||
-    (!fileExtension &&
-      (exampleOutput?.cloudFrontDownloadLink ?? "").startsWith("http"));
   const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic|tif)$/i.test(fileExtension);
   const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
   const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
@@ -117,16 +136,20 @@ function Page() {
     return `${size.toFixed(1)} ${units[unitIndex]}`;
   };
 
-  const uploadIconColor = textValue.trim() ? "black" : "#BABABA";
+  const title = truncateFilename(
+    getFileNameFromDescription(fileData.description),
+    true
+  );
+  // const uploadIconColor = textValue.trim() ? "black" : "#BABABA";
 
-  const handleFocus = () => setIsKeyboardOpen(true);
-  const handleBlur = () => setIsKeyboardOpen(false);
+  // const handleFocus = () => setIsKeyboardOpen(true);
+  // const handleBlur = () => setIsKeyboardOpen(false);
 
-  const openModal = () => {
-    if (textValue.trim() !== "") {
-      setIsModalOpen(true);
-    }
-  };
+  // const openModal = () => {
+  //   if (textValue.trim() !== "") {
+  //     setIsModalOpen(true);
+  //   }
+  // };
 
   return (
     <div
@@ -136,14 +159,72 @@ function Page() {
     >
       {/* Header */}
       <div className="p-4 flex justify-between items-center gap-4 shrink-0">
-        <Link href="/">
+        <Link href={`/file-special/${slug}`}>
           <Image src={blackTypo} alt="Typo" width={0} height={0} />
         </Link>
         <div className="bg-gradient-to-b from-[#7E7E7E] to-[#191919E5] rounded-full px-3 flex items-center gap-2">
-          <Image src={videoIcon} alt="Video" width={0} height={0} />
-          <span className="text-white text-sm font-light">
-            {truncateFilename(bubbleData?.description || "", true)}
-          </span>
+          {fileData && (
+            <>
+              {getFileTypeIcon(fileData)?.iconType === "url" ? (
+                <div className="w-5 h-5 rounded-sm overflow-hidden flex-shrink-0">
+                  <img
+                    src={getFileTypeIcon(fileData)?.iconUrl}
+                    alt={getFileTypeIcon(fileData)?.label || "File"}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      // Fallback to the default icon if the image fails to load
+                      e.currentTarget.src =
+                        getFileTypeIcon(fileData)?.icon?.src || videoIcon.src;
+                    }}
+                  />
+                </div>
+              ) : getFileTypeIcon(fileData)?.iconType === "videoUrl" ? (
+                <div className="w-5 h-5 rounded-sm overflow-hidden flex-shrink-0">
+                  <video
+                    src={getFileTypeIcon(fileData)?.iconUrl}
+                    className="w-full h-full object-cover"
+                    preload="metadata"
+                    playsInline
+                    autoPlay
+                    muted
+                    loop
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      // Hide the video element on error and show fallback
+                      e.currentTarget.style.display = "none";
+                      // Create and append fallback image
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        const img = document.createElement("img");
+                        img.src =
+                          getFileTypeIcon(fileData)?.icon?.src || videoIcon.src;
+                        img.alt = getFileTypeIcon(fileData)?.label || "Video";
+                        img.className = "w-full h-full object-cover";
+                        parent.appendChild(img);
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <Image
+                  src={getFileTypeIcon(fileData)?.icon || videoIcon}
+                  alt={getFileTypeIcon(fileData)?.label || "File"}
+                  width={0}
+                  height={0}
+                />
+              )}
+              <span className="text-white text-sm font-light">
+                {fileData?.description ? title : "Loading..."}
+              </span>
+            </>
+          )}
+          {!fileData && (
+            <>
+              <Image src={videoIcon} alt="File" width={0} height={0} />
+              <span className="text-white text-sm font-light">Loading...</span>
+            </>
+          )}
         </div>
         <Image src={userIcon} alt="User" width={0} height={0} />
       </div>
@@ -152,7 +233,7 @@ function Page() {
         <div className="w-full flex justify-center h-full">
           <FilePreview
             url={exampleOutput?.cloudFrontDownloadLink}
-            filename={bubbleData?.title || ""}
+            filename={fileData?.title || ""}
             fileExtension={
               exampleOutput?.cloudFrontDownloadLink
                 .split(".")
@@ -169,18 +250,19 @@ function Page() {
             isExcel={isExcel}
             isJSON={isJSON}
             formatFileSize={formatFileSize}
+            title={title}
             openImageModal={() => {
               /* Add image modal handler if needed */
             }}
             openPdfModal={() => {
               /* Add PDF modal handler if needed */
             }}
-            thumbnailImage={bubbleData?.image || ""}
+            thumbnailImage={fileData?.image || ""}
           />
         </div>
       </div>
       {/* Textarea and UploadIcon section */}
-      <div className="mt-4 px-6 shrink-0">
+      {/* <div className="mt-4 px-6 shrink-0">
         <div className="bg-[#F0F0F0] rounded-2xl border border-[#EBEBEBBF] pb-2">
           <textarea
             onFocus={handleFocus}
@@ -203,9 +285,9 @@ function Page() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       {/* Modal with StepOneBottom */}
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
           <div className="flex flex-col max-w-[360px]">
             <h2 className="text-primary font-medium text-[17px] max-w-xs w-full text-center">
@@ -258,7 +340,7 @@ function Page() {
             </p>
           </div>
         </Modal>
-      )}
+      )} */}
     </div>
   );
 }

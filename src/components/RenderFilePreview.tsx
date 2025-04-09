@@ -121,6 +121,11 @@ function RenderFilePreview({
     const muxPlaybackId =
       token.content?.muxPlaybackId ||
       token.content?.referencedAttachment?.muxPlaybackId;
+    // Get width and height from token content if available
+    const videoWidth =
+      token.content?.width || token.content?.referencedAttachment?.width;
+    const videoHeight =
+      token.content?.height || token.content?.referencedAttachment?.height;
 
     if (VIDEO_PLAYER_MODE === "mux") {
       return (
@@ -130,6 +135,8 @@ function RenderFilePreview({
           fileExtension={fileExtension} // Pass for fallback in MuxVideoPreview
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
+          width={videoWidth}
+          height={videoHeight}
         />
       );
     } else if (VIDEO_PLAYER_MODE === "videojs") {

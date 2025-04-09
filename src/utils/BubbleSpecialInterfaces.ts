@@ -51,27 +51,55 @@ export interface BubbleData {
   image: string;
 }
 
-export interface FileContent {
-  index: number;
-  type: string;
-  cloudFrontDownloadLink: string;
-  metaData: any;
-  content: {
-    thumbnailImage: string;
-    name: string;
-    size: number;
-    width: number;
-    height: number;
-    id: string;
-  };
+export interface AttachedContent {
+  thumbnailImage: string | null;
+  name: string;
+  size: number;
+  width: number;
+  height: number;
+  muxPlaybackId: string | null;
+  muxReadyForPlayback: boolean | null;
+  folderId: string | null;
+  lastUpdatedTime: number | null;
+  id: string;
+  url?: string;
 }
 
 export interface FileData {
+  textAttachment: FileContent;
+  ownerProfile: OwnerProfile;
+  publicItemId: string;
+  streamId: string;
+  title: string;
+  description: string;
+  image: string;
+}
+
+
+// Updated interfaces to match the actual API response
+
+export interface FileContent {
+  index: number;
+  type: string;
+  attachedContent: AttachedContent;
+  cloudFrontDownloadLink: string;
+  metaData: any;
+}
+
+
+export interface OwnerProfile {
   id: string;
-  createdAt: string;
-  ownerId: string;
-  contentText: string;
-  attachments: FileContent[];
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  lastUpdatedTime: number;
+  isShadowProfile: boolean;
+}
+
+export interface BackendResponse {
+  textAttachment: FileContent;
+  ownerProfile: OwnerProfile;
+  publicItemId: string;
   streamId: string;
   title: string;
   description: string;

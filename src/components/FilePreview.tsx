@@ -10,6 +10,9 @@ import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
 import NativeVideoPreview from "./NativeVideoPreview";
 import { isSafari } from "@/utils/videoUtils";
 import JsonPreview from "./JsonPreview";
+import genericdoc from "@/assets/genericdoc.svg";
+import downloadIcon from "@/assets/download.svg";
+import Image from "next/image";
 
 function FilePreview({
   url,
@@ -29,6 +32,7 @@ function FilePreview({
   isExcel,
   thumbnailImage,
   startTimestamp,
+  title,
 }: {
   url: string | undefined;
   formatFileSize: (bytes?: number) => string;
@@ -47,6 +51,7 @@ function FilePreview({
   isJSON: boolean;
   thumbnailImage: string;
   startTimestamp?: string;
+  title: string;
 }) {
   const fileUrl = url;
 
@@ -234,36 +239,48 @@ function FilePreview({
   }
 
   // For other file types with animation
-  const getPreviewBox = (icon: string, title: string, color: string) => (
-    <div className="flex w-full p-3 flex-col gap-3 bg-gray-100">
-      <div className="flex justify-between items-center self-stretch gap-3">
-        <div className="flex justify-between items-center self-stretch gap-3 flex-nowrap">
-          <div className="w-6 h-6 rounded border border-solid border-[#1919191a] flex items-center justify-center">
-            <span className="text-base">{icon}</span>
-          </div>
-          <div
-            className={`inline-block items-center gap-1.5 text-sm font-medium ${color} whitespace-nowrap max-w-[137px] truncate overflow-hidden`}
+  const getPreviewBox = () => (
+    <div className="flex w-full p-3 flex-col gap-3 items-center justify-center">
+      <div className="max-w-sm space-y-3 w-full mx-auto bg-[#F3F3F3] rounded-3xl p-4 border">
+        <div>
+          <h2
+            className={`inline-block items-center gap-1.5 text-[17px] text-primary font-medium line-clamp-1`}
           >
-            {filename}
-          </div>
+            {title}
+          </h2>
+          <p className="text-xs text-[#7E7E7E] -mt-3">
+            {formatFileSize(token.metaData?.size)}
+          </p>
+        </div>
+        <div className="flex justify-center w-full">
+          <Image
+            src={genericdoc}
+            alt="Generic Document"
+            className="w-16 h-16 object-contain"
+          />
         </div>
         {fileUrl && (
           <a
             href={fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-solid border-[#1919191A] text-sm text-[#191919] px-4 py-2 rounded-full"
+            className="bg-gradient-to-b from-[#3076FF] to-[#1D49E5] border border-solid border-[#1919191A] font-medium text-sm text-white px-4 py-3 rounded-full w-full flex justify-center items-center gap-3 hover:bg-[#1D49E5] transition-colors duration-200 ease-in-out"
           >
-            Open {title}
+            <Image
+              src={downloadIcon}
+              alt="Download"
+              className="w-4 h-4 object-contain"
+            />
+            Download to view
           </a>
         )}
       </div>
     </div>
   );
 
-  if (isZip) return getPreviewBox("📦", "Archive", "text-amber-500");
-  if (isCSV) return getPreviewBox("📊", "CSV", "text-green-500");
-  if (isExcel) return getPreviewBox("📑", "Excel", "text-emerald-500");
+  if (isZip) return getPreviewBox();
+  if (isCSV) return getPreviewBox();
+  if (isExcel) return getPreviewBox();
 
   return (
     <div className="space-y-1 p-4">

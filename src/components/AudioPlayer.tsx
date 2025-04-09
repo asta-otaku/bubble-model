@@ -7,8 +7,8 @@ import backTimer from "@/assets/backTimer.svg";
 import forwardTimer from "@/assets/forwardTimer.svg";
 import Subtract from "../assets/Subtract.svg";
 import { useWavesurfer } from "@wavesurfer/react";
-import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js";
 import { formatTime, parseTimestamp } from "@/utils";
+import WaveformLoader from "./WaveformLoader";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -29,9 +29,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState("00:00");
   const [totalDuration, setTotalDuration] = useState("00:00");
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Configure WaveSurfer
   const { wavesurfer, isPlaying } = useWavesurfer({
+    backend: "MediaElement",
     barWidth: 2,
     cursorWidth: 1,
     cursorColor: "transparent",
@@ -40,7 +41,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     waveColor: "#B2B2B2",
     progressColor: "#2C6BF8",
     url: audioUrl,
-    plugins: useMemo(() => [Timeline.create()], []),
+    plugins: useMemo(() => [], []),
   });
 
   const handlePlayPause = useCallback(() => {
@@ -62,7 +63,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     [wavesurfer]
   );
 
-  // If startTime is provided, jump to that point once ready
+  // Jump to the startTime if provided, once the audio is ready.
   useEffect(() => {
     if (wavesurfer && startTime) {
       const startSeconds = parseTimestamp(startTime);
@@ -83,8 +84,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const handleReady = () => {
         const duration = wavesurfer.getDuration();
         setTotalDuration(formatTime(duration) || "00:00");
+        setIsLoading(false); // Waveform is ready, hide loader.
 
-        // Jump to startTime on first load
+        // Jump to startTime on first load.
         if (startTime && !isInitialized) {
           const startSeconds = parseTimestamp(startTime);
           if (startSeconds <= duration) {
@@ -105,15 +107,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   }, [wavesurfer, startTime, isInitialized]);
 
+  // Render the waveform container with a loader overlay if not ready
+  const renderWaveformContainer = () => (
+    <div ref={containerRef} className="relative flex-1 cursor-pointer">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-75 z-10">
+          <WaveformLoader />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       {isFileSpecial ? (
         <div className="w-full h-full flex flex-col items-center justify-center">
           <div className="w-full h-[50%] bg-white mb-24">
-            <div
-              ref={containerRef}
-              className="relative flex-1 cursor-pointer"
-            />
+            {renderWaveformContainer()}
           </div>
 
           <p className="font-mono text-xs text-primary">
@@ -131,12 +141,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               )}
             </button>
             <button onClick={() => handleSkip(15)}>
-              <Image src={forwardTimer} alt="Forward 10 seconds" />
+              <Image src={forwardTimer} alt="Forward 15 seconds" />
             </button>
           </div>
         </div>
       ) : (
-        /** STANDARD STYLE BRANCH **/
+        // STANDARD STYLE BRANCH
         <div className="max-w-xs w-full p-3 flex flex-col gap-3 rounded-[14px] bg-white border border-solid border-[#1919191a]">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium max-w-40 truncate text-[#191919]">
@@ -153,7 +163,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
 
           <div className="flex items-center gap-2 -mt-3 bg-[#F3F3F3] px-2 rounded-2xl py-0.5 overflow-hidden">
-            <button onClick={handlePlayPause} className="">
+            <button onClick={handlePlayPause}>
               {isPlaying ? (
                 <Image
                   src={PauseIcon}
@@ -168,11 +178,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 />
               )}
             </button>
-            {/** Wave container for normal (non-special) layout */}
-            <div
-              ref={containerRef}
-              className={`flex-1 cursor-pointer ${startTime ? "h-12" : "h-20"}`}
-            />
+            {/* Wave container for standard (non-special) layout */}
+            {renderWaveformContainer()}
           </div>
         </div>
       )}
