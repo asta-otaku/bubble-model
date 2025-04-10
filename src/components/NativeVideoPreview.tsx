@@ -44,6 +44,7 @@ export default function NativeVideoPreview({
               poster={thumbnailImage}
               controls
               className={videoClass}
+              playsInline
               onLoadedMetadata={() => {
                 if (startTimestamp && videoRef.current) {
                   const startSeconds = parseTimestamp(startTimestamp);
@@ -77,6 +78,7 @@ export default function NativeVideoPreview({
           preload="auto"
           width="100%"
           className={videoClass}
+          playsInline
           onLoadedMetadata={() => {
             if (startTimestamp && videoRef.current) {
               const startSeconds = parseTimestamp(startTimestamp);
