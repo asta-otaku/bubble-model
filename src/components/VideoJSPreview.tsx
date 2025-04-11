@@ -162,6 +162,7 @@ export function VanillaVideoJSPreview({
           controls
           preload="auto"
           width="100%"
+          playsInline
         />
       )}
     </div>
