@@ -57,10 +57,9 @@ export const getFileIcon = (
           <video
             src={attachment.cloudFrontDownloadLink}
             className="w-4 h-4 rounded-sm object-cover"
-            muted
             playsInline
             autoPlay
-            loop
+            muted
           />
         );
       case "pdf":

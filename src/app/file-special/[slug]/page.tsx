@@ -184,7 +184,6 @@ function Page() {
               ) : getFileTypeIcon(fileData)?.iconType === "videoUrl" ? (
                 <div className="w-5 h-5 rounded-sm overflow-hidden flex-shrink-0">
                   <video
-                    src={getFileTypeIcon(fileData)?.iconUrl}
                     className="w-full h-full object-cover"
                     preload="metadata"
                     playsInline
@@ -193,9 +192,7 @@ function Page() {
                     loop
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      // Hide the video element on error and show fallback
                       e.currentTarget.style.display = "none";
-                      // Create and append fallback image
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
                         const img = document.createElement("img");
@@ -206,7 +203,13 @@ function Page() {
                         parent.appendChild(img);
                       }
                     }}
-                  />
+                  >
+                    <source
+                      src={getFileTypeIcon(fileData)?.iconUrl}
+                      type="video/mp4"
+                    />
+                    {/* Add additional sources if needed */}
+                  </video>
                 </div>
               ) : (
                 <Image
@@ -229,18 +232,23 @@ function Page() {
           )}
         </div>
         {isMobile ? (
-          <Image
-            src={downloadIcon}
-            alt="User"
-            width={0}
-            height={0}
-            className="w-6 h-8"
-          />
+          <a
+            href={exampleOutput?.cloudFrontDownloadLink}
+            download
+            className="font-medium text-sm border border-[#1919191A] bg-[#E8E8E8] text-[#3076FF] px-4 py-3 flex rounded-full justify-center items-center gap-3"
+          >
+            <Image
+              src={downloadIcon}
+              alt="Download"
+              width={0}
+              height={0}
+              className="w-6 h-8"
+            />
+          </a>
         ) : (
           <a
             href={exampleOutput?.cloudFrontDownloadLink}
-            target="_blank"
-            rel="noopener noreferrer"
+            download
             className="font-medium text-sm border border-[#1919191A] bg-[#E8E8E8] text-[#3076FF] px-4 py-3 flex rounded-full justify-center items-center gap-3"
           >
             <Image src={downloadIcon} alt="Download" />

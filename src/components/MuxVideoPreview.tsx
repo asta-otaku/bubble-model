@@ -242,7 +242,6 @@ export default function MuxVideoPreview({
             </div>
 
             <MediaControlBar
-              noautohide="true"
               style={{
                 margin: "0.4em 0.8em",
                 display: "flex",
@@ -278,7 +277,7 @@ export default function MuxVideoPreview({
               </MediaFullscreenButton>
             </MediaControlBar>
 
-            <MediaTimeRange noautohide="true" style={timeRangeStyle}>
+            <MediaTimeRange style={timeRangeStyle}>
               <MediaPreviewThumbnail slot="preview" />
               <MediaPreviewTimeDisplay slot="preview" />
             </MediaTimeRange>

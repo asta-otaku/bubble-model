@@ -133,13 +133,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <button onClick={() => handleSkip(-15)}>
               <Image src={backTimer} alt="Back 15 seconds" />
             </button>
-            <button onClick={handlePlayPause}>
+            <button onClick={handlePlayPause} className="w-8 h-8">
               {isPlaying ? (
-                <Image src={PauseIcon} alt="Pause" />
+                <Image
+                  src={PauseIcon}
+                  alt="Pause"
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <Image src={PlayIcon} alt="Play" />
+                <Image
+                  src={PlayIcon}
+                  alt="Play"
+                  className="w-full h-full object-cover"
+                />
               )}
             </button>
+
             <button onClick={() => handleSkip(15)}>
               <Image src={forwardTimer} alt="Forward 15 seconds" />
             </button>
@@ -163,18 +172,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
 
           <div className="flex items-center gap-2 -mt-3 bg-[#F3F3F3] px-2 rounded-2xl py-0.5 overflow-hidden">
-            <button onClick={handlePlayPause}>
+            <button
+              onClick={handlePlayPause}
+              className={`${startTime ? "h-6 w-6" : "w-8 h-8"}`}
+            >
               {isPlaying ? (
                 <Image
                   src={PauseIcon}
                   alt="Pause"
-                  className={`${startTime ? "h-6 w-6" : "w-8 h-8"}`}
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <Image
                   src={PlayIcon}
                   alt="Play"
-                  className={`${startTime ? "h-6 w-6" : "w-8 h-8"}`}
+                  className="w-full h-full object-cover"
                 />
               )}
             </button>

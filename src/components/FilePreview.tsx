@@ -265,8 +265,7 @@ function FilePreview({
         {fileUrl && (
           <a
             href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            download
             className="bg-gradient-to-b from-[#3076FF] to-[#1D49E5] border border-solid border-[#1919191A] font-medium text-sm text-white px-4 py-3 rounded-full w-full flex justify-center items-center gap-3 hover:bg-[#1D49E5] transition-colors duration-200 ease-in-out"
           >
             <Image

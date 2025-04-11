@@ -298,7 +298,7 @@ function Page() {
   return (
     <div className="w-full min-h-screen flex justify-center items-center relative p-4">
       <motion.div
-        className="w-[370px] mx-auto p-6"
+        className="w-[360px] mx-auto p-6"
         drag={!isDraggingDisabled && screenWidth > 768}
         dragMomentum={false}
         style={{ x: springX, y: springY }}
