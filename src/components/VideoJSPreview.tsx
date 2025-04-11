@@ -10,9 +10,11 @@ import { getVideoMimeType } from "@/utils/videoUtils";
 export default function MuxVideoJSPreview({
   muxPlaybackId,
   startTimestamp,
+  isFileSpecial,
 }: {
   muxPlaybackId: string;
   startTimestamp?: string;
+  isFileSpecial?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
@@ -62,7 +64,11 @@ export default function MuxVideoJSPreview({
   }, [startTimestamp]);
 
   return (
-    <div className="w-full min-h-full overflow-hidden rounded-[14px]">
+    <div
+      className={`w-full min-h-full overflow-hidden ${
+        isFileSpecial ? "" : "rounded-[14px]"
+      }`}
+    >
       <video
         ref={videoRef}
         className="video-js vjs-16-9 vjs-fluid vjs-big-play-centered rounded-[14px]"
@@ -79,6 +85,7 @@ type VanillaVideoJSPreviewProps = {
   fileExtension: string;
   thumbnailImage: string;
   startTimestamp?: string;
+  isFileSpecial?: boolean;
 };
 
 export function VanillaVideoJSPreview({
@@ -86,6 +93,7 @@ export function VanillaVideoJSPreview({
   fileExtension,
   thumbnailImage,
   startTimestamp,
+  isFileSpecial,
 }: VanillaVideoJSPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<any>(null);
@@ -133,7 +141,11 @@ export function VanillaVideoJSPreview({
   }, [startTimestamp]);
 
   return (
-    <div className="w-full min-h-full overflow-hidden rounded-[14px]">
+    <div
+      className={`w-full min-h-full overflow-hidden ${
+        isFileSpecial ? "" : "rounded-[14px]"
+      }`}
+    >
       {isMov && !browserSupportsVideo ? (
         <div className="space-y-1 p-4">
           <h2 className="text-primary text-[15px] font-medium">

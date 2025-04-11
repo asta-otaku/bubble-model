@@ -126,6 +126,7 @@ function FilePreview({
           fileExtension={fileExtension}
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
+          isFileSpecial={true}
         />
       );
     } else if (VIDEO_PLAYER_MODE === "videojs") {
@@ -134,6 +135,7 @@ function FilePreview({
           <MuxVideoJSPreview
             muxPlaybackId={muxPlaybackId}
             startTimestamp={startTimestamp}
+            isFileSpecial={true}
           />
         );
       } else {
@@ -143,6 +145,7 @@ function FilePreview({
             fileExtension={fileExtension}
             thumbnailImage={thumbnailImage}
             startTimestamp={startTimestamp}
+            isFileSpecial={true}
           />
         );
       }

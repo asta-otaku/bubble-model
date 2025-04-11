@@ -26,6 +26,7 @@ export default function MuxVideoPreview({
   startTimestamp,
   width,
   height,
+  isFileSpecial,
   accentColor = "rgba(235, 235, 235, 0.75)",
 }: {
   muxPlaybackId?: string;
@@ -36,6 +37,7 @@ export default function MuxVideoPreview({
   width?: number;
   height?: number;
   accentColor?: string;
+  isFileSpecial?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -168,7 +170,11 @@ export default function MuxVideoPreview({
   return (
     <div
       ref={containerRef}
-      className="max-w-xs w-full overflow-hidden rounded-[14px]"
+      className={`${
+        isFileSpecial
+          ? "w-full h-full"
+          : "max-w-xs w-full overflow-hidden rounded-[14px]"
+      }`}
     >
       {dimensions.width > 0 && (
         <div className="relative w-full" style={{ paddingBottom }}>
