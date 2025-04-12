@@ -8,7 +8,6 @@ import Image from "next/image";
 import FilePreview from "@/components/FilePreview";
 import blackTypo from "@/assets/blackTypo.svg";
 import videoIcon from "@/assets/videoIcon.svg";
-import downloadIcon from "@/assets/filledDownload.svg";
 // import ticktock from "@/assets/ticktock.svg";
 import { truncateFilename } from "@/components/TruncateText";
 import axios from "axios";
@@ -24,7 +23,7 @@ import {
   getFileTypeIcon,
   getFileNameFromDescription,
 } from "@/utils/getFileTypeIcon";
-import useIsMobile from "@/utils";
+import DownloadButton from "@/components/DownloadButton";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_FILE_PREVIEW_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
@@ -52,7 +51,6 @@ const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 function Page() {
   const { slug } = useParams();
   const router = useRouter();
-  const isMobile = useIsMobile();
   // const [textValue, setTextValue] = useState("");
   // const [isModalOpen, setIsModalOpen] = useState(false);
   // const [user, setUser] = useState({
@@ -231,30 +229,10 @@ function Page() {
             </>
           )}
         </div>
-        {isMobile ? (
-          <a
-            href={exampleOutput?.cloudFrontDownloadLink}
-            download
-            className="font-medium text-sm border border-[#1919191A] bg-[#E8E8E8] text-[#3076FF] px-4 py-3 flex rounded-full justify-center items-center gap-3"
-          >
-            <Image
-              src={downloadIcon}
-              alt="Download"
-              width={0}
-              height={0}
-              className="w-6 h-8"
-            />
-          </a>
-        ) : (
-          <a
-            href={exampleOutput?.cloudFrontDownloadLink}
-            download
-            className="font-medium text-sm border border-[#1919191A] bg-[#E8E8E8] text-[#3076FF] px-4 py-3 flex rounded-full justify-center items-center gap-3"
-          >
-            <Image src={downloadIcon} alt="Download" />
-            Download
-          </a>
-        )}
+        <DownloadButton
+          downloadLink={exampleOutput?.cloudFrontDownloadLink || ""}
+          fileName={title}
+        />
       </div>
       {/* Main content area */}
       <div className="min-h-[75vh] flex-grow flex justify-center items-center">
