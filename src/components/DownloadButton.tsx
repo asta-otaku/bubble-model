@@ -13,35 +13,43 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
   fileName,
 }) => {
   const isMobile = useIsMobile();
-  const handleDownload = async (e: React.MouseEvent) => {
+  const [isDownloading, setIsDownloading] = React.useState(false);
+
+  const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
-    try {
-      const response = await fetch(downloadLink, { mode: "cors" });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+
+    if (isDownloading) return;
+    setIsDownloading(true);
+
+    // Instead of handling the download logic in the browser,
+    // redirect to our API endpoint that will set the proper headers
+    const encodedUrl = encodeURIComponent(downloadLink);
+    const encodedFileName = encodeURIComponent(fileName);
+    const downloadUrl = `/api/download?url=${encodedUrl}&filename=${encodedFileName}`;
+
+    // Create an invisible iframe to avoid navigating away from the current page
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = downloadUrl;
+    document.body.appendChild(iframe);
+
+    // Set a timeout to remove the iframe and reset the loading state
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
       }
-      const blob = await response.blob();
-
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Download failed:", error);
-    }
+      setIsDownloading(false);
+    }, 2000);
   };
 
   return (
     <>
       {isMobile ? (
-        <a href={downloadLink} onClick={handleDownload}>
+        <button
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="bg-transparent border-0 p-0 cursor-pointer"
+        >
           <Image
             src={downloadIcon}
             alt="Download"
@@ -49,16 +57,16 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
             height={0}
             className="w-6 h-8"
           />
-        </a>
+        </button>
       ) : (
-        <a
-          href={downloadLink}
+        <button
           onClick={handleDownload}
+          disabled={isDownloading}
           className="font-medium text-sm border border-[#1919191A] bg-[#E8E8E8] text-[#3076FF] px-4 py-2.5 flex rounded-full justify-center items-center gap-3"
         >
           <Image src={downloadIcon} alt="Download" />
-          Download
-        </a>
+          {isDownloading ? "Downloading..." : "Download"}
+        </button>
       )}
     </>
   );
