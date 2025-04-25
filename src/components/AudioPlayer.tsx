@@ -8,7 +8,6 @@ import forwardTimer from "@/assets/forwardTimer.svg";
 import Subtract from "../assets/Subtract.svg";
 import { useWavesurfer } from "@wavesurfer/react";
 import { formatTime, parseTimestamp } from "@/utils";
-import WaveformLoader from "./WaveformLoader";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -16,7 +15,9 @@ interface AudioPlayerProps {
   fileSize: string;
   startTime?: string;
   isFileSpecial?: boolean;
+  isBubbleSpecial?: boolean;
 }
+const PEAKS_CDN = process.env.NEXT_PUBLIC_PEAKS_CDN!;
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({
   audioUrl,
@@ -24,25 +25,65 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   fileSize,
   startTime,
   isFileSpecial,
+  isBubbleSpecial,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState("00:00");
   const [totalDuration, setTotalDuration] = useState("00:00");
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [playheadPosition, setPlayheadPosition] = useState<number | null>(null);
+  const wasPlayingRef = useRef(false);
+  const lastSeekTimeRef = useRef(0);
+  const seekThrottleRef = useRef(100);
 
+  // Determine if scrubbing should be enabled
+  const enableScrubbing = isFileSpecial && !isBubbleSpecial;
+
+  // Configure WaveSurfer
   const { wavesurfer, isPlaying } = useWavesurfer({
-    backend: "MediaElement",
-    barWidth: 2,
-    cursorWidth: 1,
-    cursorColor: "transparent",
+    barWidth: 1.5,
+    barGap: 1.5,
+    cursorWidth: enableScrubbing ? 4 : 0,
+    cursorColor: enableScrubbing ? "#2C6BF8" : "transparent",
     container: containerRef,
-    height: isFileSpecial ? 300 : startTime ? 49 : 80,
-    waveColor: "#B2B2B2",
-    progressColor: "#2C6BF8",
-    url: audioUrl,
+    height: isFileSpecial ? 100 : startTime ? 49 : 80,
+    waveColor: "rgba(233, 233, 233, 1)",
+    progressColor: "rgba(25, 25, 25, 0.7)",
     plugins: useMemo(() => [], []),
+    normalize: true,
+    interact: true,
   });
+
+  useEffect(() => {
+    if (!wavesurfer) return;
+    let canceled = false;
+    const audioPath = new URL(audioUrl).pathname;
+    const peaksPath = audioPath.replace(/\.[^.]+$/, ".peaks.json");
+    const peaksUrl = PEAKS_CDN + peaksPath;
+
+    fetch(peaksUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch peaks");
+        console.log("peaksUrl", peaksUrl);
+        console.log("res", res);
+        return res.json();
+      })
+      .then((data: { peaks: number[] }) => {
+        if (!canceled) wavesurfer.load(audioUrl, [data.peaks]);
+      })
+      .catch((err) => {
+        console.error("Error loading peaks:", err);
+        if (!canceled) {
+          console.log("Falling back to client-side decoding");
+          wavesurfer.load(audioUrl);
+        }
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [wavesurfer, audioUrl]);
 
   const handlePlayPause = useCallback(() => {
     if (wavesurfer) {
@@ -63,7 +104,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     [wavesurfer]
   );
 
-  // Jump to the startTime if provided, once the audio is ready.
+  // If startTime is provided, jump to that point once ready
   useEffect(() => {
     if (wavesurfer && startTime) {
       const startSeconds = parseTimestamp(startTime);
@@ -79,14 +120,20 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const updateTime = () => {
         const current = wavesurfer.getCurrentTime();
         setCurrentTime(formatTime(current) || "00:00");
+
+        // Update playhead position for timestamp display
+        if (containerRef.current && wavesurfer.getDuration() > 0) {
+          const containerWidth = containerRef.current.offsetWidth;
+          const percentComplete = current / wavesurfer.getDuration();
+          setPlayheadPosition(containerWidth * percentComplete);
+        }
       };
 
       const handleReady = () => {
         const duration = wavesurfer.getDuration();
         setTotalDuration(formatTime(duration) || "00:00");
-        setIsLoading(false); // Waveform is ready, hide loader.
 
-        // Jump to startTime on first load.
+        // Jump to startTime on first load
         if (startTime && !isInitialized) {
           const startSeconds = parseTimestamp(startTime);
           if (startSeconds <= duration) {
@@ -95,38 +142,278 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             setIsInitialized(true);
           }
         }
+
+        // Initial playhead position
+        updateTime();
+      };
+
+      // Add simple click handler
+      const handleSimpleClick = (event: MouseEvent) => {
+        if (!containerRef.current || !wavesurfer) return;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const percent = x / rect.width;
+
+        if (wavesurfer.getDuration() > 0) {
+          wavesurfer.setTime(wavesurfer.getDuration() * percent);
+        }
+      };
+
+      // Add simple touch handler for mobile
+      const handleSimpleTouch = (event: TouchEvent) => {
+        if (!containerRef.current || !wavesurfer || !event.touches[0]) return;
+
+        // Prevent scrolling
+        event.preventDefault();
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = event.touches[0].clientX - rect.left;
+        const percent = Math.min(Math.max(x / rect.width, 0), 1); // Clamp between 0 and 1
+
+        if (wavesurfer.getDuration() > 0) {
+          wavesurfer.setTime(wavesurfer.getDuration() * percent);
+        }
       };
 
       wavesurfer.on("ready", handleReady);
       wavesurfer.on("timeupdate", updateTime);
+      wavesurfer.on("seeking", updateTime);
+
+      // Add direct click listeners to the container
+      if (!enableScrubbing && containerRef.current) {
+        containerRef.current.addEventListener("click", handleSimpleClick);
+        containerRef.current.addEventListener("touchstart", handleSimpleTouch, {
+          passive: false,
+        });
+      }
 
       return () => {
         wavesurfer.un("ready", handleReady);
         wavesurfer.un("timeupdate", updateTime);
+        wavesurfer.un("seeking", updateTime);
+
+        if (containerRef.current) {
+          containerRef.current.removeEventListener("click", handleSimpleClick);
+          containerRef.current.removeEventListener(
+            "touchstart",
+            handleSimpleTouch,
+            { passive: false } as EventListenerOptions
+          );
+        }
       };
     }
-  }, [wavesurfer, startTime, isInitialized]);
+  }, [wavesurfer, startTime, isInitialized, enableScrubbing]);
 
-  // Render the waveform container with a loader overlay if not ready
-  const renderWaveformContainer = () => (
-    <div ref={containerRef} className="relative flex-1 cursor-pointer">
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 opacity-75 z-10">
-          <WaveformLoader />
-        </div>
-      )}
-    </div>
-  );
+  useEffect(() => {
+    if (isScrubbing) {
+      document.body.classList.add("scrubbing-active");
+    } else if (isFileSpecial && !isBubbleSpecial) {
+    } else {
+      document.body.classList.remove("scrubbing-active");
+    }
+
+    return () => {
+      // Only clean up if not in file-special view for audio
+      if (!(isFileSpecial && !isBubbleSpecial)) {
+        document.body.classList.remove("scrubbing-active");
+      }
+    };
+  }, [isScrubbing, isFileSpecial, isBubbleSpecial]);
+
+  // Setup real-time scrubbing for file-special view
+  useEffect(() => {
+    if (!wavesurfer || !enableScrubbing || !containerRef.current) return;
+    const element = containerRef.current;
+    let rafId: number;
+
+    const handleInteractionStart = (e: Event) => {
+      if (e instanceof TouchEvent) e.preventDefault();
+      wasPlayingRef.current = wavesurfer.isPlaying();
+      if (wasPlayingRef.current) wavesurfer.pause();
+      setIsScrubbing(true);
+    };
+
+    const handleInteraction = (e: Event) => {
+      if (!isScrubbing) return;
+      if (e instanceof TouchEvent) e.preventDefault();
+
+      // schedule the seek at next paint
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const clientX =
+          e instanceof TouchEvent
+            ? e.touches[0].clientX
+            : (e as MouseEvent).clientX;
+        const rect = element.getBoundingClientRect();
+        const pct = Math.min(
+          Math.max((clientX - rect.left) / rect.width, 0),
+          1
+        );
+
+        // lightweight, instant jump
+        wavesurfer.seekTo(pct);
+      });
+    };
+
+    const handleInteractionEnd = (e: Event) => {
+      if (e instanceof TouchEvent) e.preventDefault();
+      setIsScrubbing(false);
+      cancelAnimationFrame(rafId);
+      // restore play state
+      if (wasPlayingRef.current) wavesurfer.play();
+    };
+
+    element.addEventListener("mousedown", handleInteractionStart);
+    element.addEventListener("mousemove", handleInteraction);
+    element.addEventListener("mouseup", handleInteractionEnd);
+    element.addEventListener("mouseleave", handleInteractionEnd);
+
+    element.addEventListener("touchstart", handleInteractionStart, {
+      passive: false,
+    });
+    element.addEventListener("touchmove", handleInteraction, {
+      passive: false,
+    });
+    element.addEventListener("touchend", handleInteractionEnd, {
+      passive: false,
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      element.removeEventListener("mousedown", handleInteractionStart);
+      element.removeEventListener("mousemove", handleInteraction);
+      element.removeEventListener("mouseup", handleInteractionEnd);
+      element.removeEventListener("mouseleave", handleInteractionEnd);
+
+      element.removeEventListener("touchstart", handleInteractionStart);
+      element.removeEventListener("touchmove", handleInteraction);
+      element.removeEventListener("touchend", handleInteractionEnd);
+    };
+  }, [wavesurfer, enableScrubbing, isPlaying, isScrubbing]);
+
+  // Setup click/touch handler for non-scrubbing mode
+  useEffect(() => {
+    if (wavesurfer && !enableScrubbing && containerRef.current) {
+      // Handler for mouse clicks
+      const handleClick = (e: MouseEvent) => {
+        if (!wavesurfer || !containerRef.current) return;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percent = x / rect.width;
+        const duration = wavesurfer.getDuration();
+        wavesurfer.setTime(duration * percent);
+      };
+
+      // Handler for touch events (mobile)
+      const handleTouch = (e: TouchEvent) => {
+        if (!wavesurfer || !containerRef.current || e.touches.length === 0)
+          return;
+
+        // Prevent default to avoid scrolling or zooming
+        e.preventDefault();
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.touches[0].clientX - rect.left;
+        const percent = Math.min(Math.max(x / rect.width, 0), 1); // Clamp between 0 and 1
+        const duration = wavesurfer.getDuration();
+
+        // Just seek without trying to play
+        if (duration > 0) {
+          wavesurfer.setTime(duration * percent);
+
+          // Update current time immediately for visual feedback
+          const newTime = duration * percent;
+          setCurrentTime(formatTime(newTime) || "00:00");
+        }
+      };
+
+      const element = containerRef.current;
+      element.addEventListener("click", handleClick);
+      element.addEventListener("touchstart", handleTouch, { passive: false });
+
+      return () => {
+        element.removeEventListener("click", handleClick);
+        element.removeEventListener("touchstart", handleTouch, {
+          passive: false,
+        } as EventListenerOptions);
+      };
+    }
+  }, [wavesurfer, enableScrubbing]);
+
+  // Keyboard controls for file-special view
+  useEffect(() => {
+    if (!isFileSpecial || !wavesurfer) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent default behavior for these keys to avoid page scrolling
+      if (
+        e.code === "Space" ||
+        e.code === "ArrowLeft" ||
+        e.code === "ArrowRight"
+      ) {
+        e.preventDefault();
+      }
+
+      // Only handle keyboard events if not in an input field
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      switch (e.code) {
+        case "Space":
+          handlePlayPause();
+          break;
+        case "ArrowLeft":
+          handleSkip(-15); // Rewind 15 seconds
+          break;
+        case "ArrowRight":
+          handleSkip(15); // Fast forward 15 seconds
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [wavesurfer, isFileSpecial, handlePlayPause, handleSkip]);
 
   return (
     <>
       {isFileSpecial ? (
         <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="w-full h-[50%] bg-white mb-24">
-            {renderWaveformContainer()}
+          <div className="w-full h-[50%] bg-white mb-24 relative">
+            <div className="px-4 w-full">
+              <div
+                ref={containerRef}
+                className={`relative flex-1 ${
+                  enableScrubbing
+                    ? "cursor-grab active:cursor-grabbing"
+                    : "cursor-pointer"
+                }`}
+              />
+            </div>
+            {/* Timestamp above playhead */}
+            {playheadPosition !== null && containerRef.current && (
+              <div
+                className="absolute font-mono text-xs text-blue-500 bg-white px-2 py-0.5 rounded shadow-sm"
+                style={{
+                  left: `${playheadPosition}px`,
+                  top: "-24px",
+                }}
+              >
+                {currentTime}
+              </div>
+            )}
           </div>
 
-          <p className="font-mono text-xs text-primary">
+          <p className="font-mono text-xs text-primary mb-4">
             {currentTime} / {totalDuration}
           </p>
           <div className="flex items-center gap-4">
@@ -134,7 +421,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               <Image src={backTimer} alt="Back 15 seconds" />
             </button>
             <button onClick={handlePlayPause} className="w-8 h-8">
-              {isPlaying ? (
+              {isPlaying && !isScrubbing ? (
                 <Image
                   src={PauseIcon}
                   alt="Pause"
@@ -190,8 +477,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 />
               )}
             </button>
-            {/* Wave container for standard (non-special) layout */}
-            {renderWaveformContainer()}
+            {/** Wave container for normal (non-special) layout */}
+            <div
+              ref={containerRef}
+              className={`flex-1 cursor-pointer ${startTime ? "h-12" : "h-20"}`}
+            />
           </div>
         </div>
       )}
