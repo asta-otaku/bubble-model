@@ -34,9 +34,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [playheadPosition, setPlayheadPosition] = useState<number | null>(null);
   const wasPlayingRef = useRef(false);
-  const lastSeekTimeRef = useRef(0);
-  const seekThrottleRef = useRef(100);
-
   // Determine if scrubbing should be enabled
   const enableScrubbing = isFileSpecial && !isBubbleSpecial;
 
@@ -224,73 +221,64 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Setup real-time scrubbing for file-special view
   useEffect(() => {
     if (!wavesurfer || !enableScrubbing || !containerRef.current) return;
-    const element = containerRef.current;
+    const el = containerRef.current;
     let rafId: number;
 
-    const handleInteractionStart = (e: Event) => {
-      if (e instanceof TouchEvent) e.preventDefault();
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") e.preventDefault();
       wasPlayingRef.current = wavesurfer.isPlaying();
       if (wasPlayingRef.current) wavesurfer.pause();
+      el.setPointerCapture(e.pointerId);
       setIsScrubbing(true);
     };
 
-    const handleInteraction = (e: Event) => {
+    const onPointerMove = (e: PointerEvent) => {
       if (!isScrubbing) return;
-      if (e instanceof TouchEvent) e.preventDefault();
+      if (e.pointerType === "touch") e.preventDefault();
 
-      // schedule the seek at next paint
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        const clientX =
-          e instanceof TouchEvent
-            ? e.touches[0].clientX
-            : (e as MouseEvent).clientX;
-        const rect = element.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
         const pct = Math.min(
-          Math.max((clientX - rect.left) / rect.width, 0),
+          Math.max((e.clientX - rect.left) / rect.width, 0),
           1
         );
-
-        // lightweight, instant jump
         wavesurfer.seekTo(pct);
+        setCurrentTime(formatTime(pct * wavesurfer.getDuration())!);
       });
     };
 
-    const handleInteractionEnd = (e: Event) => {
-      if (e instanceof TouchEvent) e.preventDefault();
-      setIsScrubbing(false);
+    const onPointerUp = (e: PointerEvent) => {
+      // ensure we always jump, even if the user just tapped
+      const rect = el.getBoundingClientRect();
+      const pct = Math.min(
+        Math.max((e.clientX - rect.left) / rect.width, 0),
+        1
+      );
+      wavesurfer.seekTo(pct);
+      setCurrentTime(formatTime(pct * wavesurfer.getDuration())!);
+
+      // clean up
+      if (e.pointerType === "touch") e.preventDefault();
+      el.releasePointerCapture(e.pointerId);
       cancelAnimationFrame(rafId);
-      // restore play state
+      setIsScrubbing(false);
+
+      // resume playback only if it was playing before
       if (wasPlayingRef.current) wavesurfer.play();
     };
 
-    element.addEventListener("mousedown", handleInteractionStart);
-    element.addEventListener("mousemove", handleInteraction);
-    element.addEventListener("mouseup", handleInteractionEnd);
-    element.addEventListener("mouseleave", handleInteractionEnd);
-
-    element.addEventListener("touchstart", handleInteractionStart, {
-      passive: false,
-    });
-    element.addEventListener("touchmove", handleInteraction, {
-      passive: false,
-    });
-    element.addEventListener("touchend", handleInteractionEnd, {
-      passive: false,
-    });
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerUp);
 
     return () => {
       cancelAnimationFrame(rafId);
-      element.removeEventListener("mousedown", handleInteractionStart);
-      element.removeEventListener("mousemove", handleInteraction);
-      element.removeEventListener("mouseup", handleInteractionEnd);
-      element.removeEventListener("mouseleave", handleInteractionEnd);
-
-      element.removeEventListener("touchstart", handleInteractionStart);
-      element.removeEventListener("touchmove", handleInteraction);
-      element.removeEventListener("touchend", handleInteractionEnd);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerUp);
     };
-  }, [wavesurfer, enableScrubbing, isPlaying, isScrubbing]);
+  }, [wavesurfer, enableScrubbing, isScrubbing]);
 
   // Setup click/touch handler for non-scrubbing mode
   useEffect(() => {
@@ -388,15 +376,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <>
       {isFileSpecial ? (
         <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="w-full h-[50%] bg-white mb-24 relative">
-            <div className="px-4 w-full">
+          <div className="w-full bg-white mb-24 relative">
+            <div className="px-4 w-full h-full">
               <div
                 ref={containerRef}
                 className={`relative flex-1 ${
                   enableScrubbing
                     ? "cursor-grab active:cursor-grabbing"
                     : "cursor-pointer"
-                }`}
+                } touch-none`}
+                style={{ touchAction: enableScrubbing ? "none" : "auto" }}
               />
             </div>
             {/* Timestamp above playhead */}
@@ -413,32 +402,34 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             )}
           </div>
 
-          <p className="font-mono text-xs text-primary mb-4">
-            {currentTime} / {totalDuration}
-          </p>
-          <div className="flex items-center gap-4">
-            <button onClick={() => handleSkip(-15)}>
-              <Image src={backTimer} alt="Back 15 seconds" />
-            </button>
-            <button onClick={handlePlayPause} className="w-8 h-8">
-              {isPlaying && !isScrubbing ? (
-                <Image
-                  src={PauseIcon}
-                  alt="Pause"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Image
-                  src={PlayIcon}
-                  alt="Play"
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </button>
+          <div className="absolute bottom-[10%]">
+            <p className="font-mono text-xs text-primary mb-4">
+              {currentTime} / {totalDuration}
+            </p>
+            <div className="flex items-center gap-4">
+              <button onClick={() => handleSkip(-15)}>
+                <Image src={backTimer} alt="Back 15 seconds" />
+              </button>
+              <button onClick={handlePlayPause} className="w-8 h-8">
+                {isPlaying && !isScrubbing ? (
+                  <Image
+                    src={PauseIcon}
+                    alt="Pause"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={PlayIcon}
+                    alt="Play"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </button>
 
-            <button onClick={() => handleSkip(15)}>
-              <Image src={forwardTimer} alt="Forward 15 seconds" />
-            </button>
+              <button onClick={() => handleSkip(15)}>
+                <Image src={forwardTimer} alt="Forward 15 seconds" />
+              </button>
+            </div>
           </div>
         </div>
       ) : (
