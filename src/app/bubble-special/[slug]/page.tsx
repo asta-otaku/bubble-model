@@ -54,22 +54,24 @@ function Page() {
         const message = data.message;
         setOwner(data.ownerProfile.firstName || "");
 
-        const processedAttachments =
-          message.attachments.length === 1
-            ? [...message.attachments, message.attachments[0]]
-            : message.attachments;
+        const raw = message.attachments;
+        const withDup = raw.length === 1 ? [...raw, raw[0]] : raw;
+
+        const sorted = withDup
+          .slice()
+          .sort((a: Message, b: Message) => (a.index ?? 0) - (b.index ?? 0));
 
         const processedMessage = {
           ...message,
-          attachments: processedAttachments,
+          attachments: sorted,
         };
         setBubbleData(processedMessage);
 
-        setSelectedAttachment(
-          processedAttachments.length > 1 ? processedAttachments[1] : null
-        );
-        setCurrentIndex(processedAttachments.length > 1 ? 1 : 0);
-        setDirection(processedAttachments.length > 1 ? -1 : 0);
+        // initialize selection based on sorted order
+        const startIdx = sorted.length > 1 ? 1 : 0;
+        setSelectedAttachment(sorted[startIdx]);
+        setCurrentIndex(startIdx);
+        setDirection(sorted.length > 1 ? -1 : 0);
       } catch (error) {
         console.error("Error fetching bubble data", error);
       } finally {
