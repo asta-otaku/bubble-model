@@ -104,8 +104,10 @@ export const getFileTypeIcon = (fileData: FileData | null) => {
 export const getFileNameFromDescription = (description: string) => {
   if (!description) return '';
   
-  if (description.toLowerCase().startsWith('file:')) {
-    return description.split(':')[1]?.trim() || description;
+  // Check if it matches the pattern "File: something"
+  const fileMatch = description.match(/^file:\s*(.*)/i);
+  if (fileMatch && fileMatch[1]) {
+    return fileMatch[1].trim();
   }
   
   return description;

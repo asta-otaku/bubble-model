@@ -2,13 +2,19 @@ export const truncateFilename = (
   filename: string,
   longText: boolean = false
 ) => {
-  const lastDotIndex = filename.lastIndexOf(".");
-  if (lastDotIndex === -1) return filename;
+  if (!filename) return "";
+  const sanitizedFilename = filename.replace(/:/g, "-");
 
-  const extension = filename.slice(lastDotIndex);
-  const baseName = filename.slice(0, lastDotIndex);
+  const lastDotIndex = sanitizedFilename.lastIndexOf(".");
 
-  if (baseName.length <= (longText ? 18 : 6)) return filename;
+  if (lastDotIndex === -1) return sanitizedFilename;
 
-  return `${baseName.slice(0, longText ? 17 : 5)}...${extension}`;
+  const extension = sanitizedFilename.slice(lastDotIndex);
+  const baseName = sanitizedFilename.slice(0, lastDotIndex);
+
+  if (baseName.length <= (longText ? 18 : 6)) return sanitizedFilename;
+
+  const result = `${baseName.slice(0, longText ? 17 : 5)}...${extension}`;
+
+  return result;
 };

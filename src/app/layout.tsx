@@ -4,10 +4,10 @@ import "./globals.css";
 // Define default metadata that will be used when no other metadata is specified
 export const metadata: Metadata = {
   title: {
-    template: "%s | TyNo",
-    default: "Typo",
+    template: "%s | Typo*",
+    default: "Typo*",
   },
-  description: "Make TyNos*",
+  description: "Make Typos*",
 };
 
 export default function RootLayout({

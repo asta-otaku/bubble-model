@@ -34,6 +34,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [playheadPosition, setPlayheadPosition] = useState<number | null>(null);
   const wasPlayingRef = useRef(false);
+
   // Determine if scrubbing should be enabled
   const enableScrubbing = isFileSpecial && !isBubbleSpecial;
 

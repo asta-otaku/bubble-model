@@ -83,6 +83,7 @@ export interface FileContent {
   type: string;
   attachedContent: AttachedContent;
   cloudFrontDownloadLink: string;
+  optimisedImageUrl?: string;
   metaData: any;
 }
 

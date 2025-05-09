@@ -54,24 +54,17 @@ function Page() {
         const message = data.message;
         setOwner(data.ownerProfile.firstName || "");
 
-        const raw = message.attachments;
-        const withDup = raw.length === 1 ? [...raw, raw[0]] : raw;
+        const sorted = [...message.attachments].sort(
+          (a, b) => a.index - b.index
+        );
+        const processedAttachments =
+          sorted.length === 1 ? [...sorted, sorted[0]] : sorted;
 
-        const sorted = withDup
-          .slice()
-          .sort((a: Message, b: Message) => (a.index ?? 0) - (b.index ?? 0));
+        setBubbleData({ ...message, attachments: processedAttachments });
 
-        const processedMessage = {
-          ...message,
-          attachments: sorted,
-        };
-        setBubbleData(processedMessage);
-
-        // initialize selection based on sorted order
-        const startIdx = sorted.length > 1 ? 1 : 0;
-        setSelectedAttachment(sorted[startIdx]);
-        setCurrentIndex(startIdx);
-        setDirection(sorted.length > 1 ? -1 : 0);
+        setSelectedAttachment(processedAttachments[0]);
+        setCurrentIndex(0);
+        setDirection(0);
       } catch (error) {
         console.error("Error fetching bubble data", error);
       } finally {
@@ -118,10 +111,7 @@ function Page() {
   const renderContent = (content: string, attachments: Message[]) => {
     if (!content) return <p>No content available</p>;
 
-    // Sort attachments by index to ensure we process them in order
-    const sortedAttachments = [...attachments]
-      .filter((att) => typeof att.index === "number")
-      .sort((a, b) => a.index - b.index);
+    const sortedAttachments = attachments;
 
     // Track dollar signs used for attachments (assuming indices are exact)
     const usedDollarPositions = new Set();
@@ -276,7 +266,12 @@ function Page() {
             }`}
           >
             <span>
-              {getFileIcon(attachment, selectedAttachment, transitioning)}
+              {getFileIcon(
+                attachment.cloudFrontDownloadLink || "",
+                attachment,
+                selectedAttachment,
+                transitioning
+              )}
             </span>
             <span className="text-inherit max-w-20 w-full truncate ml-1">
               {displayName}

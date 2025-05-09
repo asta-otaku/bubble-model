@@ -51,6 +51,7 @@ const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 function Page() {
   const { slug } = useParams();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   // const [textValue, setTextValue] = useState("");
   // const [isModalOpen, setIsModalOpen] = useState(false);
   // const [user, setUser] = useState({
@@ -63,7 +64,7 @@ function Page() {
   // const [allowSubmit, setAllowSubmit] = useState(false);
   const [fileData, setFileData] = useState<FileData | null>(null);
   const [exampleOutput, setExampleOutput] = useState<FileContent | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
@@ -74,6 +75,7 @@ function Page() {
           `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/single-file/${slug}`,
           { headers: { "x-user-id": USER_ID, accept: "*/*" } }
         );
+        console.log("API response:", data);
         setFileData(data);
         setExampleOutput(data.textAttachment);
       } catch (error) {
@@ -91,6 +93,27 @@ function Page() {
       router.replace("/not-found");
     }
   }, [fileData, isLoading, router]);
+
+  // Disable scrolling for audio files
+  useEffect(() => {
+    if (!fileData) return;
+
+    const fileName =
+      fileData?.description || exampleOutput?.cloudFrontDownloadLink || "";
+    const fileExtension = getFileExtension(fileName);
+    const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
+
+    if (!isLoading && isAudio) {
+      // Apply the same class that's used during audio scrubbing
+      document.body.classList.add("scrubbing-active");
+    } else {
+      document.body.classList.remove("scrubbing-active");
+    }
+
+    return () => {
+      document.body.classList.remove("scrubbing-active");
+    };
+  }, [isLoading, fileData, exampleOutput]);
 
   if (isLoading || !fileData) {
     return <div>Loading...</div>;
@@ -140,6 +163,7 @@ function Page() {
     getFileNameFromDescription(fileData.description),
     true
   );
+
   // const uploadIconColor = textValue.trim() ? "black" : "#BABABA";
 
   // const handleFocus = () => setIsKeyboardOpen(true);
@@ -190,7 +214,9 @@ function Page() {
                     loop
                     onError={(e) => {
                       e.currentTarget.onerror = null;
+                      // Hide the video element on error and show fallback
                       e.currentTarget.style.display = "none";
+                      // Create and append fallback image
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
                         const img = document.createElement("img");
@@ -257,6 +283,7 @@ function Page() {
             isJSON={isJSON}
             formatFileSize={formatFileSize}
             title={title}
+            optimisedImageUrl={fileData.textAttachment.optimisedImageUrl}
             openImageModal={() => {
               /* Add image modal handler if needed */
             }}

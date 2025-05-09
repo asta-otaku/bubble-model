@@ -14,25 +14,25 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [isDownloading, setIsDownloading] = React.useState(false);
-
+  
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
-
+    
     if (isDownloading) return;
     setIsDownloading(true);
-
+    
     // Instead of handling the download logic in the browser,
     // redirect to our API endpoint that will set the proper headers
     const encodedUrl = encodeURIComponent(downloadLink);
     const encodedFileName = encodeURIComponent(fileName);
     const downloadUrl = `/api/download?url=${encodedUrl}&filename=${encodedFileName}`;
-
+    
     // Create an invisible iframe to avoid navigating away from the current page
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
     iframe.src = downloadUrl;
     document.body.appendChild(iframe);
-
+    
     // Set a timeout to remove the iframe and reset the loading state
     setTimeout(() => {
       if (document.body.contains(iframe)) {
@@ -45,7 +45,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
   return (
     <>
       {isMobile ? (
-        <button
+        <button 
           onClick={handleDownload}
           disabled={isDownloading}
           className="bg-transparent border-0 p-0 cursor-pointer"

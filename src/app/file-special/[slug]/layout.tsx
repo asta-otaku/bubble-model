@@ -72,7 +72,11 @@ export async function generateMetadata({
     // Prepare title and description
     const title =
       fileData.title ||
-      `${ownerProfile?.firstName || "Someone"} shared a file with you`;
+      `Sharing ${
+        ownerProfile?.firstName
+          ? `${ownerProfile.firstName}'s`
+          : "A Typo* User's"
+      } file with you`;
 
     // Clean up description
     const description = cleanDescription(fileData.description);
