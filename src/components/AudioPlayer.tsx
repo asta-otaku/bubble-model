@@ -51,6 +51,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     plugins: useMemo(() => [], []),
     normalize: true,
     interact: true,
+    // Add performance options
+    backend: 'MediaElement', // Better streaming support
+    mediaControls: false,
+    autoplay: false
   });
 
   useEffect(() => {
@@ -60,20 +64,31 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const peaksPath = audioPath.replace(/\.[^.]+$/, ".peaks.json");
     const peaksUrl = PEAKS_CDN + peaksPath;
 
+    // Configure wavesurfer for better loading performance
+    if (wavesurfer.options) {
+      // Enable backend options for faster loading
+      wavesurfer.options.backend = 'MediaElement';
+      wavesurfer.options.mediaControls = false;
+      wavesurfer.options.autoplay = false;
+    }
+
+    // Fetch peaks data first to display waveform while audio loads
     fetch(peaksUrl)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch peaks");
-        console.log("peaksUrl", peaksUrl);
-        console.log("res", res);
         return res.json();
       })
       .then((data: { peaks: number[] }) => {
-        if (!canceled) wavesurfer.load(audioUrl, [data.peaks]);
+        if (canceled) return;
+        
+        // Load with peaks data
+        wavesurfer.load(audioUrl, [data.peaks]);
       })
       .catch((err) => {
         console.error("Error loading peaks:", err);
         if (!canceled) {
           console.log("Falling back to client-side decoding");
+          // Fallback to standard loading
           wavesurfer.load(audioUrl);
         }
       });

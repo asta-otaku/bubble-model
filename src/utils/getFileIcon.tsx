@@ -14,7 +14,6 @@ import Image from "next/image";
 import { formatTime } from ".";
 
 export const getFileIcon = (
-  fileName: string,
   attachment: Message,
   selectedAttachment: Message | null,
   transitioning: boolean
@@ -79,10 +78,13 @@ export const getFileIcon = (
       case "heic":
       case "webp":
         return (
-          <img
+          <Image
             src={attachment.cloudFrontDownloadLink}
             alt="image icon"
             className="w-4 h-4 rounded-sm object-cover"
+            width={0}
+            height={0}
+            quality={5}
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = imageIcon.src;
@@ -147,16 +149,16 @@ export const getFileIcon = (
 
   if (
     attachment.type === "REFERENCE" &&
-    (attachment.cloudFrontDownloadLink || attachment.content.referencedAttachment?.url)
+    (attachment.cloudFrontDownloadLink ||
+      attachment.content.referencedAttachment?.url)
   ) {
     // Use cloudFrontDownloadLink if available; otherwise use the referencedAttachment URL
     const effectiveUrl =
       attachment.cloudFrontDownloadLink ||
       attachment.content.referencedAttachment?.url ||
       "";
-    const fileExtension =
-      effectiveUrl.split(".").pop()?.toLowerCase() || "";
-  
+    const fileExtension = effectiveUrl.split(".").pop()?.toLowerCase() || "";
+
     // Define a list of known file extensions for media
     const knownExtensions = [
       "zip",
@@ -193,9 +195,9 @@ export const getFileIcon = (
       "html",
       "xml",
       "jsonl",
-      "jsonl.gz"
+      "jsonl.gz",
     ];
-  
+
     // If the file extension isn't one of our known media types,
     // assume it's a link and render both the reference and link icons.
     if (!knownExtensions.includes(fileExtension)) {
@@ -214,8 +216,8 @@ export const getFileIcon = (
         </div>
       );
     }
-    
-        // Otherwise, render as a reference with additional info
+
+    // Otherwise, render as a reference with additional info
     return (
       <div className="flex items-center gap-1">
         <Image
@@ -252,10 +254,13 @@ export const getFileIcon = (
             className="w-4 h-4"
           />
         ) : isImage ? (
-          <img
+          <Image
             src={attachment.cloudFrontDownloadLink}
             alt="image icon"
             className="w-4 h-4 rounded-sm object-cover"
+            width={0}
+            height={0}
+            quality={5}
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = imageIcon.src;

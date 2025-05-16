@@ -13,6 +13,7 @@ export interface Message {
   index: number;
   type: "LINK" | "FILE" | "SYSTEM_MESSAGE" | "USER" | "TIMESTAMP" | "REFERENCE";
   cloudFrontDownloadLink: string;
+  optimisedImageUrl?: string;
   metaData: null | MetaDataContent;
   content: {
     contentId: string;
@@ -26,6 +27,7 @@ export interface Message {
       muxPlaybackId: string;
       id: string;
       url?: string;
+      optimisedImageUrl?: string;
     };
     thumbnailImage: string;
     name: string;
@@ -36,6 +38,7 @@ export interface Message {
     id: string;
     url: string;
     userId: string;
+    optimisedImageUrl?: string;
   };
 }
 

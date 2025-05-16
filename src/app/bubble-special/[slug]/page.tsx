@@ -1,31 +1,62 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import axios from "axios";
 import TokenPreviewSpecial from "@/components/TokenPreviewSpecial";
 import { truncateFilename } from "@/components/TruncateText";
 import { getFileIcon } from "@/utils/getFileIcon";
 import { BubbleData, Message } from "@/utils/BubbleSpecialInterfaces";
 import { motion, useSpring, useMotionValue } from "framer-motion";
+import BubbleDownloadAllButton from "@/components/BubbleDownloadAllButton";
+import { convertUnixNanoToReadable } from "@/utils/getDateTime";
+import FloatingNav from "@/components/FloatingNav";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
+
+const throttle = (fn: Function, delay: number) => {
+  let lastCall = 0;
+  return (...args: any[]) => {
+    const now = Date.now();
+    if (now - lastCall < delay) return;
+    lastCall = now;
+    fn(...args);
+  };
+};
 
 function Page() {
   const { slug } = useParams();
   const router = useRouter();
+  const [state, setState] = useState<{
+    bubbleData: BubbleData | null;
+    owner: string;
+    lastUpdated: string;
+    isLoading: boolean;
+  }>({
+    bubbleData: null,
+    owner: "",
+    lastUpdated: "",
+    isLoading: true,
+  });
 
-  const [bubbleData, setBubbleData] = useState<BubbleData | null>(null);
-  const [owner, setOwner] = useState("");
   const [selectedAttachment, setSelectedAttachment] = useState<Message | null>(
     null
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [direction, setDirection] = useState(0);
   const [mounted, setMounted] = useState(false);
   const firstTokenRef = useRef<HTMLButtonElement>(null);
+  const controllerRef = useRef<AbortController>();
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -34,266 +65,232 @@ function Page() {
   const [isDraggingDisabled, setIsDraggingDisabled] = useState(false);
   const [screenWidth, setScreenWidth] = useState(0);
 
-  useEffect(() => {
-    setScreenWidth(window.innerWidth);
-    const handleResize = () => setScreenWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+  const fetchBubbleData = useCallback(async () => {
+    if (!slug) return;
+
+    controllerRef.current = new AbortController();
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const { data } = await axios.post(
+        `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/message/${slug}`,
+        {
+          headers: { "x-user-id": USER_ID, accept: "*/*" },
+          signal: controllerRef.current.signal,
+        }
+      );
+
+      const message = data.message;
+      const processedAttachments = processAttachments(message.attachments);
+
+      setState({
+        bubbleData: { ...message, attachments: processedAttachments },
+        owner: data.ownerProfile.firstName || "",
+        lastUpdated: convertUnixNanoToReadable(
+          data.ownerProfile.lastUpdatedTime
+        ),
+        isLoading: false,
+      });
+
+      setSelectedAttachment(processedAttachments[0]);
+      setMounted(true);
+    } catch (error) {
+      if (!axios.isCancel(error)) {
+        console.error("Error fetching bubble data", error);
+        router.replace("/not-found");
+      }
+    }
+  }, [slug, router]);
+
+  const processAttachments = useCallback((attachments: Message[]) => {
+    const sorted = [...attachments].sort((a, b) => a.index - b.index);
+    return sorted.length === 1 ? [...sorted, sorted[0]] : sorted;
   }, []);
 
   useEffect(() => {
-    const fetchBubbleData = async () => {
-      setIsLoading(true);
+    fetchBubbleData();
+    return () => controllerRef.current?.abort();
+  }, [fetchBubbleData]);
+
+  const getDisplayName = useCallback((attachment: Message) => {
+    if (attachment.type === "LINK") {
+      const urlString =
+        attachment.optimisedImageUrl ||
+        attachment.content.url ||
+        attachment.content.referencedAttachment?.url ||
+        "";
       try {
-        const { data } = await axios.post(
-          `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/details-with-image`,
-          { messageId: slug, isDev: true },
-          { headers: { "x-user-id": USER_ID, accept: "*/*" } }
-        );
-
-        const message = data.message;
-        setOwner(data.ownerProfile.firstName || "");
-
-        const sorted = [...message.attachments].sort(
-          (a, b) => a.index - b.index
-        );
-        const processedAttachments =
-          sorted.length === 1 ? [...sorted, sorted[0]] : sorted;
-
-        setBubbleData({ ...message, attachments: processedAttachments });
-
-        setSelectedAttachment(processedAttachments[0]);
-        setCurrentIndex(0);
-        setDirection(0);
-      } catch (error) {
-        console.error("Error fetching bubble data", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (slug) fetchBubbleData();
-  }, [slug]);
-
-  useEffect(() => {
-    if (!isLoading && bubbleData?.attachments?.length) {
-      const timer = setTimeout(() => {
-        firstTokenRef.current?.click();
-
-        if (
-          bubbleData.attachments.length > 1 &&
-          bubbleData.attachments[0].content.id ===
-            bubbleData.attachments[1].content.id
-        ) {
-          setBubbleData((prev) =>
-            prev ? { ...prev, attachments: prev.attachments.slice(0, 1) } : null
-          );
-        }
-
-        setMounted(true);
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, bubbleData]);
-
-  const handleAttachmentSelect = (_: Message, targetIndex: number) => {
-    if (!bubbleData || transitioning) return;
-
-    setDirection(targetIndex > currentIndex ? 1 : -1);
-    setTransitioning(true);
-    setSelectedAttachment(bubbleData.attachments[targetIndex]);
-    setCurrentIndex(targetIndex);
-
-    setTimeout(() => setTransitioning(false), 200);
-  };
-
-  const renderContent = (content: string, attachments: Message[]) => {
-    if (!content) return <p>No content available</p>;
-
-    const sortedAttachments = attachments;
-
-    // Track dollar signs used for attachments (assuming indices are exact)
-    const usedDollarPositions = new Set();
-
-    // Mark dollar signs at exact attachment positions
-    for (const attachment of sortedAttachments) {
-      const index = attachment.index;
-      if (content[index] === "$") {
-        usedDollarPositions.add(index);
+        return new URL(urlString).hostname.replace("www.", "");
+      } catch {
+        return truncateFilename(urlString);
       }
     }
 
-    // Render content with attachments at their exact indices
+    if (attachment.type === "TIMESTAMP" || attachment.type === "REFERENCE") {
+      return (
+        attachment.content.referencedAttachment?.name ||
+        attachment.metaData?.title ||
+        getHostnameFromUrl(
+          attachment.content.url || attachment.content.referencedAttachment?.url
+        )
+      );
+    }
+
+    if (attachment.type === "USER") {
+      return `@${attachment.content.name}`;
+    }
+
+    return truncateFilename(
+      attachment.content.name || attachment.metaData?.title || ""
+    );
+  }, []);
+
+  const getHostnameFromUrl = useCallback((url?: string) => {
+    if (!url) return "";
+    try {
+      return new URL(url).hostname.replace("www.", "");
+    } catch {
+      return truncateFilename(url);
+    }
+  }, []);
+
+  const handleAttachmentSelect = useCallback(
+    (_: Message, targetIndex: number) => {
+      if (!state.bubbleData || transitioning) return;
+
+      setDirection(targetIndex > currentIndex ? 1 : -1);
+      setTransitioning(true);
+      setSelectedAttachment(state.bubbleData.attachments[targetIndex]);
+      setCurrentIndex(targetIndex);
+
+      setTimeout(() => setTransitioning(false), 200);
+    },
+    [state.bubbleData, currentIndex, transitioning]
+  );
+
+  const renderAttachmentButton = useCallback(
+    (attachment: Message, index: number) => {
+      const isSelected =
+        selectedAttachment?.content.id === attachment.content.id &&
+        !transitioning;
+      const backgroundClass =
+        isSelected && mounted
+          ? "bg-white text-secondary"
+          : "bg-[#FFFFFF33] text-white";
+      const displayName = getDisplayName(attachment);
+
+      return (
+        <button
+          ref={index === 0 ? firstTokenRef : null}
+          key={`${attachment.content.id}-${index}`}
+          onClick={() => handleAttachmentSelect(attachment, index)}
+          className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
+            attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
+              ? "max-w-[160px] justify-between gap-1"
+              : ""
+          }`}
+        >
+          <span>
+            {getFileIcon(attachment, selectedAttachment, transitioning)}
+          </span>
+          <span className="text-inherit max-w-20 w-full truncate ml-1">
+            {displayName}
+          </span>
+        </button>
+      );
+    },
+    [
+      selectedAttachment,
+      transitioning,
+      mounted,
+      getDisplayName,
+      handleAttachmentSelect,
+    ]
+  );
+
+  const contentElements = useMemo(() => {
+    if (!state.bubbleData) return [];
+
+    const { contentText, attachments } = state.bubbleData;
     const elements = [];
     let lastPos = 0;
+    const usedDollarPositions = new Set<number>();
 
-    for (const attachment of sortedAttachments) {
+    attachments.forEach((attachment) => {
+      const index = attachment.index;
+      if (contentText[index] === "$") usedDollarPositions.add(index);
+    });
+
+    attachments.forEach((attachment, idx) => {
       const index = attachment.index;
 
-      // Add text before this attachment
       if (index > lastPos) {
-        let textContent = "";
-        for (let i = lastPos; i < index; i++) {
-          // Skip dollar signs that are used for attachments
-          if (!usedDollarPositions.has(i)) {
-            textContent += content[i];
-          }
-        }
-
+        const textContent = contentText
+          .slice(lastPos, index)
+          .replace(/\$/g, (_, i) =>
+            usedDollarPositions.has(lastPos + i) ? "" : "$"
+          );
         if (textContent) {
           elements.push(
-            <span
-              key={`text-${lastPos}`}
-              className="text-white inline"
-              dangerouslySetInnerHTML={{ __html: textContent }}
-            />
+            <span key={`text-${lastPos}`} className="text-white inline">
+              {textContent}
+            </span>
           );
         }
       }
 
-      // Add the attachment
-      const attachmentIndex = attachments.findIndex(
-        (a) => a.content.id === attachment.content.id
-      );
-      elements.push(renderAttachmentButton(attachment, attachmentIndex));
+      elements.push(renderAttachmentButton(attachment, idx));
+      lastPos = contentText[index] === "$" ? index + 1 : index;
+    });
 
-      // Move past this position and the dollar sign if one exists
-      if (content[index] === "$") {
-        lastPos = index + 1; // Skip past the dollar sign
-      } else {
-        lastPos = index; // No dollar sign, just stay at the current position
-      }
-    }
-
-    // Add any remaining text
-    if (lastPos < content.length) {
-      let textContent = "";
-      for (let i = lastPos; i < content.length; i++) {
-        // Skip dollar signs that are used for attachments
-        if (!usedDollarPositions.has(i)) {
-          textContent += content[i];
-        }
-      }
-
+    if (lastPos < contentText.length) {
+      const textContent = contentText
+        .slice(lastPos)
+        .replace(/\$/g, (_, i) =>
+          usedDollarPositions.has(lastPos + i) ? "" : "$"
+        );
       if (textContent) {
         elements.push(
-          <span
-            key={`text-${lastPos}`}
-            className="text-white inline"
-            dangerouslySetInnerHTML={{ __html: textContent }}
-          />
+          <span key={`text-${lastPos}`} className="text-white inline">
+            {textContent}
+          </span>
         );
       }
     }
 
     return elements;
-  };
-
-  const renderAttachmentButton = (attachment: Message, index: number) => {
-    const isSelected =
-      selectedAttachment?.content.id === attachment.content.id &&
-      !transitioning;
-    const backgroundClass =
-      isSelected && mounted
-        ? "bg-white text-secondary"
-        : "bg-[#FFFFFF33] text-white";
-    let displayName = "";
-    if (attachment.type === "LINK") {
-      // Try using cloudFrontDownloadLink, then content.url, then referencedAttachment.url as fallbacks
-      let urlString =
-        attachment.cloudFrontDownloadLink ||
-        attachment.content.url ||
-        attachment.content.referencedAttachment?.url ||
-        "";
-      if (urlString) {
-        try {
-          displayName = new URL(urlString).hostname.replace("www.", "");
-        } catch (error) {
-          console.error("Invalid URL", error);
-        }
-      }
-    } else if (
-      attachment.type === "TIMESTAMP" ||
-      attachment.type === "REFERENCE"
-    ) {
-      displayName =
-        attachment.content.referencedAttachment?.name ||
-        attachment.metaData?.title ||
-        // Fallback: try extracting hostname from content.url or referencedAttachment.url
-        (attachment.content.url
-          ? (() => {
-              try {
-                return new URL(attachment.content.url).hostname.replace(
-                  "www.",
-                  ""
-                );
-              } catch {
-                return "";
-              }
-            })()
-          : attachment.content.referencedAttachment?.url
-          ? (() => {
-              try {
-                return new URL(
-                  attachment.content.referencedAttachment.url
-                ).hostname.replace("www.", "");
-              } catch {
-                return "";
-              }
-            })()
-          : "");
-    } else if (attachment.type === "USER") {
-      displayName = attachment.content.name || "";
-    } else {
-      displayName = attachment.content.name || attachment.metaData?.title || "";
-    }
-    displayName = truncateFilename(displayName);
-
-    return (
-      <React.Fragment key={`attachment-${attachment.content.id}-${index}`}>
-        {attachment.type === "USER" ? (
-          <span className="font-semibold">@{displayName}</span>
-        ) : (
-          <button
-            ref={index === 0 ? firstTokenRef : null}
-            key={`attachment-${attachment.content.id}-${index}`}
-            onClick={() => handleAttachmentSelect(attachment, index)}
-            className={`inline-flex items-center text-xs py-1 px-2 mx-0.5 rounded-3xl w-fit cursor-pointer ${backgroundClass} ${
-              attachment.type === "REFERENCE" || attachment.type === "TIMESTAMP"
-                ? "max-w-[172px] justify-between gap-1"
-                : ""
-            }`}
-          >
-            <span>
-              {getFileIcon(
-                attachment.cloudFrontDownloadLink || "",
-                attachment,
-                selectedAttachment,
-                transitioning
-              )}
-            </span>
-            <span className="text-inherit max-w-20 w-full truncate ml-1">
-              {displayName}
-            </span>
-          </button>
-        )}
-      </React.Fragment>
-    );
-  };
+  }, [state.bubbleData, renderAttachmentButton]);
 
   useEffect(() => {
-    if (!isLoading && !bubbleData) {
-      router.replace("/not-found");
-    }
-  }, [bubbleData, isLoading, router]);
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    const throttledResize = throttle(handleResize, 200);
+    window.addEventListener("resize", throttledResize);
+    return () => window.removeEventListener("resize", throttledResize);
+  }, []);
 
-  if (isLoading || !bubbleData) {
-    return <div>Loading...</div>;
+  if (state.isLoading) {
+    return (
+      <div className="w-full min-h-screen flex justify-center items-center p-4">
+        <div className="w-[360px] mx-auto p-6">
+          <Skeleton height={20} width={200} className="mb-4" />
+          <Skeleton height={300} className="rounded-2xl" />
+          <div className="mt-4 flex gap-2">
+            <Skeleton circle height={40} width={40} />
+            <Skeleton circle height={40} width={40} />
+            <Skeleton circle height={40} width={40} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!state.bubbleData) {
+    return null;
   }
 
   return (
     <div className="w-full min-h-screen flex justify-center items-center relative p-4">
+      <FloatingNav />
       <motion.div
         className="w-[360px] mx-auto p-6"
         drag={!isDraggingDisabled && screenWidth > 768}
@@ -311,9 +308,14 @@ function Page() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        <div className="text-[#7E7E7E] text-xs mt-1 capitalize flex justify-center items-center gap-2 py-1">
+          <span className="font-bold">{state.owner}</span>
+          <span>•</span>
+          <span className="font-normal">{state.lastUpdated}</span>
+        </div>
         <article className="bg-gradient-to-b from-[#3076FF] to-[#1D49E5] w-full text-[17px] pt-3 rounded-2xl">
           <div className="px-3 font-light text-white whitespace-pre-wrap break-words">
-            {renderContent(bubbleData.contentText, bubbleData.attachments)}
+            {contentElements}
           </div>
 
           <div className="bubble-bottom mt-2 w-full">
@@ -322,16 +324,18 @@ function Page() {
               direction={direction}
               onTokenSwipe={(newIndex) =>
                 handleAttachmentSelect(
-                  bubbleData.attachments[newIndex],
+                  state.bubbleData!.attachments[newIndex],
                   newIndex
                 )
               }
-              allTokens={bubbleData.attachments}
+              allTokens={state.bubbleData.attachments}
               setIsDraggingDisabled={setIsDraggingDisabled}
             />
           </div>
         </article>
-        <h2 className="text-[#7E7E7E] text-xs mt-1 capitalize">{owner}</h2>
+        <div className="fixed bottom-[10px] md:bottom-[25.5px] left-1/2 transform -translate-x-1/2 flex gap-2 z-50">
+          <BubbleDownloadAllButton attachments={state.bubbleData.attachments} />
+        </div>
       </motion.div>
     </div>
   );

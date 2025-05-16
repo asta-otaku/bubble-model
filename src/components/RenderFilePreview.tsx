@@ -1,4 +1,4 @@
-import AudioPlayer from "./AudioPlayer";
+import BubbleAudioPlayer from "./BubbleAudioPlayer";
 import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -187,7 +187,7 @@ if (isVideo && fileUrl) {
   // Audio Preview with animation
   if (isAudio && fileUrl) {
     return (
-      <AudioPlayer
+      <BubbleAudioPlayer
         audioUrl={fileUrl}
         filename={filename}
         fileSize={fileSize}

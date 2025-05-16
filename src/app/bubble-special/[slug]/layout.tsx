@@ -43,8 +43,7 @@ export async function generateMetadata({
   try {
     // Fetch message data using the new API endpoint
     const response = await axios.post(
-      `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/details-with-image`,
-      { messageId: slug, isDev: true },
+      `${SPECIAL_BUBBLE_BASE_URL}/api/webClient/message/${slug}`,
       {
         headers: {
           "x-user-id": USER_ID,

@@ -74,7 +74,8 @@ function TokenPreviewSpecial({
   const RenderContent = useMemo(
     () =>
       ({ token }: { token: Message }) => {
-        const filename = token.content.name || token.cloudFrontDownloadLink || "";
+        const filename =
+          token.content.name || token.cloudFrontDownloadLink || "";
         const getFileExtension = (name: string) =>
           name.split(".").pop()?.toLowerCase() || "";
         const fileExtension = getFileExtension(filename);
@@ -136,7 +137,7 @@ function TokenPreviewSpecial({
 
           return (
             <RenderFilePreview
-              url={token.cloudFrontDownloadLink ?? ""}
+              url={token.optimisedImageUrl ?? token.cloudFrontDownloadLink}
               filename={token.content.referencedAttachment.name || ""}
               fileExtension={extension || ""}
               token={token}
@@ -148,7 +149,6 @@ function TokenPreviewSpecial({
               isCSV={isCSV}
               isExcel={isExcel}
               isJSON={isJSON}
-              
               formatFileSize={formatFileSize}
               openImageModal={openImageModal}
               openPdfModal={openPdfModal}
@@ -164,7 +164,7 @@ function TokenPreviewSpecial({
 
         return (
           <RenderFilePreview
-            url={token.cloudFrontDownloadLink ?? ""}
+            url={token.optimisedImageUrl ?? ""}
             filename={filename}
             fileExtension={fileExtension}
             token={token}
