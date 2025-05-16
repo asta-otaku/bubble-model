@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     const writer = stream.writable.getWriter();
 
     // Write chunks to the stream as they come in
-    archive.on('data', async (chunk) => {
+    archive.on('data', async (chunk: any) => {
       await writer.write(chunk);
     });
 
