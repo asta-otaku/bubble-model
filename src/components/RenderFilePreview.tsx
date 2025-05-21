@@ -58,9 +58,7 @@ function RenderFilePreview({
       ? token.content?.referencedAttachment?.size
       : token.metaData?.size
   );
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
-
 
   useEffect(() => {
     setBrowserSupportsVideo(isSafari());
@@ -117,52 +115,66 @@ function RenderFilePreview({
     }
   }
 
-// Video Preview
-if (isVideo && fileUrl) {
-  const VIDEO_PLAYER_MODE = process.env.NEXT_PUBLIC_VIDEO_PLAYER_MODE || "native";
-  console.log("VIDEO_PLAYER_MODE RenderFilePreview:", VIDEO_PLAYER_MODE);
-  console.log("fileData debugging:", fileData);
-  
-  // Note: token properties can still be passed in, but the mode is controlled solely by the env variable.
-  let muxPlaybackId = null;
-  if (fileData?.textAttachment?.attachedContent?.muxPlaybackId) {
-    muxPlaybackId = fileData.textAttachment.attachedContent.muxPlaybackId;
-  } else if (token.content?.muxPlaybackId) {
-    muxPlaybackId = token.content.muxPlaybackId;
-  } else if (token.content?.referencedAttachment?.muxPlaybackId) {
-    muxPlaybackId = token.content.referencedAttachment.muxPlaybackId;
-  }
-  
-  console.log("muxPlaybackId RenderFilePreview:", muxPlaybackId);
-  // Get width and height from token content if available
-  const videoWidth = token.content?.width || token.content?.referencedAttachment?.width;
-  const videoHeight = token.content?.height || token.content?.referencedAttachment?.height;
+  // Video Preview
+  if (isVideo && fileUrl) {
+    const VIDEO_PLAYER_MODE =
+      process.env.NEXT_PUBLIC_VIDEO_PLAYER_MODE || "native";
+    console.log("VIDEO_PLAYER_MODE RenderFilePreview:", VIDEO_PLAYER_MODE);
+    console.log("fileData debugging:", fileData);
 
-  if (VIDEO_PLAYER_MODE === "mux") {
-    return (
-      <MuxVideoPreview
-        muxPlaybackId={muxPlaybackId}
-        fileUrl={fileUrl || fileData?.textAttachment.cloudFrontDownloadLink}            // Pass for fallback in MuxVideoPreview
-        fileExtension={fileExtension} // Pass for fallback in MuxVideoPreview
-        thumbnailImage={thumbnailImage}
-        startTimestamp={startTimestamp}
-        width={videoWidth}   
-        height={videoHeight} 
-      />
-    );
-  } else if (VIDEO_PLAYER_MODE === "videojs") {
-    // If muxPlaybackId exists, render your Mux version; of Video.js
-    // otherwise, use the Vanilla Video.js fallback (VanillaVideoJSPreview)
-    if (muxPlaybackId) {
+    // Note: token properties can still be passed in, but the mode is controlled solely by the env variable.
+    let muxPlaybackId = null;
+    if (fileData?.textAttachment?.attachedContent?.muxPlaybackId) {
+      muxPlaybackId = fileData.textAttachment.attachedContent.muxPlaybackId;
+    } else if (token.content?.muxPlaybackId) {
+      muxPlaybackId = token.content.muxPlaybackId;
+    } else if (token.content?.referencedAttachment?.muxPlaybackId) {
+      muxPlaybackId = token.content.referencedAttachment.muxPlaybackId;
+    }
+
+    console.log("muxPlaybackId RenderFilePreview:", muxPlaybackId);
+    // Get width and height from token content if available
+    const videoWidth =
+      token.content?.width || token.content?.referencedAttachment?.width;
+    const videoHeight =
+      token.content?.height || token.content?.referencedAttachment?.height;
+
+    if (VIDEO_PLAYER_MODE === "mux") {
       return (
-        <MuxVideoJSPreview
+        <MuxVideoPreview
           muxPlaybackId={muxPlaybackId}
+          fileUrl={fileUrl || fileData?.textAttachment.cloudFrontDownloadLink} // Pass for fallback in MuxVideoPreview
+          fileExtension={fileExtension} // Pass for fallback in MuxVideoPreview
+          thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
+          width={videoWidth}
+          height={videoHeight}
         />
       );
+    } else if (VIDEO_PLAYER_MODE === "videojs") {
+      // If muxPlaybackId exists, render your Mux version; of Video.js
+      // otherwise, use the Vanilla Video.js fallback (VanillaVideoJSPreview)
+      if (muxPlaybackId) {
+        return (
+          <MuxVideoJSPreview
+            muxPlaybackId={muxPlaybackId}
+            startTimestamp={startTimestamp}
+          />
+        );
+      } else {
+        return (
+          <VanillaVideoJSPreview
+            fileUrl={fileUrl}
+            fileExtension={fileExtension}
+            thumbnailImage={thumbnailImage}
+            startTimestamp={startTimestamp}
+          />
+        );
+      }
     } else {
+      // Default to native mode
       return (
-        <VanillaVideoJSPreview
+        <NativeVideoPreview
           fileUrl={fileUrl}
           fileExtension={fileExtension}
           thumbnailImage={thumbnailImage}
@@ -170,19 +182,7 @@ if (isVideo && fileUrl) {
         />
       );
     }
-  } else {
-    // Default to native mode
-    return (
-      <NativeVideoPreview
-        fileUrl={fileUrl}
-        fileExtension={fileExtension}
-        thumbnailImage={thumbnailImage}
-        startTimestamp={startTimestamp}  
-      />
-    );
   }
-}
-
 
   // Audio Preview with animation
   if (isAudio && fileUrl) {
@@ -224,11 +224,12 @@ if (isVideo && fileUrl) {
     return <JsonPreview url={fileUrl} />;
   }
 
-// *** New: Referenced Link Preview ***
+  // *** New: Referenced Link Preview ***
   // If the token is a REFERENCE but not any supported media type,
   // display a link preview.
   if (
-    token.type === "REFERENCE" && token.content?.referencedAttachment?.url &&
+    token.type === "REFERENCE" &&
+    token.content?.referencedAttachment?.url &&
     !isImage &&
     !isVideo &&
     !isAudio &&
@@ -246,7 +247,7 @@ if (isVideo && fileUrl) {
         return { hostname: "", origin: "" };
       }
     };
-  
+
     return (
       <RenderLinkPreview
         getDisplayUrl={getDisplayUrl}
@@ -264,8 +265,6 @@ if (isVideo && fileUrl) {
       />
     );
   }
-  
-
 
   // For other file types with animation
   const getPreviewBox = (icon: string, title: string, color: string) => (

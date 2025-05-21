@@ -65,6 +65,7 @@ function TokenPreviewSpecial({
   const handleSlideChange = useCallback(
     (swiper: SwiperType) => {
       if (swiper.activeIndex !== currentIndex) {
+      
         onTokenSwipe(swiper.activeIndex);
       }
     },

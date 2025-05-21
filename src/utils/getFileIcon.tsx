@@ -55,11 +55,16 @@ export const getFileIcon = (
       case "mov":
         return (
           <video
-            src={attachment.cloudFrontDownloadLink}
+            src={`${attachment.cloudFrontDownloadLink}?width=64&height=64&quality=5`}
             className="w-4 h-4 rounded-sm object-cover"
             playsInline
             autoPlay
             muted
+            loop
+            style={{
+              filter: "brightness(1.1) contrast(1.1)",
+              imageRendering: "crisp-edges",
+            }}
           />
         );
       case "pdf":

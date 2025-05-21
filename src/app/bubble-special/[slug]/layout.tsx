@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import axios from "axios";
+import { useEffect } from "react";
+import { MediaGatekeeper } from "@/utils";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
@@ -94,5 +96,10 @@ export async function generateMetadata({
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <MediaGatekeeper />
+      {children}
+    </>
+  );
 }

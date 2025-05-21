@@ -81,10 +81,10 @@ function Page() {
       );
 
       const message = data.message;
-      const processedAttachments = processAttachments(message.attachments);
+      const trueAttachments = processAttachments(message.attachments);
 
       setState({
-        bubbleData: { ...message, attachments: processedAttachments },
+        bubbleData: { ...message, attachments: trueAttachments },
         owner: data.ownerProfile.firstName || "",
         lastUpdated: convertUnixNanoToReadable(
           data.ownerProfile.lastUpdatedTime
@@ -92,7 +92,6 @@ function Page() {
         isLoading: false,
       });
 
-      setSelectedAttachment(processedAttachments[0]);
       setMounted(true);
     } catch (error) {
       if (!axios.isCancel(error)) {
@@ -103,9 +102,33 @@ function Page() {
   }, [slug, router]);
 
   const processAttachments = useCallback((attachments: Message[]) => {
-    const sorted = [...attachments].sort((a, b) => a.index - b.index);
-    return sorted.length === 1 ? [...sorted, sorted[0]] : sorted;
+    return [...attachments].sort((a, b) => a.index - b.index);
   }, []);
+
+  const previewTokens = useMemo(() => {
+    const atts = state.bubbleData?.attachments ?? [];
+    return atts.length === 1 ? [atts[0], atts[0]] : atts;
+  }, [state.bubbleData]);
+
+  useEffect(() => {
+    if (!state.isLoading && previewTokens.length) {
+      const start = previewTokens.length > 1 ? 1 : 0;
+      setCurrentIndex(start);
+      setSelectedAttachment(previewTokens[start]);
+      setMounted(true);
+    }
+  }, [state.isLoading, previewTokens]);
+
+  const didResetRef = useRef(false);
+  useEffect(() => {
+    if (mounted && previewTokens.length > 1 && !didResetRef.current) {
+      didResetRef.current = true;
+      setTimeout(() => {
+        setCurrentIndex(0);
+        setSelectedAttachment(previewTokens[0]);
+      }, 0);
+    }
+  }, [mounted, previewTokens]);
 
   useEffect(() => {
     fetchBubbleData();
@@ -292,7 +315,7 @@ function Page() {
     <div className="w-full min-h-screen flex justify-center items-center relative p-4">
       <FloatingNav />
       <motion.div
-        className="w-[360px] mx-auto p-6"
+        className="w-[360px] mx-auto p-6 py-20"
         drag={!isDraggingDisabled && screenWidth > 768}
         dragMomentum={false}
         style={{ x: springX, y: springY }}
@@ -323,12 +346,9 @@ function Page() {
               currentIndex={currentIndex}
               direction={direction}
               onTokenSwipe={(newIndex) =>
-                handleAttachmentSelect(
-                  state.bubbleData!.attachments[newIndex],
-                  newIndex
-                )
+                handleAttachmentSelect(previewTokens[newIndex], newIndex)
               }
-              allTokens={state.bubbleData.attachments}
+              allTokens={previewTokens}
               setIsDraggingDisabled={setIsDraggingDisabled}
             />
           </div>

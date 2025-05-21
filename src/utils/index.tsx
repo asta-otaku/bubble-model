@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 
 export function formatTime(seconds: number) {
@@ -43,3 +44,27 @@ const useIsMobile = (breakpoint = 768): boolean => {
 };
 
 export default useIsMobile;
+
+export function MediaGatekeeper() {
+  useEffect(() => {
+    const onPlay = (e: Event) => {
+      const target = e.target;
+      // only care about real HTMLMediaElements
+      if (!(target instanceof HTMLMediaElement)) return;
+      // pause every other <video> and <audio> on the page
+      document
+        .querySelectorAll<HTMLMediaElement>("video, audio")
+        .forEach((media) => {
+          if (media !== target) media.pause();
+        });
+    };
+
+    // use capture so we see the event before it bubbles
+    document.addEventListener("play", onPlay, true);
+    return () => {
+      document.removeEventListener("play", onPlay, true);
+    };
+  }, []);
+
+  return null;
+}

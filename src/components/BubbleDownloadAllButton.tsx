@@ -8,7 +8,7 @@ interface DownloadAllButtonProps {
   attachments: Message[];
 }
 
-const CHUNK_SIZE = 5;
+const CHUNK_SIZE = 5; // Process 5 files at a time
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
@@ -89,49 +89,53 @@ const DownloadAllButton: React.FC<DownloadAllButtonProps> = ({
       setTotalChunks(chunks);
       console.log(`Total files: ${files.length}, Chunks: ${chunks}`);
 
-      // Download each chunk
-      const blobs: Blob[] = [];
-      for (let i = 0; i < chunks; i++) {
-        setCurrentChunk(i + 1);
-        console.log(
-          `Processing chunk ${i + 1} of ${chunks} (${
-            files.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE).length
-          } files)`
-        );
-        setCurrentFile(`Downloading files...`);
-
-        let retries = 0;
-        while (retries < MAX_RETRIES) {
-          try {
-            const blob = await downloadChunk(files, i);
-            blobs.push(blob);
-            setProgress(Math.round(((i + 1) / chunks) * 100));
-            break;
-          } catch (error) {
-            retries++;
-            if (retries === MAX_RETRIES) throw error;
-            console.log(`Retrying chunk ${i + 1}, attempt ${retries + 1}`);
-            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-          }
-        }
-      }
-
-      // Create a new zip file containing all chunks
+      // Create a single zip file
       const zip = new JSZip();
 
-      // Process each blob and add its contents to the zip
-      for (let i = 0; i < blobs.length; i++) {
-        const chunkBlob = blobs[i];
-        const chunkZip = await JSZip.loadAsync(chunkBlob);
+      // Process each chunk
+      for (let i = 0; i < chunks; i++) {
+        setCurrentChunk(i + 1);
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, files.length);
+        const chunk = files.slice(start, end);
 
-        // Add each file from the chunk to the main zip
-        for (const [filename, file] of Object.entries(chunkZip.files)) {
-          const zipFile = file as JSZipObject;
-          if (!zipFile.dir) {
-            const content = await zipFile.async("nodebuffer");
-            zip.file(filename, content);
+        console.log(
+          `Processing chunk ${i + 1} of ${chunks} (${chunk.length} files)`
+        );
+
+        // Process each file in the chunk
+        for (const file of chunk) {
+          setCurrentFile(``);
+          let retries = 0;
+
+          while (retries < MAX_RETRIES) {
+            try {
+              const response = await fetch(file.url);
+              if (!response.ok) throw new Error(`Failed to fetch ${file.name}`);
+
+              const blob = await response.blob();
+              zip.file(file.name, blob);
+              break;
+            } catch (error) {
+              retries++;
+              if (retries === MAX_RETRIES) {
+                console.error(
+                  `Failed to download ${file.name} after ${MAX_RETRIES} attempts`
+                );
+                zip.file(
+                  `error_${file.name}.txt`,
+                  `Failed to download: ${error}`
+                );
+              } else {
+                await new Promise((resolve) =>
+                  setTimeout(resolve, RETRY_DELAY)
+                );
+              }
+            }
           }
         }
+
+        setProgress(Math.round(((i + 1) / chunks) * 100));
       }
 
       // Generate the final zip file

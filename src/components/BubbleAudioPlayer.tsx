@@ -7,7 +7,6 @@ import Subtract from "../assets/Subtract.svg";
 import { useWavesurfer } from "@wavesurfer/react";
 import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js";
 import { formatTime, parseTimestamp } from "@/utils";
-import { timeStamp } from "console";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -41,7 +40,7 @@ const BubbleAudioPlayer: React.FC<AudioPlayerProps> = ({
     progressColor: "#2C6BF8",
     // Use optimized loading with url parameter
     url: audioUrl,
-    backend: 'MediaElement', // Use MediaElement for better streaming
+    backend: "MediaElement", // Use MediaElement for better streaming
     mediaControls: false,
     autoplay: false,
     plugins: useMemo(() => [Timeline.create()], []),
@@ -68,22 +67,21 @@ const BubbleAudioPlayer: React.FC<AudioPlayerProps> = ({
       }
     }
   }, [wavesurfer, startTime]);
-      
-        useEffect(() => {
-          if (wavesurfer) {
-            const updateTime = () => {
-              const current = wavesurfer.getCurrentTime();
-              setCurrentTime(formatTime(current) || "00:00");
-            };
-      
-            const handleReady = () => {
-              const duration = wavesurfer.getDuration();
-              setTotalDuration(
-                formatTime(duration) ||
-                  formatTime(wavesurfer.getDuration()) ||
-                  "00:00"
-              );
-      
+
+  useEffect(() => {
+    if (wavesurfer) {
+      const updateTime = () => {
+        const current = wavesurfer.getCurrentTime();
+        setCurrentTime(formatTime(current) || "00:00");
+      };
+
+      const handleReady = () => {
+        const duration = wavesurfer.getDuration();
+        setTotalDuration(
+          formatTime(duration) ||
+            formatTime(wavesurfer.getDuration()) ||
+            "00:00"
+        );
 
         // Set initial position if startTime exists and hasn't been initialized
         if (startTime && !isInitialized) {
@@ -126,7 +124,7 @@ const BubbleAudioPlayer: React.FC<AudioPlayerProps> = ({
 
       <div className="flex items-center gap-2 -mt-3 bg-[#F3F3F3] px-2 rounded-2xl py-0.5 overflow-hidden">
         <button onClick={handlePlayPause} className="">
-        {isPlaying ? (
+          {isPlaying ? (
             <Image
               src={PauseIcon}
               alt="Pause"
