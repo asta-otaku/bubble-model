@@ -41,6 +41,7 @@ function RenderLinkPreview({
                 e.currentTarget.src = fallback.src;
                 setFaviconError(true);
               }}
+              loading="lazy"
             />
           </div>
           <div className="inline-block items-center gap-1.5 text-xs font-medium text-primary whitespace-nowrap max-w-[137px] truncate overflow-hidden">
@@ -76,6 +77,7 @@ function RenderLinkPreview({
               height={175}
               alt={`${hostname} Preview`}
               className="h-[175px] w-full rounded-lg object-cover border border-solid border-[#1919191a] transition-opacity group-hover:opacity-90"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
           </div>

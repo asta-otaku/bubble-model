@@ -45,6 +45,7 @@ const useIsMobile = (breakpoint = 768): boolean => {
 
 export default useIsMobile;
 
+
 export function MediaGatekeeper() {
   useEffect(() => {
     const onPlay = (e: Event) => {

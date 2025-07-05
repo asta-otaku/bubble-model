@@ -29,7 +29,7 @@ export const getFileIcon = (
   const isVideo = /^(mp4|avi|mkv|mov)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
-  const isImage = /^(jpg|jpeg|png|gif|heic|webp)$/i.test(
+  const isImage = /^(jpg|jpeg|png|gif|heic|webp|avif)$/i.test(
     attachment.cloudFrontDownloadLink?.split(".").pop()?.toLowerCase() || ""
   );
 
@@ -82,17 +82,23 @@ export const getFileIcon = (
       case "gif":
       case "heic":
       case "webp":
+      case "avif":
         return (
           <Image
-            src={attachment.cloudFrontDownloadLink}
+            src={attachment.optimisedImageUrl || attachment.cloudFrontDownloadLink}
             alt="image icon"
             className="w-4 h-4 rounded-sm object-cover"
             width={0}
             height={0}
             quality={5}
             onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = imageIcon.src;
+              const img = e.currentTarget;
+              if (img.src === attachment.optimisedImageUrl && attachment.cloudFrontDownloadLink) {
+                img.src = attachment.cloudFrontDownloadLink;
+              } else {
+                img.onerror = null;
+                img.src = imageIcon.src;
+              }
             }}
           />
         );
@@ -154,16 +160,16 @@ export const getFileIcon = (
 
   if (
     attachment.type === "REFERENCE" &&
-    (attachment.cloudFrontDownloadLink ||
-      attachment.content.referencedAttachment?.url)
+    (attachment.cloudFrontDownloadLink || attachment.content.referencedAttachment?.url)
   ) {
     // Use cloudFrontDownloadLink if available; otherwise use the referencedAttachment URL
     const effectiveUrl =
       attachment.cloudFrontDownloadLink ||
       attachment.content.referencedAttachment?.url ||
       "";
-    const fileExtension = effectiveUrl.split(".").pop()?.toLowerCase() || "";
-
+    const fileExtension =
+      effectiveUrl.split(".").pop()?.toLowerCase() || "";
+  
     // Define a list of known file extensions for media
     const knownExtensions = [
       "zip",
@@ -200,9 +206,9 @@ export const getFileIcon = (
       "html",
       "xml",
       "jsonl",
-      "jsonl.gz",
+      "jsonl.gz"
     ];
-
+  
     // If the file extension isn't one of our known media types,
     // assume it's a link and render both the reference and link icons.
     if (!knownExtensions.includes(fileExtension)) {
@@ -221,8 +227,8 @@ export const getFileIcon = (
         </div>
       );
     }
-
-    // Otherwise, render as a reference with additional info
+    
+        // Otherwise, render as a reference with additional info
     return (
       <div className="flex items-center gap-1">
         <Image
@@ -260,15 +266,20 @@ export const getFileIcon = (
           />
         ) : isImage ? (
           <Image
-            src={attachment.cloudFrontDownloadLink}
+            src={attachment.optimisedImageUrl || attachment.cloudFrontDownloadLink}
             alt="image icon"
             className="w-4 h-4 rounded-sm object-cover"
             width={0}
             height={0}
             quality={5}
             onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = imageIcon.src;
+              const img = e.currentTarget;
+              if (img.src === attachment.optimisedImageUrl && attachment.cloudFrontDownloadLink) {
+                img.src = attachment.cloudFrontDownloadLink;
+              } else {
+                img.onerror = null;
+                img.src = imageIcon.src;
+              }
             }}
           />
         ) : (

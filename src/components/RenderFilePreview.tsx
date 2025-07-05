@@ -52,7 +52,25 @@ function RenderFilePreview({
   thumbnailImage: string;
   startTimestamp?: string;
 }) {
-  const fileUrl = url;
+  console.log("[RenderFilePreview] Rendering with props:", {
+    filename,
+    fileExtension,
+    isImage,
+    isVideo,
+    isAudio,
+    isPDF,
+    isZip,
+    isCSV,
+    isExcel,
+    isJSON,
+    hasThumbnail: !!thumbnailImage,
+    hasStartTimestamp: !!startTimestamp,
+  });
+
+  // Use optimisedImageUrl for images, cloudFrontDownloadLink for all other file types
+  const fileUrl = isImage
+    ? token.optimisedImageUrl
+    : token.cloudFrontDownloadLink;
   const fileSize = formatFileSize(
     token.type === "REFERENCE" || token.type === "TIMESTAMP"
       ? token.content?.referencedAttachment?.size
@@ -61,49 +79,47 @@ function RenderFilePreview({
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
 
   useEffect(() => {
-    setBrowserSupportsVideo(isSafari());
+    console.log("[RenderFilePreview] Checking browser video support");
+    const support = isSafari();
+    console.log("[RenderFilePreview] Browser video support:", support);
+    setBrowserSupportsVideo(support);
   }, []);
 
   // Image Preview with animation
-  if (isImage && url) {
+  if (isImage && fileUrl) {
     const isHeic = fileExtension.toLowerCase() === "heic";
     if (isHeic) {
-      return (
-        <>
-          {browserSupportsVideo ? (
-            <div
-              className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
-              onClick={() => openImageModal(url, filename)}
-            >
-              <img
-                src={url}
-                alt={filename}
-                width={500}
-                height={500}
-                className="w-full h-auto transition-opacity group-hover:opacity-90"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
-            </div>
-          ) : (
-            <div className="space-y-1 p-4">
-              <h2 className="text-primary text-[15px] font-medium">
-                Typo URLs are in beta
-              </h2>
-              <p className="text-xs text-[#7E7E7E]">
-                Currently, this file is only supported on Safari
-              </p>
-            </div>
-          )}
-        </>
-      );
-    } else {
+      console.log("[RenderFilePreview] Rendering HEIC image");
       return (
         <div
           className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
-          onClick={() => openImageModal(url, filename)}
+          onClick={() => {
+            console.log("[RenderFilePreview] Opening HEIC image modal");
+            openImageModal(fileUrl, filename);
+          }}
         >
           <img
-            src={url}
+            src={fileUrl}
+            alt={filename}
+            width={500}
+            height={500}
+            className="w-full h-auto transition-opacity group-hover:opacity-90"
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+        </div>
+      );
+    } else {
+      console.log("[RenderFilePreview] Rendering standard image");
+      return (
+        <div
+          className="max-w-xs w-full min-h-full overflow-hidden rounded-[14px] cursor-pointer relative group"
+          onClick={() => {
+            console.log("[RenderFilePreview] Opening image modal");
+            openImageModal(fileUrl, filename);
+          }}
+        >
+          <img
+            src={fileUrl}
             alt={filename}
             width={500}
             height={500}
@@ -117,34 +133,49 @@ function RenderFilePreview({
 
   // Video Preview
   if (isVideo && fileUrl) {
+    console.log("[RenderFilePreview] Rendering video preview");
     const VIDEO_PLAYER_MODE =
       process.env.NEXT_PUBLIC_VIDEO_PLAYER_MODE || "native";
-    console.log("VIDEO_PLAYER_MODE RenderFilePreview:", VIDEO_PLAYER_MODE);
-    console.log("fileData debugging:", fileData);
+    console.log("[RenderFilePreview] Video player mode:", VIDEO_PLAYER_MODE);
 
-    // Note: token properties can still be passed in, but the mode is controlled solely by the env variable.
     let muxPlaybackId = null;
-    if (fileData?.textAttachment?.attachedContent?.muxPlaybackId) {
-      muxPlaybackId = fileData.textAttachment.attachedContent.muxPlaybackId;
-    } else if (token.content?.muxPlaybackId) {
-      muxPlaybackId = token.content.muxPlaybackId;
-    } else if (token.content?.referencedAttachment?.muxPlaybackId) {
-      muxPlaybackId = token.content.referencedAttachment.muxPlaybackId;
+    // The token is an attachment object from the attachments array
+    if (token.muxDetailsForWebclient?.muxPlaybackId) {
+      muxPlaybackId = token.muxDetailsForWebclient.muxPlaybackId;
+    } else if (
+      fileData?.textAttachment?.attachedContent?.muxDetailsForWebclient
+        ?.muxPlaybackId
+    ) {
+      muxPlaybackId =
+        fileData.textAttachment.attachedContent.muxDetailsForWebclient
+          .muxPlaybackId;
+    } else if (token.content?.muxDetailsForWebclient?.muxPlaybackId) {
+      muxPlaybackId = token.content.muxDetailsForWebclient.muxPlaybackId;
+    } else if (
+      token.content?.referencedAttachment?.muxDetailsForWebclient?.muxPlaybackId
+    ) {
+      muxPlaybackId =
+        token.content.referencedAttachment.muxDetailsForWebclient.muxPlaybackId;
     }
 
-    console.log("muxPlaybackId RenderFilePreview:", muxPlaybackId);
-    // Get width and height from token content if available
+    console.log("[RenderFilePreview] Mux playback ID:", muxPlaybackId);
+
     const videoWidth =
       token.content?.width || token.content?.referencedAttachment?.width;
     const videoHeight =
       token.content?.height || token.content?.referencedAttachment?.height;
+    console.log("[RenderFilePreview] Video dimensions:", {
+      width: videoWidth,
+      height: videoHeight,
+    });
 
     if (VIDEO_PLAYER_MODE === "mux") {
+      console.log("[RenderFilePreview] Using Mux video player");
       return (
         <MuxVideoPreview
           muxPlaybackId={muxPlaybackId}
-          fileUrl={fileUrl || fileData?.textAttachment.cloudFrontDownloadLink} // Pass for fallback in MuxVideoPreview
-          fileExtension={fileExtension} // Pass for fallback in MuxVideoPreview
+          fileUrl={fileUrl || fileData?.textAttachment.cloudFrontDownloadLink}
+          fileExtension={fileExtension}
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
           width={videoWidth}
@@ -152,9 +183,9 @@ function RenderFilePreview({
         />
       );
     } else if (VIDEO_PLAYER_MODE === "videojs") {
-      // If muxPlaybackId exists, render your Mux version; of Video.js
-      // otherwise, use the Vanilla Video.js fallback (VanillaVideoJSPreview)
+      console.log("[RenderFilePreview] Using Video.js player");
       if (muxPlaybackId) {
+        console.log("[RenderFilePreview] Using Mux Video.js player");
         return (
           <MuxVideoJSPreview
             muxPlaybackId={muxPlaybackId}
@@ -162,6 +193,7 @@ function RenderFilePreview({
           />
         );
       } else {
+        console.log("[RenderFilePreview] Using Vanilla Video.js player");
         return (
           <VanillaVideoJSPreview
             fileUrl={fileUrl}
@@ -172,7 +204,7 @@ function RenderFilePreview({
         );
       }
     } else {
-      // Default to native mode
+      console.log("[RenderFilePreview] Using native video player");
       return (
         <NativeVideoPreview
           fileUrl={fileUrl}
@@ -186,6 +218,7 @@ function RenderFilePreview({
 
   // Audio Preview with animation
   if (isAudio && fileUrl) {
+    console.log("[RenderFilePreview] Rendering audio player");
     return (
       <BubbleAudioPlayer
         audioUrl={fileUrl}
@@ -199,11 +232,15 @@ function RenderFilePreview({
 
   // PDF Preview with animation
   if (isPDF && fileUrl) {
+    console.log("[RenderFilePreview] Rendering PDF preview");
     return (
       <>
         <div
           className="rounded-[14px] max-w-xs w-full overflow-hidden cursor-pointer"
-          onClick={() => openPdfModal(fileUrl, filename)}
+          onClick={() => {
+            console.log("[RenderFilePreview] Opening PDF modal");
+            openPdfModal(fileUrl, filename);
+          }}
         >
           <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
             <div className="h-[360px] relative group">
@@ -221,6 +258,7 @@ function RenderFilePreview({
   }
 
   if (isJSON && fileUrl) {
+    console.log("[RenderFilePreview] Rendering JSON preview");
     return <JsonPreview url={fileUrl} />;
   }
 

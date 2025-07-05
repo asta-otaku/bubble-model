@@ -12,7 +12,6 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ### Prerequisites
 
-copy the .env.global file to .env and fill in the values to be able to run the app locally.
 
 First, install the dependencies: (I recommend using npm)
 

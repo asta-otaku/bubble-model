@@ -17,8 +17,7 @@ import { motion, useSpring, useMotionValue } from "framer-motion";
 import BubbleDownloadAllButton from "@/components/BubbleDownloadAllButton";
 import { convertUnixNanoToReadable } from "@/utils/getDateTime";
 import FloatingNav from "@/components/FloatingNav";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
+import LoadingState from "@/components/LoadingState";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
@@ -39,12 +38,12 @@ function Page() {
   const [state, setState] = useState<{
     bubbleData: BubbleData | null;
     owner: string;
-    lastUpdated: string;
+    messageCreated: string;
     isLoading: boolean;
   }>({
     bubbleData: null,
     owner: "",
-    lastUpdated: "",
+    messageCreated: "",
     isLoading: true,
   });
 
@@ -86,9 +85,7 @@ function Page() {
       setState({
         bubbleData: { ...message, attachments: trueAttachments },
         owner: data.ownerProfile.firstName || "",
-        lastUpdated: convertUnixNanoToReadable(
-          data.ownerProfile.lastUpdatedTime
-        ),
+        messageCreated: convertUnixNanoToReadable(data.message.createdAt),
         isLoading: false,
       });
 
@@ -292,19 +289,7 @@ function Page() {
   }, []);
 
   if (state.isLoading) {
-    return (
-      <div className="w-full min-h-screen flex justify-center items-center p-4">
-        <div className="w-[360px] mx-auto p-6">
-          <Skeleton height={20} width={200} className="mb-4" />
-          <Skeleton height={300} className="rounded-2xl" />
-          <div className="mt-4 flex gap-2">
-            <Skeleton circle height={40} width={40} />
-            <Skeleton circle height={40} width={40} />
-            <Skeleton circle height={40} width={40} />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState type="bubble" />;
   }
 
   if (!state.bubbleData) {
@@ -334,7 +319,7 @@ function Page() {
         <div className="text-[#7E7E7E] text-xs mt-1 capitalize flex justify-center items-center gap-2 py-1">
           <span className="font-bold">{state.owner}</span>
           <span>•</span>
-          <span className="font-normal">{state.lastUpdated}</span>
+          <span className="font-normal">{state.messageCreated}</span>
         </div>
         <article className="bg-gradient-to-b from-[#3076FF] to-[#1D49E5] w-full text-[17px] pt-3 rounded-2xl">
           <div className="px-3 font-light text-white whitespace-pre-wrap break-words">

@@ -2,6 +2,7 @@ import * as React from "react";
 import Image from "next/image";
 import downloadIcon from "@/assets/filledDownload.svg";
 import useIsMobile from "@/utils";
+import { useParams } from "next/navigation";
 
 interface DownloadButtonProps {
   downloadLink: string;
@@ -14,38 +15,37 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [isDownloading, setIsDownloading] = React.useState(false);
-  
-  const handleDownload = (e: React.MouseEvent) => {
+  const params = useParams();
+
+  const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     if (isDownloading) return;
     setIsDownloading(true);
-    
-    // Instead of handling the download logic in the browser,
-    // redirect to our API endpoint that will set the proper headers
-    const encodedUrl = encodeURIComponent(downloadLink);
-    const encodedFileName = encodeURIComponent(fileName);
-    const downloadUrl = `/api/download?url=${encodedUrl}&filename=${encodedFileName}`;
-    
-    // Create an invisible iframe to avoid navigating away from the current page
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = downloadUrl;
-    document.body.appendChild(iframe);
-    
-    // Set a timeout to remove the iframe and reset the loading state
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
+
+    try {
+      const publicId = params.slug as string;
+      if (!publicId) throw new Error("Message ID not found");
+
+      const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webClient/single-file/${publicId}/download`;
+
+      // Kick off download in new tab
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "";
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } finally {
       setIsDownloading(false);
-    }, 2000);
+    }
   };
 
   return (
     <>
       {isMobile ? (
-        <button 
+        <button
           onClick={handleDownload}
           disabled={isDownloading}
           className="bg-transparent border-0 p-0 cursor-pointer"

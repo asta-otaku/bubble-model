@@ -15,6 +15,7 @@ export interface Message {
   cloudFrontDownloadLink: string;
   optimisedImageUrl?: string;
   metaData: null | MetaDataContent;
+  muxDetailsForWebclient?: MuxDetailsForWebclient;
   content: {
     contentId: string;
     startTime: number;
@@ -25,6 +26,7 @@ export interface Message {
       width: number;
       height: number;
       muxPlaybackId: string;
+      muxDetailsForWebclient?: MuxDetailsForWebclient;
       id: string;
       url?: string;
       optimisedImageUrl?: string;
@@ -35,6 +37,7 @@ export interface Message {
     width: number;
     height: number;
     muxPlaybackId: string;
+    muxDetailsForWebclient?: MuxDetailsForWebclient;
     id: string;
     url: string;
     userId: string;
@@ -62,6 +65,7 @@ export interface AttachedContent {
   height: number;
   muxPlaybackId: string | null;
   muxReadyForPlayback: boolean | null;
+  muxDetailsForWebclient?: MuxDetailsForWebclient;
   folderId: string | null;
   lastUpdatedTime: number | null;
   id: string;
@@ -108,4 +112,9 @@ export interface BackendResponse {
   title: string;
   description: string;
   image: string;
+}
+
+export interface MuxDetailsForWebclient {
+  muxPlaybackId: string;
+  muxReadyForPlayback: boolean;
 }

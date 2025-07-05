@@ -1,20 +1,22 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { SlClose } from "react-icons/sl";
-// import Image from "next/image";
 
 function ImageModal({
   isOpen,
   onClose,
   imageUrl,
+  cloudFrontUrl,
   altText,
 }: {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
+  cloudFrontUrl?: string;
   altText: string;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl);
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -31,6 +33,16 @@ function ImageModal({
       document.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    setCurrentImageUrl(imageUrl);
+  }, [imageUrl]);
+
+  const handleImageError = () => {
+    if (cloudFrontUrl && currentImageUrl === imageUrl) {
+      setCurrentImageUrl(cloudFrontUrl);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -66,11 +78,13 @@ function ImageModal({
               <SlClose size={24} />
             </button>
             <img
-              src={imageUrl}
+              src={currentImageUrl}
               alt={altText}
               width={800}
               height={800}
               className="h-full w-auto object-contain"
+              onError={handleImageError}
+              loading="lazy"
             />
           </motion.div>
         </motion.div>

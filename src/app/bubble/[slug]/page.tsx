@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import TokenPreview from "@/components/TokenPreview";
 import { truncateFilename } from "@/components/TruncateText";
 import axios from "axios";
+import LoadingState from "@/components/LoadingState";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 interface Token {
@@ -168,7 +169,7 @@ function Page() {
   }
 
   if (!bubbleData) {
-    return <div>Loading...</div>;
+    return <LoadingState type="bubble" />;
   }
 
   return (

@@ -12,21 +12,16 @@ import videoIcon from "@/assets/videoIcon.svg";
 import { truncateFilename } from "@/components/TruncateText";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
-import {
-  FileContent,
-  FileData,
-  BackendResponse,
-  OwnerProfile,
-  AttachedContent,
-} from "@/utils/BubbleSpecialInterfaces";
-import {
-  getFileTypeIcon,
-  getFileNameFromDescription,
-} from "@/utils/getFileTypeIcon";
+import { FileContent, FileData, BackendResponse, OwnerProfile, AttachedContent } from "@/utils/BubbleSpecialInterfaces";
+import { getFileTypeIcon, getFileNameFromDescription } from "@/utils/getFileTypeIcon";
 import DownloadButton from "@/components/DownloadButton";
+// import LoadingState from "@/components/LoadingState";
+import LoadingState, { FileKind } from '@/components/LoadingState';
+
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_FILE_PREVIEW_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
+
 
 // function Modal({
 //   children,
@@ -48,6 +43,45 @@ const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 //   );
 // }
 
+const extToKind = (ext: string): FileKind => {
+  console.log('extToKind called with extension:', ext);
+  if (/^(jpg|jpeg|png|gif|bmp|webp|heic|tif)$/i.test(ext)) {
+    console.log('extToKind returning: image');
+    return 'image';
+  }
+  if (/^(mp4|webm|ogg|mov|avi|MOV)$/i.test(ext)) {
+    console.log('extToKind returning: video');
+    return 'video';
+  }
+  if (/^(mp3|wav|ogg|m4a)$/i.test(ext)) {
+    console.log('extToKind returning: audio');
+    return 'audio';
+  }
+  if (/^pdf$/i.test(ext)) {
+    console.log('extToKind returning: pdf');
+    return 'pdf';
+  }
+  if (/^(zip|rar|7z)$/i.test(ext)) {
+    console.log('extToKind returning: zip');
+    return 'zip';
+  }
+  if (/^json$/i.test(ext)) {
+    console.log('extToKind returning: json');
+    return 'json';
+  }
+  console.log('extToKind returning: doc (fallback)');
+  return 'doc'; // fallback for everything else
+};
+
+const getFileExtension = (name: string) => {
+  // Remove query parameters and hash from URL
+  const cleanName = name.split('?')[0].split('#')[0];
+  // Get the last part after the last dot
+  const extension = cleanName.split(".").pop()?.toLowerCase() || "";
+  console.log('getFileExtension debug:', { original: name, cleanName, extension });
+  return extension;
+};
+
 function Page() {
   const { slug } = useParams();
   const router = useRouter();
@@ -64,6 +98,8 @@ function Page() {
   // const [allowSubmit, setAllowSubmit] = useState(false);
   const [fileData, setFileData] = useState<FileData | null>(null);
   const [exampleOutput, setExampleOutput] = useState<FileContent | null>(null);
+  const [fileKind, setFileKind] = useState<FileKind| null>(null);
+  const [showLoadingState, setShowLoadingState] = useState(true);
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
@@ -93,31 +129,77 @@ function Page() {
       router.replace("/not-found");
     }
   }, [fileData, isLoading, router]);
-
+  
+  // Update fileKind when fileData changes
+  useEffect(() => {
+    if (fileData?.textAttachment?.attachedContent?.name) {
+      const newFileKind = extToKind(getFileExtension(fileData.textAttachment.attachedContent.name));
+      console.log("useEffect: Setting fileKind to:", newFileKind, "from filename:", fileData.textAttachment.attachedContent.name);
+      setFileKind(newFileKind);
+      
+      // Show loading state briefly with correct fileKind
+      setShowLoadingState(true);
+      setTimeout(() => {
+        setShowLoadingState(false);
+      },500); // Show for 0.5s for pshchology lol
+    }
+  }, [fileData]);
+  
   // Disable scrolling for audio files
   useEffect(() => {
     if (!fileData) return;
-
-    const fileName =
-      fileData?.description || exampleOutput?.cloudFrontDownloadLink || "";
+    
+    const fileName = fileData?.textAttachment?.attachedContent?.name || 
+                     exampleOutput?.cloudFrontDownloadLink || 
+                     fileData?.description || "";
     const fileExtension = getFileExtension(fileName);
     const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
-
+    
     if (!isLoading && isAudio) {
       // Apply the same class that's used during audio scrubbing
-      document.body.classList.add("scrubbing-active");
+      document.body.classList.add('scrubbing-active');
     } else {
-      document.body.classList.remove("scrubbing-active");
+      document.body.classList.remove('scrubbing-active');
     }
-
+    
     return () => {
-      document.body.classList.remove("scrubbing-active");
+      document.body.classList.remove('scrubbing-active');
     };
   }, [isLoading, fileData, exampleOutput]);
 
-  if (isLoading || !fileData) {
-    return <div>Loading...</div>;
-  }
+  // Determine file kind for loading state
+  const filename = fileData?.textAttachment?.attachedContent?.name || 
+                   exampleOutput?.cloudFrontDownloadLink || 
+                   fileData?.description || "";
+  const fileExtension = getFileExtension(filename);
+
+  // Debug logging
+  console.log('Debug file detection:', {
+    filename,
+    fileExtension,
+    fileKind,
+    attachedContentName: fileData?.textAttachment?.attachedContent?.name,
+    cloudFrontLink: exampleOutput?.cloudFrontDownloadLink,
+    fileDataDescription: fileData?.description,
+    isLoading,
+    hasFileData: !!fileData
+  });
+
+    if (isLoading || !fileData) return null;
+    if (!fileKind) return null;
+    if (showLoadingState) {
+      return <LoadingState fileKind={fileKind} />;
+    }
+
+  // File type checking variables
+  const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic|tif)$/i.test(fileExtension);
+  const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
+  const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
+  const isPDF = /^pdf$/i.test(fileExtension);
+  const isZip = /^(zip|rar|7z)$/i.test(fileExtension);
+  const isCSV = /^csv$/i.test(fileExtension);
+  const isExcel = /^(xls|xlsx)$/i.test(fileExtension);
+  const isJSON = /^json$/i.test(fileExtension);
 
   // useEffect(() => {
   //   if (user.phone && user.countryCode && user.code) {
@@ -131,21 +213,6 @@ function Page() {
   //     setAllowSubmit(false);
   //   }
   // }, [user]);
-
-  const filename =
-    fileData?.description || exampleOutput?.cloudFrontDownloadLink || "";
-  const getFileExtension = (name: string) =>
-    name.split(".").pop()?.toLowerCase() || "";
-  const fileExtension = getFileExtension(filename);
-
-  const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic|tif)$/i.test(fileExtension);
-  const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
-  const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
-  const isPDF = /^pdf$/i.test(fileExtension);
-  const isZip = /^(zip|rar|7z)$/i.test(fileExtension);
-  const isCSV = /^csv$/i.test(fileExtension);
-  const isExcel = /^(xls|xlsx)$/i.test(fileExtension);
-  const isJSON = /^json$/i.test(fileExtension);
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return "";
@@ -189,21 +256,20 @@ function Page() {
         <div className="bg-gradient-to-b from-[#7E7E7E] to-[#191919E5] rounded-full px-3 flex items-center gap-2">
           {fileData && (
             <>
-              {getFileTypeIcon(fileData)?.iconType === "url" ? (
+              {getFileTypeIcon(fileData)?.iconType === 'url' ? (
                 <div className="w-5 h-5 rounded-sm overflow-hidden flex-shrink-0">
-                  <img
-                    src={getFileTypeIcon(fileData)?.iconUrl}
+                  <img 
+                    src={getFileTypeIcon(fileData)?.iconUrl} 
                     alt={getFileTypeIcon(fileData)?.label || "File"}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       // Fallback to the default icon if the image fails to load
-                      e.currentTarget.src =
-                        getFileTypeIcon(fileData)?.icon?.src || videoIcon.src;
+                      e.currentTarget.src = getFileTypeIcon(fileData)?.icon?.src || videoIcon.src;
                     }}
                   />
                 </div>
-              ) : getFileTypeIcon(fileData)?.iconType === "videoUrl" ? (
+              ) : getFileTypeIcon(fileData)?.iconType === 'videoUrl' ? (
                 <div className="w-5 h-5 rounded-sm overflow-hidden flex-shrink-0">
                   <video
                     className="w-full h-full object-cover"
@@ -215,19 +281,18 @@ function Page() {
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       // Hide the video element on error and show fallback
-                      e.currentTarget.style.display = "none";
+                      e.currentTarget.style.display = 'none';
                       // Create and append fallback image
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
-                        const img = document.createElement("img");
-                        img.src =
-                          getFileTypeIcon(fileData)?.icon?.src || videoIcon.src;
+                        const img = document.createElement('img');
+                        img.src = getFileTypeIcon(fileData)?.icon?.src || videoIcon.src;
                         img.alt = getFileTypeIcon(fileData)?.label || "Video";
                         img.className = "w-full h-full object-cover";
                         parent.appendChild(img);
                       }
                     }}
-                  >
+                   >
                     <source
                       src={getFileTypeIcon(fileData)?.iconUrl}
                       type="video/mp4"
@@ -236,11 +301,11 @@ function Page() {
                   </video>
                 </div>
               ) : (
-                <Image
-                  src={getFileTypeIcon(fileData)?.icon || videoIcon}
-                  alt={getFileTypeIcon(fileData)?.label || "File"}
-                  width={0}
-                  height={0}
+                <Image 
+                  src={getFileTypeIcon(fileData)?.icon || videoIcon} 
+                  alt={getFileTypeIcon(fileData)?.label || "File"} 
+                  width={0} 
+                  height={0} 
                 />
               )}
               <span className="text-white text-sm font-light">
