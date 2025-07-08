@@ -89,8 +89,6 @@ const page = () => {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
       setShowTopGradient(scrollTop > 0);
 
-      // Calculate if content extends into the download button area
-      // Download button area is roughly 80px high (button + padding)
       const downloadButtonHeight = 80;
       const hasContentOverflow = scrollTop + clientHeight < scrollHeight;
       const wouldOverlapButton =
@@ -223,7 +221,7 @@ const page = () => {
 
         {/* Scrollable content - takes full height with top padding for navbar */}
         <div
-          className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative pb-20"
+          className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative pb-24"
           ref={contentRef}
         >
           {files.length === 0 ? (
@@ -262,12 +260,18 @@ const page = () => {
         </div>
       </div>
 
-      {/* Fixed download button at bottom */}
-      <div className="absolute bottom-3 left-0 right-0 flex justify-center z-20">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white max-w-xs w-full justify-center px-8 py-3 rounded-full text-base shadow-md transition flex items-center gap-2 mx-6">
-          <Image src={whiteDownloadIcon} alt="Download all" />
-          Download all
-        </button>
+      {/* Fixed download button at bottom - always visible */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        {/* Background gradient for better visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent h-20 pointer-events-none" />
+
+        {/* Button container */}
+        <div className="relative flex justify-center pb-3 pt-3 pointer-events-auto">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white max-w-xs w-full justify-center px-8 py-3 rounded-full text-base shadow-lg transition flex items-center gap-2 mx-6">
+            <Image src={whiteDownloadIcon} alt="Download all" />
+            Download all
+          </button>
+        </div>
       </div>
 
       {/* Single modal instance for all files */}
