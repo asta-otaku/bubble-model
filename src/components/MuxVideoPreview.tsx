@@ -121,6 +121,7 @@ export default function MuxVideoPreview({
     color: "#fff",
     height: "100%",
     width: "100%",
+    maxHeight: isFileSpecial ? "80vh" : "100%",
     position: "absolute",
     top: "0",
     left: "0",
@@ -175,7 +176,7 @@ export default function MuxVideoPreview({
       ref={containerRef}
       className={`${
         isFileSpecial
-          ? "w-full h-full"
+          ? "w-full max-h-[80vh]"
           : "max-w-xs w-full h-full overflow-hidden rounded-[14px]"
       }`}
     >
