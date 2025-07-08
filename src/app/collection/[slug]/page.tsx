@@ -10,7 +10,7 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import CollectionFilePreview from "@/components/CollectionFilePreview";
-import CollectionImageModal from "@/components/CollectionImageModal";
+import CollectionFileModal from "@/components/CollectionFileModal";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_COLLECTION_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
@@ -86,24 +86,9 @@ const page = () => {
     setIsModalOpen(false);
   };
 
-  // Filter only image files for the modal
-  const imageFiles = files.filter((file) => {
-    const filename = file.content.name || file.cloudFrontDownloadLink || "";
-    const fileExtension = filename.split(".").pop()?.toLowerCase() || "";
-    return /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(fileExtension);
-  });
-
-  // Find the index of the clicked image in the filtered array
-  const getImageIndex = (fileIndex: number) => {
-    return imageFiles.findIndex((img) => img === files[fileIndex]);
-  };
-
-  const handleImageClick = (index: number) => {
-    const imageIndex = getImageIndex(index);
-    if (imageIndex !== -1) {
-      setCurrentIndex(imageIndex);
-      setIsModalOpen(true);
-    }
+  const handleFileClick = (index: number) => {
+    setCurrentIndex(index);
+    setIsModalOpen(true);
   };
 
   if (isLoading) {
@@ -126,7 +111,7 @@ const page = () => {
         date={collectionDate}
         numItems={files.length}
       />
-      <div className="flex-1 p-6 my-12 md:my-24">
+      <div className="flex-1 p-6 mt-24 max-h-[calc(100vh-220px)] h-full overflow-auto hide-scrollbar">
         {files.length === 0 ? (
           <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-center">
             <div className="text-center">
@@ -149,14 +134,12 @@ const page = () => {
               return (
                 <div
                   key={idx}
-                  onClick={() => (isImage ? handleImageClick(idx) : undefined)}
-                  className="rounded-2xl bg-white border border-[#1919191A] shadow flex flex-col items-center justify-center relative w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px]"
+                  onClick={() => handleFileClick(idx)}
+                  className="rounded-2xl bg-white border border-[#1919191A] shadow flex flex-col items-center justify-center relative w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px] cursor-pointer overflow-hidden"
                 >
                   <CollectionFilePreview
                     token={file}
-                    onFileClick={
-                      isImage ? () => handleImageClick(idx) : undefined
-                    }
+                    onFileClick={() => handleFileClick(idx)}
                   />
 
                   <div className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap md:max-w-fit px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A] absolute bottom-2 z-10">
@@ -173,18 +156,18 @@ const page = () => {
           </div>
         )}
       </div>
-      <div className="w-full flex justify-center py-8">
+      <div className="w-full flex justify-center py-8 mt-6">
         <button className="bg-blue-600 hover:bg-blue-700 text-white max-w-xs w-full justify-center px-8 py-3 rounded-full text-base shadow-md transition flex items-center gap-2">
           <Image src={whiteDownloadIcon} alt="Download all" />
           Download all
         </button>
       </div>
 
-      {/* Single modal instance for all images */}
-      <CollectionImageModal
+      {/* Single modal instance for all files */}
+      <CollectionFileModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        images={imageFiles}
+        files={files}
         currentIndex={currentIndex}
         onIndexChange={setCurrentIndex}
       />

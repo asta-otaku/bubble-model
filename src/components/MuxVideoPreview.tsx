@@ -96,8 +96,11 @@ export default function MuxVideoPreview({
   }, [startTimestamp]);
 
   // Calculate padding bottom for responsive container
-  const paddingBottom =
-    width && height ? `${(height / width) * 100}%` : "56.25%"; // 56.25% is 9/16 for default 16:9
+  const paddingBottom = isFileSpecial
+    ? "100%" // Square aspect ratio (1:1)
+    : width && height
+    ? `${(height / width) * 100}%`
+    : "56.25%"; // 56.25% is 9/16 for default 16:9
 
   // Create CSS variables for styling
   const controllerStyle: CustomCSSProperties = {
@@ -173,7 +176,7 @@ export default function MuxVideoPreview({
       className={`${
         isFileSpecial
           ? "w-full h-full"
-          : "max-w-xs w-full overflow-hidden rounded-[14px]"
+          : "max-w-xs w-full h-full overflow-hidden rounded-[14px]"
       }`}
     >
       {dimensions.width > 0 && (

@@ -1,8 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import PDFModal from "./PdfModal";
 import BubbleAudioPlayer from "./BubbleAudioPlayer";
 import MuxVideoPreview from "./MuxVideoPreview";
+import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
+import NativeVideoPreview from "./NativeVideoPreview";
+import { isSafari } from "@/utils/videoUtils";
+import JsonPreview from "./JsonPreview";
+import RenderLinkPreview from "./RenderLinkPreview";
+import ImageModal from "./ImageModal";
 import { formatTime } from "@/utils";
 
 interface CollectionFilePreviewProps {
@@ -15,11 +21,24 @@ function CollectionFilePreview({
   onFileClick,
 }: CollectionFilePreviewProps) {
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [modalPdf, setModalPdf] = useState({ pdfUrl: "", filename: "" });
+  const [modalImage, setModalImage] = useState({ imageUrl: "", altText: "" });
+  const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
+
+  useEffect(() => {
+    const support = isSafari();
+    setBrowserSupportsVideo(support);
+  }, []);
 
   const openPdfModal = useCallback((pdfUrl: string, filename: string) => {
     setModalPdf({ pdfUrl, filename });
     setIsPdfModalOpen(true);
+  }, []);
+
+  const openImageModal = useCallback((imageUrl: string, altText: string) => {
+    setModalImage({ imageUrl, altText });
+    setIsImageModalOpen(true);
   }, []);
 
   const filename = token.content.name || token.cloudFrontDownloadLink || "";
@@ -57,19 +76,33 @@ function CollectionFilePreview({
       : token.metaData?.size
   );
 
+  const thumbnailImage =
+    token.content?.referencedAttachment?.thumbnailImage || "";
+  const startTimestamp = formatTime(token.content.startTime || 0) || undefined;
+
+  // Image Preview
   if (isImage && fileUrl) {
+    const isHeic = fileExtension.toLowerCase() === "heic";
     return (
       <>
         <div
-          className="w-full h-full object-cover rounded-2xl cursor-pointer"
-          onClick={onFileClick}
+          className="w-full h-full object-cover rounded-2xl cursor-pointer relative group"
+          onClick={() => openImageModal(fileUrl, filename)}
         >
           <img
             src={fileUrl}
             alt={filename}
-            className="w-full h-full object-cover rounded-2xl"
+            className="w-full h-full object-cover rounded-2xl transition-opacity group-hover:opacity-90"
           />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl" />
         </div>
+
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={modalImage.imageUrl}
+          altText={modalImage.altText}
+        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -81,35 +114,84 @@ function CollectionFilePreview({
     );
   }
 
+  // Video Preview
   if (isVideo && fileUrl) {
-    const muxPlaybackId =
-      token.muxDetailsForWebclient?.muxPlaybackId ||
-      token.content?.muxDetailsForWebclient?.muxPlaybackId ||
-      token.content?.referencedAttachment?.muxDetailsForWebclient
-        ?.muxPlaybackId;
+    const VIDEO_PLAYER_MODE =
+      process.env.NEXT_PUBLIC_VIDEO_PLAYER_MODE || "native";
+
+    let muxPlaybackId = null;
+    if (token.muxDetailsForWebclient?.muxPlaybackId) {
+      muxPlaybackId = token.muxDetailsForWebclient.muxPlaybackId;
+    } else if (token.content?.muxDetailsForWebclient?.muxPlaybackId) {
+      muxPlaybackId = token.content.muxDetailsForWebclient.muxPlaybackId;
+    } else if (
+      token.content?.referencedAttachment?.muxDetailsForWebclient?.muxPlaybackId
+    ) {
+      muxPlaybackId =
+        token.content.referencedAttachment.muxDetailsForWebclient.muxPlaybackId;
+    }
 
     const videoWidth =
       token.content?.width || token.content?.referencedAttachment?.width;
     const videoHeight =
       token.content?.height || token.content?.referencedAttachment?.height;
 
-    return (
-      <>
-        <div className="w-full h-full relative">
-          <MuxVideoPreview
+    let videoComponent;
+    if (VIDEO_PLAYER_MODE === "mux") {
+      videoComponent = (
+        <MuxVideoPreview
+          muxPlaybackId={muxPlaybackId}
+          fileUrl={fileUrl}
+          fileExtension={fileExtension}
+          thumbnailImage={thumbnailImage}
+          startTimestamp={startTimestamp}
+          width={videoWidth}
+          isFileSpecial
+          height={videoHeight}
+        />
+      );
+    } else if (VIDEO_PLAYER_MODE === "videojs") {
+      if (muxPlaybackId) {
+        videoComponent = (
+          <MuxVideoJSPreview
             muxPlaybackId={muxPlaybackId}
+            startTimestamp={startTimestamp}
+            isFileSpecial
+          />
+        );
+      } else {
+        videoComponent = (
+          <VanillaVideoJSPreview
             fileUrl={fileUrl}
             fileExtension={fileExtension}
-            thumbnailImage={
-              token.content.referencedAttachment?.thumbnailImage || ""
-            }
-            startTimestamp={
-              formatTime(token.content.startTime || 0) || undefined
-            }
-            width={videoWidth}
-            height={videoHeight}
+            thumbnailImage={thumbnailImage}
+            startTimestamp={startTimestamp}
+            isFileSpecial
           />
-        </div>
+        );
+      }
+    } else {
+      videoComponent = (
+        <NativeVideoPreview
+          fileUrl={fileUrl}
+          fileExtension={fileExtension}
+          thumbnailImage={thumbnailImage}
+          startTimestamp={startTimestamp}
+          isFileSpecial
+        />
+      );
+    }
+
+    return (
+      <>
+        <div className="w-full h-full relative">{videoComponent}</div>
+
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={modalImage.imageUrl}
+          altText={modalImage.altText}
+        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -121,6 +203,7 @@ function CollectionFilePreview({
     );
   }
 
+  // Audio Preview
   if (isAudio && fileUrl) {
     return (
       <>
@@ -129,9 +212,16 @@ function CollectionFilePreview({
             audioUrl={fileUrl}
             filename={filename}
             fileSize={fileSize}
-            startTime={formatTime(token.content.startTime || 0) || undefined}
+            startTime={startTimestamp}
           />
         </div>
+
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={modalImage.imageUrl}
+          altText={modalImage.altText}
+        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -143,6 +233,7 @@ function CollectionFilePreview({
     );
   }
 
+  // PDF Preview
   if (isPDF && fileUrl) {
     return (
       <>
@@ -158,6 +249,13 @@ function CollectionFilePreview({
           </span>
         </div>
 
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={modalImage.imageUrl}
+          altText={modalImage.altText}
+        />
+
         <PDFModal
           isOpen={isPdfModalOpen}
           onClose={() => setIsPdfModalOpen(false)}
@@ -168,24 +266,137 @@ function CollectionFilePreview({
     );
   }
 
+  // JSON Preview
+  if (isJSON && fileUrl) {
+    return (
+      <>
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <JsonPreview url={fileUrl} />
+        </div>
+
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={modalImage.imageUrl}
+          altText={modalImage.altText}
+        />
+
+        <PDFModal
+          isOpen={isPdfModalOpen}
+          onClose={() => setIsPdfModalOpen(false)}
+          pdfUrl={modalPdf.pdfUrl}
+          filename={modalPdf.filename}
+        />
+      </>
+    );
+  }
+
+  // Referenced Link Preview
+  if (
+    token.type === "REFERENCE" &&
+    token.content?.referencedAttachment?.url &&
+    !isImage &&
+    !isVideo &&
+    !isAudio &&
+    !isPDF &&
+    !isZip &&
+    !isCSV &&
+    !isExcel
+  ) {
+    const getDisplayUrl = (url: string) => {
+      try {
+        const parsed = new URL(url);
+        return { hostname: parsed.hostname, origin: parsed.origin };
+      } catch (error) {
+        return { hostname: "", origin: "" };
+      }
+    };
+
+    return (
+      <>
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <RenderLinkPreview
+            getDisplayUrl={getDisplayUrl}
+            token={{
+              ...token,
+              content: {
+                ...token.content,
+                url: token.content.referencedAttachment.url,
+              },
+            }}
+            setFaviconError={() => {}}
+            faviconError={false}
+            openImageModal={openImageModal}
+          />
+        </div>
+
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={modalImage.imageUrl}
+          altText={modalImage.altText}
+        />
+
+        <PDFModal
+          isOpen={isPdfModalOpen}
+          onClose={() => setIsPdfModalOpen(false)}
+          pdfUrl={modalPdf.pdfUrl}
+          filename={modalPdf.filename}
+        />
+      </>
+    );
+  }
+
+  // Other file types
   const getFileIcon = () => {
     if (isZip) return "📦";
     if (isCSV) return "📊";
     if (isExcel) return "📈";
-    if (isJSON) return "📋";
     return "📄";
+  };
+
+  const getFileTitle = () => {
+    if (isZip) return "Archive";
+    if (isCSV) return "CSV";
+    if (isExcel) return "Excel";
+    return "File";
+  };
+
+  const getFileColor = () => {
+    if (isZip) return "text-amber-500";
+    if (isCSV) return "text-green-500";
+    if (isExcel) return "text-emerald-500";
+    return "text-gray-500";
   };
 
   return (
     <>
       <div className="w-full h-full flex flex-col items-center justify-center">
         <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-          <span className="text-gray-500 text-lg">{getFileIcon()}</span>
+          <span className={`text-lg ${getFileColor()}`}>{getFileIcon()}</span>
         </div>
         <span className="text-xs text-gray-700 text-center px-2">
           {filename}
         </span>
+        {fileUrl && (
+          <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Open {getFileTitle()}
+          </a>
+        )}
       </div>
+
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        imageUrl={modalImage.imageUrl}
+        altText={modalImage.altText}
+      />
 
       <PDFModal
         isOpen={isPdfModalOpen}

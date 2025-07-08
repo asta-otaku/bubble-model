@@ -31,7 +31,7 @@ export default function NativeVideoPreview({
     }
   }, [startTimestamp]);
 
-  const containerClass = "overflow-hidden rounded-[14px] w-full";
+  const containerClass = "overflow-hidden rounded-[14px] w-full h-full";
   const videoClass = isFileSpecial ? "w-full h-full" : "w-full h-full";
 
   if (mov) {

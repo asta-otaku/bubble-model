@@ -65,7 +65,7 @@ export default function MuxVideoJSPreview({
 
   return (
     <div
-      className={`w-full min-h-full overflow-hidden ${
+      className={`w-full h-full overflow-hidden ${
         isFileSpecial ? "" : "rounded-[14px]"
       }`}
     >
@@ -142,7 +142,7 @@ export function VanillaVideoJSPreview({
 
   return (
     <div
-      className={`w-full min-h-full overflow-hidden ${
+      className={`w-full h-full overflow-hidden ${
         isFileSpecial ? "" : "rounded-[14px]"
       }`}
     >
