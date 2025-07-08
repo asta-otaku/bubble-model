@@ -122,37 +122,27 @@ const page = () => {
           </div>
         ) : (
           <div className="max-w-screen-2xl mx-auto w-full flex flex-wrap gap-x-1 gap-y-2 md:gap-x-2 justify-center">
-            {files.map((file, idx) => {
-              const filename =
-                file.content.name || file.cloudFrontDownloadLink || "";
-              const fileExtension =
-                filename.split(".").pop()?.toLowerCase() || "";
-              const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(
-                fileExtension
-              );
+            {files.map((file, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleFileClick(idx)}
+                className="rounded-2xl bg-white border border-[#1919191A] shadow flex flex-col items-center justify-center relative w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px] cursor-pointer overflow-hidden"
+              >
+                <CollectionFilePreview
+                  token={file}
+                  onFileClick={() => handleFileClick(idx)}
+                />
 
-              return (
-                <div
-                  key={idx}
-                  onClick={() => handleFileClick(idx)}
-                  className="rounded-2xl bg-white border border-[#1919191A] shadow flex flex-col items-center justify-center relative w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px] cursor-pointer overflow-hidden"
-                >
-                  <CollectionFilePreview
-                    token={file}
-                    onFileClick={() => handleFileClick(idx)}
-                  />
-
-                  <div className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap md:max-w-fit px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A] absolute bottom-2 z-10">
-                    {truncateFilename(
-                      file.content.name ||
-                        file.cloudFrontDownloadLink ||
-                        "Unknown file",
-                      !isMobile
-                    )}
-                  </div>
+                <div className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap md:max-w-fit px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A] absolute bottom-2 z-10">
+                  {truncateFilename(
+                    file.content.name ||
+                      file.cloudFrontDownloadLink ||
+                      "Unknown file",
+                    !isMobile
+                  )}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>

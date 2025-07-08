@@ -1,12 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  X,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import { truncateFilename } from "./TruncateText";
 import Image from "next/image";
@@ -142,7 +136,13 @@ export default function CollectionFileModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
-            <button onClick={onClose} aria-label="Close modal">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              aria-label="Close modal"
+            >
               <X size={24} className="text-primary" />
             </button>
 
@@ -224,18 +224,18 @@ export default function CollectionFileModal({
               transition={{ duration: 0.3 }}
               className="relative max-w-full max-h-full w-full h-full"
             >
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="flex items-center justify-center relative">
                 <UniversalFilePreview
                   token={currentFile}
                   disableModals={true}
                 />
-              </div>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-                <div className="px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A]">
-                  {truncateFilename(
-                    currentFile.content.name || "Untitled",
-                    true
-                  )}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+                  <div className="px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A]">
+                    {truncateFilename(
+                      currentFile.content.name || "Untitled",
+                      true
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>

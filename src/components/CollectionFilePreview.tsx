@@ -8,7 +8,6 @@ import NativeVideoPreview from "./NativeVideoPreview";
 import { isSafari } from "@/utils/videoUtils";
 import JsonPreview from "./JsonPreview";
 import RenderLinkPreview from "./RenderLinkPreview";
-import ImageModal from "./ImageModal";
 import { formatTime } from "@/utils";
 
 interface CollectionFilePreviewProps {
@@ -21,9 +20,7 @@ function CollectionFilePreview({
   onFileClick,
 }: CollectionFilePreviewProps) {
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [modalPdf, setModalPdf] = useState({ pdfUrl: "", filename: "" });
-  const [modalImage, setModalImage] = useState({ imageUrl: "", altText: "" });
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
 
   useEffect(() => {
@@ -34,11 +31,6 @@ function CollectionFilePreview({
   const openPdfModal = useCallback((pdfUrl: string, filename: string) => {
     setModalPdf({ pdfUrl, filename });
     setIsPdfModalOpen(true);
-  }, []);
-
-  const openImageModal = useCallback((imageUrl: string, altText: string) => {
-    setModalImage({ imageUrl, altText });
-    setIsImageModalOpen(true);
   }, []);
 
   const filename = token.content.name || token.cloudFrontDownloadLink || "";
@@ -87,7 +79,7 @@ function CollectionFilePreview({
       <>
         <div
           className="w-full h-full object-cover rounded-2xl cursor-pointer relative group"
-          onClick={() => openImageModal(fileUrl, filename)}
+          onClick={() => {}}
         >
           <img
             src={fileUrl}
@@ -96,13 +88,6 @@ function CollectionFilePreview({
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl" />
         </div>
-
-        <ImageModal
-          isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
-          imageUrl={modalImage.imageUrl}
-          altText={modalImage.altText}
-        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -186,13 +171,6 @@ function CollectionFilePreview({
       <>
         <div className="w-full h-full relative">{videoComponent}</div>
 
-        <ImageModal
-          isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
-          imageUrl={modalImage.imageUrl}
-          altText={modalImage.altText}
-        />
-
         <PDFModal
           isOpen={isPdfModalOpen}
           onClose={() => setIsPdfModalOpen(false)}
@@ -215,13 +193,6 @@ function CollectionFilePreview({
             startTime={startTimestamp}
           />
         </div>
-
-        <ImageModal
-          isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
-          imageUrl={modalImage.imageUrl}
-          altText={modalImage.altText}
-        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -249,13 +220,6 @@ function CollectionFilePreview({
           </span>
         </div>
 
-        <ImageModal
-          isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
-          imageUrl={modalImage.imageUrl}
-          altText={modalImage.altText}
-        />
-
         <PDFModal
           isOpen={isPdfModalOpen}
           onClose={() => setIsPdfModalOpen(false)}
@@ -273,13 +237,6 @@ function CollectionFilePreview({
         <div className="w-full h-full flex flex-col items-center justify-center">
           <JsonPreview url={fileUrl} />
         </div>
-
-        <ImageModal
-          isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
-          imageUrl={modalImage.imageUrl}
-          altText={modalImage.altText}
-        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -326,16 +283,9 @@ function CollectionFilePreview({
             }}
             setFaviconError={() => {}}
             faviconError={false}
-            openImageModal={openImageModal}
+            openImageModal={() => {}}
           />
         </div>
-
-        <ImageModal
-          isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
-          imageUrl={modalImage.imageUrl}
-          altText={modalImage.altText}
-        />
 
         <PDFModal
           isOpen={isPdfModalOpen}
@@ -390,13 +340,6 @@ function CollectionFilePreview({
           </a>
         )}
       </div>
-
-      <ImageModal
-        isOpen={isImageModalOpen}
-        onClose={() => setIsImageModalOpen(false)}
-        imageUrl={modalImage.imageUrl}
-        altText={modalImage.altText}
-      />
 
       <PDFModal
         isOpen={isPdfModalOpen}

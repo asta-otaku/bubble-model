@@ -11,6 +11,7 @@ import JsonPreview from "./JsonPreview";
 import { formatTime } from "@/utils";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import React from "react";
+import { usePathname } from "next/navigation";
 
 interface UniversalFilePreviewProps {
   token: Message;
@@ -60,6 +61,8 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
     token.content?.referencedAttachment?.thumbnailImage || "";
   const startTimestamp = formatTime(token.content.startTime || 0) || undefined;
 
+  const pathname = usePathname();
+
   // Image
   if (isImage && fileUrl) {
     return (
@@ -105,6 +108,7 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
           startTimestamp={startTimestamp}
           width={videoWidth}
           height={videoHeight}
+          isFileSpecial={pathname.includes("collection")}
         />
       );
     } else if (VIDEO_PLAYER_MODE === "videojs") {
@@ -113,6 +117,7 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
           <MuxVideoJSPreview
             muxPlaybackId={muxPlaybackId}
             startTimestamp={startTimestamp}
+            isFileSpecial={pathname.includes("collection")}
           />
         );
       } else {
@@ -132,6 +137,7 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
           fileExtension={fileExtension}
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
+          isFileSpecial={pathname.includes("collection")}
         />
       );
     }
@@ -218,22 +224,47 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
     return "📄";
   };
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
-      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-        <span className="text-gray-500 text-lg">{getFileIcon()}</span>
-      </div>
-      <span className="text-xs text-gray-700 text-center px-2">{filename}</span>
-      {fileUrl && (
-        <a
-          href={fileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
-        >
-          Open File
-        </a>
+    <>
+      {pathname.includes("collection") ? (
+        <div className="h-[80vh] w-full flex flex-col items-center justify-center">
+          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+            <span className="text-gray-500 text-lg">{getFileIcon()}</span>
+          </div>
+          <span className="text-xs text-gray-700 text-center px-2">
+            {filename}
+          </span>
+          {fileUrl && (
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
+            >
+              Open File
+            </a>
+          )}
+        </div>
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+            <span className="text-gray-500 text-lg">{getFileIcon()}</span>
+          </div>
+          <span className="text-xs text-gray-700 text-center px-2">
+            {filename}
+          </span>
+          {fileUrl && (
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
+            >
+              Open File
+            </a>
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 };
 
