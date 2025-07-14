@@ -111,9 +111,9 @@ export default function CollectionFileModal({
     }
   };
 
-  if (!currentFile) return null;
-
   const isMobile = useIsMobile();
+
+  if (!currentFile) return null;
 
   return (
     <AnimatePresence>

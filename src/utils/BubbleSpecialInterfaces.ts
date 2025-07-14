@@ -118,3 +118,68 @@ export interface MuxDetailsForWebclient {
   muxPlaybackId: string;
   muxReadyForPlayback: boolean;
 }
+
+// New interfaces for the updated collection API
+export interface Sharer {
+  id: string;
+  publicId: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  lastUpdatedTime: number;
+  deletedAt: number;
+  isShadowProfile: boolean;
+}
+
+export interface RootCollection {
+  id: string;
+  name: string;
+  streamId: string;
+  parentFolderId: string | null;
+  createdAt: number;
+  deletedAt: number | null;
+  lastUpdatedTime: number;
+}
+
+export interface AttachmentDto {
+  textAttachment: {
+    index: number;
+    type: number;
+    attachedContent: {
+      thumbnailImage: string;
+      name: string;
+      size: number;
+      width: number;
+      height: number;
+      muxPlaybackId: string | null;
+      muxReadyForPlayback: boolean | null;
+      folderId: string;
+      storageId: string;
+      lastUpdatedTime: number;
+      deletedAt: number | null;
+      id: string;
+    };
+    cloudFrontDownloadLink: string;
+    optimisedImageUrl: string;
+    metaData: any;
+    muxDetailsForWebclient: MuxDetailsForWebclient | null;
+  };
+  ownerProfile: any | null;
+  streamId: string | null;
+  title: string;
+  description: string;
+  image: string | null;
+  publicItemId: string | null;
+}
+
+export interface WebClientCollectionDto {
+  rootCollection: RootCollection;
+  attachmentDtos: AttachmentDto[];
+  subCollections: WebClientCollectionDto[];
+}
+
+export interface NewCollectionResponse {
+  sharer: Sharer;
+  previewImageUrl: string;
+  webClientCollectionDto: WebClientCollectionDto;
+}
