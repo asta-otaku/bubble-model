@@ -5,7 +5,6 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { useEffect, useState } from "react";
 import RenderLinkPreview from "./RenderLinkPreview";
-import MuxVideoPreview from "./MuxVideoPreview";
 import FileMuxVideoPreview from "./FileMuxVideoPreview";
 import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
 import NativeVideoPreview from "./NativeVideoPreview";

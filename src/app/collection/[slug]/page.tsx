@@ -42,46 +42,54 @@ const page = () => {
 
   // Helper function to convert AttachmentDto to Message format
   const convertAttachmentToMessage = (attachment: AttachmentDto): Message => {
+    const textAttachment = attachment.textAttachment;
+    const attachedContent = textAttachment.attachedContent;
+
+    // Determine if it's a link
+    const isLink = textAttachment.type === 0;
+
     return {
-      index: attachment.textAttachment.index,
-      type: "FILE",
-      cloudFrontDownloadLink: attachment.textAttachment.cloudFrontDownloadLink,
-      optimisedImageUrl: attachment.textAttachment.optimisedImageUrl,
-      metaData: attachment.textAttachment.metaData,
+      index: textAttachment.index,
+      type: isLink ? "LINK" : "FILE", // Use "LINK" type for link attachments
+      cloudFrontDownloadLink: textAttachment.cloudFrontDownloadLink,
+      optimisedImageUrl: textAttachment.optimisedImageUrl,
+      metaData: textAttachment.metaData,
       muxDetailsForWebclient:
-        attachment.textAttachment.muxDetailsForWebclient || undefined,
+        textAttachment.muxDetailsForWebclient || undefined,
       content: {
-        contentId: attachment.textAttachment.attachedContent.id,
+        contentId: attachedContent.id,
         startTime: 0,
         referencedAttachment: {
-          thumbnailImage:
-            attachment.textAttachment.attachedContent.thumbnailImage,
-          name: attachment.textAttachment.attachedContent.name,
-          size: attachment.textAttachment.attachedContent.size,
-          width: attachment.textAttachment.attachedContent.width,
-          height: attachment.textAttachment.attachedContent.height,
-          muxPlaybackId:
-            attachment.textAttachment.attachedContent.muxPlaybackId || "",
+          thumbnailImage: attachedContent.thumbnailImage,
+          name: attachedContent.name,
+          size: attachedContent.size,
+          width: attachedContent.width,
+          height: attachedContent.height,
+          muxPlaybackId: attachedContent.muxPlaybackId || "",
           muxDetailsForWebclient:
-            attachment.textAttachment.muxDetailsForWebclient || undefined,
-          id: attachment.textAttachment.attachedContent.id,
-          url: attachment.textAttachment.cloudFrontDownloadLink,
-          optimisedImageUrl: attachment.textAttachment.optimisedImageUrl,
+            textAttachment.muxDetailsForWebclient || undefined,
+          id: attachedContent.id,
+          // For links, use the URL from attachedContent
+          url: isLink
+            ? attachedContent.url
+            : textAttachment.cloudFrontDownloadLink,
+          optimisedImageUrl: textAttachment.optimisedImageUrl,
         },
-        thumbnailImage:
-          attachment.textAttachment.attachedContent.thumbnailImage,
-        name: attachment.textAttachment.attachedContent.name,
-        size: attachment.textAttachment.attachedContent.size,
-        width: attachment.textAttachment.attachedContent.width,
-        height: attachment.textAttachment.attachedContent.height,
-        muxPlaybackId:
-          attachment.textAttachment.attachedContent.muxPlaybackId || "",
+        thumbnailImage: attachedContent.thumbnailImage,
+        name: attachedContent.name,
+        size: attachedContent.size,
+        width: attachedContent.width,
+        height: attachedContent.height,
+        muxPlaybackId: attachedContent.muxPlaybackId || "",
         muxDetailsForWebclient:
-          attachment.textAttachment.muxDetailsForWebclient || undefined,
-        id: attachment.textAttachment.attachedContent.id,
-        url: attachment.textAttachment.cloudFrontDownloadLink,
+          textAttachment.muxDetailsForWebclient || undefined,
+        id: attachedContent.id,
+        // For links, use the URL from attachedContent
+        url: isLink
+          ? attachedContent.url
+          : textAttachment.cloudFrontDownloadLink,
         userId: "",
-        optimisedImageUrl: attachment.textAttachment.optimisedImageUrl,
+        optimisedImageUrl: textAttachment.optimisedImageUrl,
       },
     };
   };
@@ -137,7 +145,6 @@ const page = () => {
       );
 
       const collectionData: NewCollectionResponse = response.data;
-
       // Only use the root collection's own files for the main view
       const rootAttachmentDtos =
         collectionData.webClientCollectionDto.attachmentDtos || [];
@@ -290,6 +297,15 @@ const page = () => {
     }
   };
 
+  const getDisplayUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return { hostname: parsed.hostname, origin: parsed.origin };
+    } catch (error) {
+      return { hostname: "", origin: "" };
+    }
+  };
+
   // Determine which files and subcollections to show
   const displayFiles = activeSubCollection
     ? (activeSubCollection.attachmentDtos || []).map(convertAttachmentToMessage)
@@ -298,7 +314,9 @@ const page = () => {
     ? activeSubCollection.subCollections || []
     : subCollections;
   const displayTitle = activeSubCollection
-    ? activeSubCollection.rootCollection?.name || "Untitled"
+    ? activeSubCollection.rootCollection?.name ||
+      getDisplayUrl(activeSubCollection.rootCollection?.url).hostname ||
+      "Untitled"
     : collectionTitle;
   const displayOwner = activeSubCollection
     ? collectionOwner // Or use subcollection owner if available
@@ -366,48 +384,50 @@ const page = () => {
             : "bg-transparent"
         }`}
       >
-        <div className="flex items-center gap-4 max-w-screen-2xl mx-auto w-full">
-          <Link
-            href="https://www.typo.inc"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-11 h-11 justify-center items-center gap-2.5 flex-shrink-0"
-          >
-            <Image
-              src={blackTypo}
-              alt="Typo Logo"
-              width={44}
-              height={44}
-              priority
-            />
-          </Link>
-          <div className="flex flex-col gap-1">
-            <h1 className="font-semibold text-lg md:text-[22px] line-clamp-1 text-primary">
-              {displayTitle}
-            </h1>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-primary font-semibold">
-                {displayOwner}
-              </span>
-              <span className="text-xs text-primary font-mono">•</span>
-              <span className="text-xs text-[#7E7E7E] font-mono">
-                {displayFiles.length} items
-              </span>
-              <span className="text-xs text-primary font-mono">•</span>
-              <span className="text-xs text-[#7E7E7E] font-mono">
-                {displayDate}
-              </span>
+        <div className="flex justify-between items-center gap-4 max-w-screen-2xl mx-auto w-full">
+          <div className="flex items-center gap-4">
+            <Link
+              href="https://www.typo.inc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-11 h-11 justify-center items-center gap-2.5 flex-shrink-0"
+            >
+              <Image
+                src={blackTypo}
+                alt="Typo Logo"
+                width={44}
+                height={44}
+                priority
+              />
+            </Link>
+            <div className="flex flex-col gap-1">
+              <h1 className="font-semibold text-lg md:text-[22px] line-clamp-1 text-primary">
+                {displayTitle}
+              </h1>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-primary font-semibold">
+                  {displayOwner}
+                </span>
+                <span className="text-xs text-primary font-mono">•</span>
+                <span className="text-xs text-[#7E7E7E] font-mono">
+                  {displayFiles.length} items
+                </span>
+                <span className="text-xs text-primary font-mono">•</span>
+                <span className="text-xs text-[#7E7E7E] font-mono">
+                  {displayDate}
+                </span>
+              </div>
             </div>
           </div>
+          {activeSubCollection && (
+            <button
+              onClick={handleBackToParent}
+              className="ml-4 px-4 py-2 bg-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-300 transition shrink-0"
+            >
+              ← Back
+            </button>
+          )}
         </div>
-        {activeSubCollection && (
-          <button
-            onClick={handleBackToParent}
-            className="ml-4 px-4 py-2 bg-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-300 transition"
-          >
-            ← Back
-          </button>
-        )}
       </nav>
 
       {/* Content area with gradient overlays */}
@@ -443,7 +463,10 @@ const page = () => {
                       att.textAttachment.cloudFrontDownloadLink
                   );
                 const itemCount = (sub.attachmentDtos || []).length;
-                const title = sub.rootCollection?.name || "Untitled";
+                const title =
+                  sub.rootCollection?.name ||
+                  getDisplayUrl(sub.rootCollection?.url).hostname ||
+                  "Untitled";
                 return (
                   <SubCollectionCard
                     key={sub.rootCollection?.id || idx}
@@ -469,6 +492,7 @@ const page = () => {
                     {truncateFilename(
                       file.content.name ||
                         file.cloudFrontDownloadLink ||
+                        getDisplayUrl(file.content.url).hostname ||
                         "Unknown file",
                       !isMobile
                     )}

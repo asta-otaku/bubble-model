@@ -37,13 +37,14 @@ const SubCollectionCard: React.FC<SubCollectionCardProps> = ({
             className={`absolute rounded-lg object-cover 
               w-16 h-16 md:w-20 md:h-20 lg:w-32 lg:h-32 shadow-md transition-transform duration-200
               ${
-                idx === 0
+                imagesToShow.length === 1
+                  ? "relative" // Center single image
+                  : idx === 0
                   ? "z-10 left-2 top-2 md:left-3 md:top-3 lg:left-6 lg:top-6 rotate-[-8deg]"
                   : idx === 1
                   ? "z-20 left-7 top-4 md:left-10 md:top-6 lg:left-16 lg:top-12 rotate-[6deg]"
                   : "z-30 left-12 top-6 md:left-16 md:top-10 lg:left-26 lg:top-18 rotate-[-2deg]"
-              }`
-            }
+              }`}
             style={{
               boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
             }}
@@ -52,7 +53,10 @@ const SubCollectionCard: React.FC<SubCollectionCardProps> = ({
       </div>
       {/* Title and item count */}
       <div className="flex flex-col gap-0.5">
-        <span className="font-medium text-sm text-gray-900 truncate" title={title}>
+        <span
+          className="font-medium text-sm text-gray-900 truncate"
+          title={title}
+        >
           {title}
         </span>
         <span className="text-xs text-gray-500">{itemCount} items</span>
@@ -61,4 +65,4 @@ const SubCollectionCard: React.FC<SubCollectionCardProps> = ({
   );
 };
 
-export default SubCollectionCard; 
+export default SubCollectionCard;

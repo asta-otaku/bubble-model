@@ -7,7 +7,7 @@ import Image from "next/image";
 import whiteDownloadIcon from "@/assets/whiteDownloadIcon.svg";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import UniversalFilePreview from "./UniversalFilePreview";
+import CollectionFileModalPreview from "./CollectionFileModalPreview";
 import useIsMobile from "@/utils";
 
 interface CollectionFileModalProps {
@@ -115,6 +115,15 @@ export default function CollectionFileModal({
 
   if (!currentFile) return null;
 
+  const getDisplayUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return { hostname: parsed.hostname, origin: parsed.origin };
+    } catch (error) {
+      return { hostname: "", origin: "" };
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -186,7 +195,9 @@ export default function CollectionFileModal({
                             {actualIndex === currentIndex && (
                               <span className="text-white text-xs truncate max-w-[100px] block">
                                 {truncateFilename(
-                                  file.content.name || "Untitled",
+                                  file.content.name ||
+                                    getDisplayUrl(file.content.url).hostname ||
+                                    "Untitled",
                                   false
                                 )}
                               </span>
@@ -215,7 +226,7 @@ export default function CollectionFileModal({
 
             {/* File Container */}
             <div
-              className="flex-1 flex items-center justify-center py-4 px-4 max-h-[95vh] h-full"
+              className="flex-1 flex items-center justify-center py-4 px-4 max-h-[85vh] h-full"
               onClick={(e) => e.stopPropagation()}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
@@ -229,14 +240,16 @@ export default function CollectionFileModal({
                 className="relative max-w-full max-h-full w-full h-full"
               >
                 <div className="flex items-center justify-center relative">
-                  <UniversalFilePreview
+                  <CollectionFileModalPreview
                     token={currentFile}
                     disableModals={true}
                   />
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
                     <div className="px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A]">
                       {truncateFilename(
-                        currentFile.content.name || "Untitled",
+                        currentFile.content.name ||
+                          getDisplayUrl(currentFile.content.url).hostname ||
+                          "Untitled",
                         true
                       )}
                     </div>

@@ -80,7 +80,7 @@ export default function FileMuxVideoPreview({
   const paddingBottom =
     width && height ? `${(height / width) * 100}%` : "56.25%";
 
-  return (
+  const videoContent = (
     <div className="w-full h-full flex items-center justify-center">
       <div
         ref={containerRef}
@@ -89,6 +89,7 @@ export default function FileMuxVideoPreview({
             ? "w-full h-full"
             : "max-w-xs w-full overflow-hidden rounded-[14px]"
         }
+        style={isFileSpecial ? { maxHeight: "85vh" } : {}}
       >
         {dimensions.width > 0 && (
           <div className="relative w-full" style={{ paddingBottom }}>
@@ -106,7 +107,7 @@ export default function FileMuxVideoPreview({
                   streamType="on-demand"
                   playsInline
                   crossOrigin="anonymous"
-                  style={{ width: "100%", height: "100%" }}
+                  style={{ width: "100%", height: "100%", maxHeight: "85vh" }}
                 >
                   <track
                     default
@@ -122,4 +123,13 @@ export default function FileMuxVideoPreview({
       </div>
     </div>
   );
+
+  if (isFileSpecial) {
+    return (
+      <div style={{ maxHeight: "85vh", width: "100%", overflow: "auto" }}>
+        {videoContent}
+      </div>
+    );
+  }
+  return videoContent;
 }

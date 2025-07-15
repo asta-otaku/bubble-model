@@ -158,6 +158,7 @@ export interface AttachmentDto {
       lastUpdatedTime: number;
       deletedAt: number | null;
       id: string;
+      url: string;
     };
     cloudFrontDownloadLink: string;
     optimisedImageUrl: string;

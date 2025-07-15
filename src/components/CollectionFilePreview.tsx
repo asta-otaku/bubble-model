@@ -1,11 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
-import PDFModal from "./PdfModal";
 import BubbleAudioPlayer from "./BubbleAudioPlayer";
 import MuxVideoPreview from "./MuxVideoPreview";
 import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
 import NativeVideoPreview from "./NativeVideoPreview";
-import { isSafari } from "@/utils/videoUtils";
 import JsonPreview from "./JsonPreview";
 import RenderLinkPreview from "./RenderLinkPreview";
 import { formatTime } from "@/utils";
@@ -19,25 +16,12 @@ function CollectionFilePreview({
   token,
   onFileClick,
 }: CollectionFilePreviewProps) {
-  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [modalPdf, setModalPdf] = useState({ pdfUrl: "", filename: "" });
-  const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
-
-  useEffect(() => {
-    const support = isSafari();
-    setBrowserSupportsVideo(support);
-  }, []);
-
-  const openPdfModal = useCallback((pdfUrl: string, filename: string) => {
-    setModalPdf({ pdfUrl, filename });
-    setIsPdfModalOpen(true);
-  }, []);
-
   const filename = token.content.name || token.cloudFrontDownloadLink || "";
   const getFileExtension = (name: string) =>
     name.split(".").pop()?.toLowerCase() || "";
   const fileExtension = getFileExtension(filename);
 
+  const isLink = token.type === "LINK" && token.content.url;
   const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(fileExtension);
   const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
   const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
@@ -74,7 +58,6 @@ function CollectionFilePreview({
 
   // Image Preview
   if (isImage && fileUrl) {
-    const isHeic = fileExtension.toLowerCase() === "heic";
     return (
       <>
         <div
@@ -88,13 +71,6 @@ function CollectionFilePreview({
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl" />
         </div>
-
-        <PDFModal
-          isOpen={isPdfModalOpen}
-          onClose={() => setIsPdfModalOpen(false)}
-          pdfUrl={modalPdf.pdfUrl}
-          filename={modalPdf.filename}
-        />
       </>
     );
   }
@@ -170,13 +146,6 @@ function CollectionFilePreview({
     return (
       <>
         <div className="w-full h-full relative">{videoComponent}</div>
-
-        <PDFModal
-          isOpen={isPdfModalOpen}
-          onClose={() => setIsPdfModalOpen(false)}
-          pdfUrl={modalPdf.pdfUrl}
-          filename={modalPdf.filename}
-        />
       </>
     );
   }
@@ -193,13 +162,6 @@ function CollectionFilePreview({
             startTime={startTimestamp}
           />
         </div>
-
-        <PDFModal
-          isOpen={isPdfModalOpen}
-          onClose={() => setIsPdfModalOpen(false)}
-          pdfUrl={modalPdf.pdfUrl}
-          filename={modalPdf.filename}
-        />
       </>
     );
   }
@@ -210,7 +172,7 @@ function CollectionFilePreview({
       <>
         <div
           className="w-full h-full flex flex-col items-center justify-center cursor-pointer"
-          onClick={() => openPdfModal(fileUrl, filename)}
+          onClick={() => {}}
         >
           <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-2">
             <span className="text-red-500 text-lg">📄</span>
@@ -219,13 +181,6 @@ function CollectionFilePreview({
             {filename}
           </span>
         </div>
-
-        <PDFModal
-          isOpen={isPdfModalOpen}
-          onClose={() => setIsPdfModalOpen(false)}
-          pdfUrl={modalPdf.pdfUrl}
-          filename={modalPdf.filename}
-        />
       </>
     );
   }
@@ -237,29 +192,12 @@ function CollectionFilePreview({
         <div className="w-full h-full flex flex-col items-center justify-center">
           <JsonPreview url={fileUrl} />
         </div>
-
-        <PDFModal
-          isOpen={isPdfModalOpen}
-          onClose={() => setIsPdfModalOpen(false)}
-          pdfUrl={modalPdf.pdfUrl}
-          filename={modalPdf.filename}
-        />
       </>
     );
   }
 
   // Referenced Link Preview
-  if (
-    token.type === "REFERENCE" &&
-    token.content?.referencedAttachment?.url &&
-    !isImage &&
-    !isVideo &&
-    !isAudio &&
-    !isPDF &&
-    !isZip &&
-    !isCSV &&
-    !isExcel
-  ) {
+  if (isLink) {
     const getDisplayUrl = (url: string) => {
       try {
         const parsed = new URL(url);
@@ -286,13 +224,6 @@ function CollectionFilePreview({
             openImageModal={() => {}}
           />
         </div>
-
-        <PDFModal
-          isOpen={isPdfModalOpen}
-          onClose={() => setIsPdfModalOpen(false)}
-          pdfUrl={modalPdf.pdfUrl}
-          filename={modalPdf.filename}
-        />
       </>
     );
   }
@@ -340,13 +271,6 @@ function CollectionFilePreview({
           </a>
         )}
       </div>
-
-      <PDFModal
-        isOpen={isPdfModalOpen}
-        onClose={() => setIsPdfModalOpen(false)}
-        pdfUrl={modalPdf.pdfUrl}
-        filename={modalPdf.filename}
-      />
     </>
   );
 }

@@ -52,9 +52,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     normalize: true,
     interact: true,
     // Add performance options
-    backend: 'MediaElement', // Better streaming support
+    backend: "MediaElement", // Better streaming support
     mediaControls: false,
-    autoplay: false
+    autoplay: false,
   });
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     // Configure wavesurfer for better loading performance
     if (wavesurfer.options) {
       // Enable backend options for faster loading
-      wavesurfer.options.backend = 'MediaElement';
+      wavesurfer.options.backend = "MediaElement";
       wavesurfer.options.mediaControls = false;
       wavesurfer.options.autoplay = false;
     }
@@ -80,7 +80,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       })
       .then((data: { peaks: number[] }) => {
         if (canceled) return;
-        
+
         // Load with peaks data
         wavesurfer.load(audioUrl, [data.peaks]);
       })

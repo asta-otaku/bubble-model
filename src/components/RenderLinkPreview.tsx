@@ -44,7 +44,7 @@ function RenderLinkPreview({
               loading="lazy"
             />
           </div>
-          <div className="inline-block items-center gap-1.5 text-xs font-medium text-primary whitespace-nowrap max-w-[137px] truncate overflow-hidden">
+          <div className="inline-block items-center gap-1.5 text-xs font-medium text-primary whitespace-nowrap max-w-[120px] truncate overflow-hidden">
             {hostname}
           </div>
         </div>
@@ -52,7 +52,7 @@ function RenderLinkPreview({
           href={token.content?.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
+          className="bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full whitespace-nowrap"
         >
           {hostname.includes("twitter.com") ? "Visit Tweet" : "Visit Link"}
         </a>

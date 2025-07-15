@@ -159,6 +159,15 @@ export default function CollectionImageModal({
 
   if (!currentImage) return null;
 
+  const getDisplayUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return { hostname: parsed.hostname, origin: parsed.origin };
+    } catch (error) {
+      return { hostname: "", origin: "" };
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -217,7 +226,9 @@ export default function CollectionImageModal({
                           {actualIndex === currentIndex && (
                             <span className="text-white text-xs truncate max-w-[100px] block">
                               {truncateFilename(
-                                image.content.name || "Untitled",
+                                image.content.name ||
+                                  getDisplayUrl(image.content.url).hostname ||
+                                  "Untitled",
                                 false
                               )}
                             </span>
