@@ -163,7 +163,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
   // Audio
   if (isAudio && fileUrl) {
     return (
-      <div className="w-full h-[85vh] flex flex-col items-center justify-center">
+      <div className="max-w-[80%] mx-auto w-full h-[85vh] flex flex-col items-center justify-center">
         <AudioPlayer
           audioUrl={fileUrl}
           filename={""}
