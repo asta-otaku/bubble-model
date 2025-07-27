@@ -19,6 +19,7 @@ import { convertUnixNanoToReadable } from "@/utils/getDateTime";
 import FloatingNav from "@/components/FloatingNav";
 import LoadingState from "@/components/LoadingState";
 
+
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 
@@ -85,7 +86,9 @@ function Page() {
       setState({
         bubbleData: { ...message, attachments: trueAttachments },
         owner: data.ownerProfile.firstName || "",
-        messageCreated: convertUnixNanoToReadable(data.message.createdAt),
+        messageCreated: convertUnixNanoToReadable(
+          data.message.createdAt
+        ),
         isLoading: false,
       });
 

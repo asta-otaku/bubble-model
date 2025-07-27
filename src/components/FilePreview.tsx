@@ -13,7 +13,7 @@ import JsonPreview from "./JsonPreview";
 import genericdoc from "@/assets/genericdoc.svg";
 import downloadIcon from "@/assets/download.svg";
 import Image from "next/image";
-import { FileData, Message } from "@/utils/BubbleSpecialInterfaces";
+import { FileData, Message } from '@/utils/BubbleSpecialInterfaces';
 
 function FilePreview({
   url,
@@ -40,7 +40,7 @@ function FilePreview({
   url: string | undefined;
   formatFileSize: (bytes?: number) => string;
   token: any;
-  fileData?: FileData;
+  fileData?: FileData; 
   isImage: boolean;
   openImageModal: (url: string, alt: string) => void;
   openPdfModal: (pdfUrl: string, filename: string) => void;
@@ -56,7 +56,7 @@ function FilePreview({
   thumbnailImage: string;
   startTimestamp?: string;
   title: string;
-  optimisedImageUrl?: string;
+  optimisedImageUrl?: string; 
 }) {
   const fileUrl = url;
 
@@ -71,9 +71,9 @@ function FilePreview({
     // Get the best available image URL
     const imageToDisplay = optimisedImageUrl || url;
     // Add logs to see which image is being displayed
-    console.log("Original URL:", url);
-    console.log("Optimised URL:", optimisedImageUrl);
-    console.log("Image being displayed:", imageToDisplay);
+    console.log('Original URL:', url);
+    console.log('Optimised URL:', optimisedImageUrl);
+    console.log('Image being displayed:', imageToDisplay);
 
     const [imgError, setImgError] = useState(false);
 
@@ -93,9 +93,9 @@ function FilePreview({
                 alt={filename}
                 className="w-full h-full transition-opacity object-contain"
                 onError={(e) => {
-                  console.log("Image failed to load:", imageToDisplay);
+                  console.log('Image failed to load:', imageToDisplay);
                   if (optimisedImageUrl && !imgError) {
-                    console.log("Falling back to original image:", url);
+                    console.log('Falling back to original image:', url);
                     setImgError(true);
                     e.currentTarget.src = url;
                   }
@@ -120,28 +120,21 @@ function FilePreview({
       return (
         <div
           className="w-full h-full overflow-hidden cursor-pointer relative group"
-          onClick={() =>
-            openImageModal(imgError ? url : imageToDisplay, filename)
-          }
+          onClick={() => openImageModal(imgError ? url :imageToDisplay, filename)}
         >
-          {process.env.NODE_ENV === "development" && (
-            <div className="absolute top-0 left-0 bg-black/80 text-white text-xs p-1 z-10">
-              Using:{" "}
-              {imgError
-                ? "Original (fallback)"
-                : optimisedImageUrl
-                ? "Optimised"
-                : "Original"}
-            </div>
-          )}
+                  {process.env.NODE_ENV === 'development' && (
+          <div className="absolute top-0 left-0 bg-black/80 text-white text-xs p-1 z-10">
+            Using: {imgError ? 'Original (fallback)' : (optimisedImageUrl ? 'Optimised' : 'Original')}
+          </div>
+        )}
           <img
             src={imageToDisplay}
             alt={filename}
             className="w-full h-full transition-opacity object-contain"
             onError={(e) => {
-              console.log("Image failed to load:", imageToDisplay);
+              console.log('Image failed to load:', imageToDisplay);
               if (optimisedImageUrl && !imgError) {
-                console.log("Falling back to original image:", url);
+                console.log('Falling back to original image:', url);
                 setImgError(true);
                 e.currentTarget.src = url;
               }
@@ -160,38 +153,29 @@ function FilePreview({
     console.log("VIDEO_PLAYER_MODE FilePreview:", VIDEO_PLAYER_MODE);
     console.log("token debugging FilePreview:", token);
     console.log("fileData debugging FilePreview:", fileData);
-
+    
     // Handle different data structures coming into this component
     let muxPlaybackId = null;
-
+    
     // Case 1: token is an attachment object from the attachments array (most common case)
     if (token?.muxDetailsForWebclient?.muxPlaybackId) {
       muxPlaybackId = token.muxDetailsForWebclient.muxPlaybackId;
     }
     // Case 2: fileData structure passed from file-special page
-    else if (
-      fileData?.textAttachment?.attachedContent?.muxDetailsForWebclient
-        ?.muxPlaybackId
-    ) {
-      muxPlaybackId =
-        fileData.textAttachment.attachedContent.muxDetailsForWebclient
-          .muxPlaybackId;
-    }
+    else if (fileData?.textAttachment?.attachedContent?.muxDetailsForWebclient?.muxPlaybackId) {
+      muxPlaybackId = fileData.textAttachment.attachedContent.muxDetailsForWebclient.muxPlaybackId;
+    } 
     // Case 3: token is actually the textAttachment itself (from file-special)
     else if (token?.attachedContent?.muxDetailsForWebclient?.muxPlaybackId) {
-      muxPlaybackId =
-        token.attachedContent.muxDetailsForWebclient.muxPlaybackId;
+      muxPlaybackId = token.attachedContent.muxDetailsForWebclient.muxPlaybackId;
     }
     // Case 4: token is a normal message with content property
     else if (token.content?.muxDetailsForWebclient?.muxPlaybackId) {
       muxPlaybackId = token.content.muxDetailsForWebclient.muxPlaybackId;
-    }
+    } 
     // Case 5: token is a reference with nested content
-    else if (
-      token.content?.referencedAttachment?.muxDetailsForWebclient?.muxPlaybackId
-    ) {
-      muxPlaybackId =
-        token.content.referencedAttachment.muxDetailsForWebclient.muxPlaybackId;
+    else if (token.content?.referencedAttachment?.muxDetailsForWebclient?.muxPlaybackId) {
+      muxPlaybackId = token.content.referencedAttachment.muxDetailsForWebclient.muxPlaybackId;
     }
     console.log("muxPlaybackId FilePreview:", muxPlaybackId);
 
@@ -322,8 +306,8 @@ function FilePreview({
     );
   }
 
-  // For other file types with animation
-  const getPreviewBox = () => (
+   // For other file types with animation
+   const getPreviewBox = () => (
     <div className="flex w-full p-3 flex-col gap-3 items-center justify-center">
       <div className="max-w-sm space-y-3 w-full mx-auto bg-[#F3F3F3] rounded-3xl p-4 border">
         <div>

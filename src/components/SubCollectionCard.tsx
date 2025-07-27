@@ -1,9 +1,11 @@
 import React from "react";
+import { getThumbnailUrl } from "@/utils/getThumbnailUrl";
 
 interface SubCollectionCardProps {
   title: string;
   itemCount: number;
   previewImages: string[]; // Array of image URLs
+  previewFiles?: any[]; // Array of file objects for better thumbnail handling
   onClick?: () => void;
 }
 
@@ -11,10 +13,13 @@ const SubCollectionCard: React.FC<SubCollectionCardProps> = ({
   title,
   itemCount,
   previewImages,
+  previewFiles,
   onClick,
 }) => {
-  // Show up to 3 images, stacked
-  const imagesToShow = previewImages.slice(0, 3);
+  // If previewFiles is provided, use getThumbnailUrl for better file type handling
+  const imagesToShow = previewFiles 
+    ? previewFiles.slice(0, 3).map(file => getThumbnailUrl(file))
+    : previewImages.slice(0, 3);
 
   return (
     <div

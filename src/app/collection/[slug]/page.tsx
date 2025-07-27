@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import whiteDownloadIcon from "@/assets/whiteDownloadIcon.svg";
 import blackTypo from "@/assets/blackTypo.svg";
 import Image from "next/image";
 import Link from "next/link";
 import { truncateFilename } from "@/components/TruncateText";
 import useIsMobile from "@/utils";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import {
   Message,
   NewCollectionResponse,
@@ -17,12 +16,23 @@ import {
 import CollectionFilePreview from "@/components/CollectionFilePreview";
 import CollectionFileModal from "@/components/CollectionFileModal";
 import SubCollectionCard from "@/components/SubCollectionCard";
+import CollectionPreviewCard from "@/components/CollectionPreviewCard";
+import DownloadAllCollectionsButton from "@/components/DownloadAllCollectionsButton";
+import { convertUnixNanoToReadable } from "@/utils/getDateTime";
 
 const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_COLLECTION_URL;
 const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
 
+// Navigation state interface
+interface NavigationState {
+  activeSubCollectionId: string | null;
+  activeSubCollection: any | null;
+}
+
 const page = () => {
   const { slug } = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [files, setFiles] = useState<Message[]>([]);
   const [subCollections, setSubCollections] = useState<any[]>([]); // Store subcollections
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +49,7 @@ const page = () => {
   const [activeSubCollection, setActiveSubCollection] = useState<any | null>(
     null
   );
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Helper function to convert AttachmentDto to Message format
   const convertAttachmentToMessage = (attachment: AttachmentDto): Message => {
@@ -116,16 +127,66 @@ const page = () => {
     return allAttachments;
   };
 
-  // Helper to extract subcollections recursively (flat list)
-  const extractSubCollections = (collectionDto: any): any[] => {
-    let allSubs: any[] = [];
-    if (collectionDto.subCollections) {
-      allSubs = [...allSubs, ...collectionDto.subCollections];
-      collectionDto.subCollections.forEach((sub: any) => {
-        allSubs = [...allSubs, ...extractSubCollections(sub)];
-      });
+  // Helper to extract only immediate subcollections (not nested ones)
+  const extractImmediateSubCollections = (collectionDto: any): any[] => {
+    return collectionDto.subCollections || [];
+  };
+
+  // Helper to find subcollection by ID
+  const findSubCollectionById = (id: string): any | null => {
+    if (!subCollections || subCollections.length === 0) {
+      return null;
     }
-    return allSubs;
+
+    const findInSubs = (subs: any[]): any | null => {
+      for (const sub of subs) {
+        if (sub.rootCollection?.id === id) {
+          return sub;
+        }
+        if (sub.subCollections) {
+          const found = findInSubs(sub.subCollections);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return findInSubs(subCollections);
+  };
+
+  // Update browser history without changing URL
+  const updateHistoryState = (subCollection: any | null) => {
+    const state: NavigationState = {
+      activeSubCollectionId: subCollection?.rootCollection?.id || null,
+      activeSubCollection: subCollection,
+    };
+
+    // Push new history entry to enable back/forward navigation
+    window.history.pushState(state, "", pathname);
+    console.log("History state updated:", state);
+  };
+
+  // Handle browser back/forward navigation
+  const handlePopState = (event: PopStateEvent) => {
+    console.log("PopState event triggered:", event.state);
+    const state = event.state as NavigationState | null;
+    if (state?.activeSubCollectionId) {
+      const subCollection = findSubCollectionById(state.activeSubCollectionId);
+      if (subCollection) {
+        setActiveSubCollection(subCollection);
+        console.log(
+          "Restored subcollection:",
+          subCollection.rootCollection?.name
+        );
+      } else {
+        // If subcollection not found, fall back to main collection
+        setActiveSubCollection(null);
+        updateHistoryState(null);
+        console.log("Subcollection not found, falling back to main collection");
+      }
+    } else {
+      setActiveSubCollection(null);
+      console.log("No active subcollection, showing main collection");
+    }
   };
 
   const fetchCollectionData = async () => {
@@ -169,26 +230,26 @@ const page = () => {
         }`.trim() || "Unknown"
       );
       setCollectionDate(
-        new Date(
-          collectionData.webClientCollectionDto.rootCollection.createdAt /
-            1000000
-        ).toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })
+        convertUnixNanoToReadable(
+          collectionData.webClientCollectionDto.rootCollection.createdAt
+        )
       );
-      // Extract subcollections (flat list)
-      let extractedSubs = extractSubCollections(
+      // Extract only immediate subcollections
+      let extractedSubs = extractImmediateSubCollections(
         collectionData.webClientCollectionDto
       );
       // Sort subcollections by lastUpdatedTime (descending)
-      extractedSubs.sort((a, b) => {
+      extractedSubs.sort((a: any, b: any) => {
         const aTime = a.rootCollection?.lastUpdatedTime || 0;
         const bTime = b.rootCollection?.lastUpdatedTime || 0;
         return bTime - aTime;
       });
       setSubCollections(extractedSubs);
+
+      // Mark as initialized after data is loaded
+      if (!isInitialized) {
+        setIsInitialized(true);
+      }
     } catch (error) {
       console.error("Error fetching collection data:", error);
     } finally {
@@ -196,14 +257,18 @@ const page = () => {
     }
   };
 
-  // When a subcollection card is clicked, show its contents in-place
+  // When a subcollection card is clicked, show its contents and update history
   const handleSubCollectionClick = (sub: any) => {
+    console.log("Subcollection clicked:", sub.rootCollection?.name);
     setActiveSubCollection(sub);
+    updateHistoryState(sub);
   };
 
-  // Back to parent collection
+  // Back to parent collection and update history
   const handleBackToParent = () => {
+    console.log("Back to parent clicked");
     setActiveSubCollection(null);
+    updateHistoryState(null);
   };
 
   // When a file is clicked, open modal with the current context's files
@@ -240,6 +305,49 @@ const page = () => {
     }
   }, [slug]);
 
+  // Set up browser navigation listeners
+  useEffect(() => {
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [subCollections]); // Re-add listener when subCollections change
+
+  // Initialize history state on first load
+  useEffect(() => {
+    if (isInitialized && !window.history.state) {
+      // Set initial state if none exists
+      console.log("Setting initial history state");
+      updateHistoryState(null);
+    }
+  }, [isInitialized]);
+
+  // Restore navigation state after subcollections are loaded
+  useEffect(() => {
+    if (isInitialized && subCollections.length > 0) {
+      const currentState = window.history.state as NavigationState | null;
+      console.log("Checking for state restoration:", currentState);
+      if (currentState?.activeSubCollectionId) {
+        const subCollection = findSubCollectionById(
+          currentState.activeSubCollectionId
+        );
+        if (subCollection) {
+          setActiveSubCollection(subCollection);
+          console.log(
+            "State restored successfully:",
+            subCollection.rootCollection?.name
+          );
+        } else {
+          console.log(
+            "Subcollection not found for restoration, clearing state"
+          );
+          updateHistoryState(null);
+        }
+      }
+    }
+  }, [isInitialized, subCollections]);
+
   useEffect(() => {
     const contentElement = contentRef.current;
     if (contentElement) {
@@ -256,45 +364,6 @@ const page = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-  };
-
-  const handleDownloadAll = async () => {
-    if (files.length === 0) return;
-
-    try {
-      // Prepare files array for the download-zip API
-      const filesForDownload = files.map((file) => ({
-        url: file.cloudFrontDownloadLink,
-        name: file.content.name || `file-${file.index + 1}`,
-      }));
-
-      // Call the download-zip API
-      const response = await fetch("/api/download-zip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ files: filesForDownload }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create zip file");
-      }
-
-      // Create a blob from the response and trigger download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${collectionTitle}-files.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading all files:", error);
-      // You could add a toast notification here to inform the user of the error
-    }
   };
 
   const getDisplayUrl = (url: string) => {
@@ -322,13 +391,7 @@ const page = () => {
     ? collectionOwner // Or use subcollection owner if available
     : collectionOwner;
   const displayDate = activeSubCollection
-    ? new Date(
-        activeSubCollection.rootCollection?.createdAt / 1000000
-      ).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
+    ? convertUnixNanoToReadable(activeSubCollection.rootCollection?.createdAt)
     : collectionDate;
 
   if (isLoading) {
@@ -400,33 +463,7 @@ const page = () => {
                 priority
               />
             </Link>
-            <div className="flex flex-col gap-1">
-              <h1 className="font-semibold text-lg md:text-[22px] line-clamp-1 text-primary">
-                {displayTitle}
-              </h1>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-primary font-semibold">
-                  {displayOwner}
-                </span>
-                <span className="text-xs text-primary font-mono">•</span>
-                <span className="text-xs text-[#7E7E7E] font-mono">
-                  {displayFiles.length} items
-                </span>
-                <span className="text-xs text-primary font-mono">•</span>
-                <span className="text-xs text-[#7E7E7E] font-mono">
-                  {displayDate}
-                </span>
-              </div>
-            </div>
           </div>
-          {activeSubCollection && (
-            <button
-              onClick={handleBackToParent}
-              className="ml-4 px-4 py-2 bg-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-300 transition shrink-0"
-            >
-              ← Back
-            </button>
-          )}
         </div>
       </nav>
 
@@ -439,7 +476,7 @@ const page = () => {
 
         {/* Scrollable content - takes full height with top padding for navbar */}
         <div
-          className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative pb-24"
+          className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative"
           ref={contentRef}
         >
           {displayFiles.length === 0 && displaySubCollections.length === 0 ? (
@@ -451,73 +488,131 @@ const page = () => {
               </div>
             </div>
           ) : (
-            <div className="max-w-screen-2xl mx-auto w-full flex flex-wrap gap-x-1 gap-y-2 md:gap-x-2 justify-center">
-              {/* Render subcollections first */}
-              {displaySubCollections.map((sub: any, idx: number) => {
-                // Get up to 3 preview images from subcollection's attachments
-                const previewImages = (sub.attachmentDtos || [])
-                  .slice(0, 3)
-                  .map(
+            <div className="max-w-screen-2xl mx-auto w-full">
+              {/* Show collection preview card when viewing main collection */}
+              {!activeSubCollection && (
+                <div className="flex flex-col items-center mb-6">
+                  <CollectionPreviewCard
+                    previewFiles={displayFiles.slice(0, 3)}
+                    previewImages={displayFiles
+                      .slice(0, 3)
+                      .map(
+                        (file: any) =>
+                          file.content.optimisedImageUrl ||
+                          file.content.thumbnailImage ||
+                          file.cloudFrontDownloadLink
+                      )}
+                  />
+                  <h2 className="font-semibold text-lg md:text-xl text-gray-900 mt-4 text-center">
+                    {displayTitle}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                    <span>{displayFiles.length} items</span>
+                    <span>•</span>
+                    <span>{displayDate}</span>
+                    <span>•</span>
+                    <span>{displayOwner}</span>
+                  </div>
+                  <div className="mt-4">
+                    <DownloadAllCollectionsButton
+                      collectionTitle={displayTitle}
+                      disabled={displayFiles.length === 0}
+                      isSubCollection={!!activeSubCollection}
+                      subCollectionId={activeSubCollection?.rootCollection?.id}
+                      files={displayFiles}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Show collection preview card when viewing subcollection */}
+              {activeSubCollection && (
+                <div className="flex flex-col items-center mb-6">
+                  <CollectionPreviewCard
+                    previewFiles={displayFiles.slice(0, 3)}
+                    previewImages={displayFiles
+                      .slice(0, 3)
+                      .map(
+                        (file: any) =>
+                          file.content.optimisedImageUrl ||
+                          file.content.thumbnailImage ||
+                          file.cloudFrontDownloadLink
+                      )}
+                  />
+                  <h2 className="font-semibold text-lg md:text-xl text-gray-900 mt-4 text-center">
+                    {displayTitle}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                    <span>{displayFiles.length} items</span>
+                    <span>•</span>
+                    <span>{displayDate}</span>
+                    <span>•</span>
+                    <span>{displayOwner}</span>
+                  </div>
+                  <div className="mt-4">
+                    <DownloadAllCollectionsButton
+                      collectionTitle={displayTitle}
+                      disabled={displayFiles.length === 0}
+                      isSubCollection={!!activeSubCollection}
+                      subCollectionId={activeSubCollection?.rootCollection?.id}
+                      files={displayFiles}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Files and subcollections grid */}
+              <div className="flex flex-wrap gap-x-1 gap-y-2 md:gap-x-2 justify-center">
+                {/* Render subcollections first */}
+                {displaySubCollections.map((sub: any, idx: number) => {
+                  // Get up to 3 preview files from subcollection's attachments
+                  const previewFiles = (sub.attachmentDtos || []).slice(0, 3);
+                  const previewImages = previewFiles.map(
                     (att: any) =>
                       att.textAttachment.optimisedImageUrl ||
                       att.textAttachment.cloudFrontDownloadLink
                   );
-                const itemCount = (sub.attachmentDtos || []).length;
-                const title =
-                  sub.rootCollection?.name ||
-                  getDisplayUrl(sub.rootCollection?.url).hostname ||
-                  "Untitled";
-                return (
-                  <SubCollectionCard
-                    key={sub.rootCollection?.id || idx}
-                    title={title}
-                    itemCount={itemCount}
-                    previewImages={previewImages}
-                    onClick={() => handleSubCollectionClick(sub)}
-                  />
-                );
-              })}
-              {/* Render files */}
-              {displayFiles.map((file: any, idx: number) => (
-                <div
-                  key={idx}
-                  onClick={() => handleFileClick(idx)}
-                  className="rounded-2xl bg-white border border-[#1919191A] shadow flex flex-col items-center justify-center relative w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px] cursor-pointer overflow-hidden"
-                >
-                  <CollectionFilePreview
-                    token={file}
-                    onFileClick={() => handleFileClick(idx)}
-                  />
-                  <div className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap md:max-w-fit px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A] absolute bottom-2 z-10">
-                    {truncateFilename(
-                      file.content.name ||
-                        file.cloudFrontDownloadLink ||
-                        getDisplayUrl(file.content.url).hostname ||
-                        "Unknown file",
-                      !isMobile
-                    )}
+                  const itemCount = (sub.attachmentDtos || []).length;
+                  const title =
+                    sub.rootCollection?.name ||
+                    getDisplayUrl(sub.rootCollection?.url).hostname ||
+                    "Untitled";
+                  return (
+                    <SubCollectionCard
+                      key={sub.rootCollection?.id || idx}
+                      title={title}
+                      itemCount={itemCount}
+                      previewFiles={previewFiles}
+                      previewImages={previewImages}
+                      onClick={() => handleSubCollectionClick(sub)}
+                    />
+                  );
+                })}
+                {/* Render files */}
+                {displayFiles.map((file: any, idx: number) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleFileClick(idx)}
+                    className="rounded-2xl bg-white border border-[#1919191A] shadow flex flex-col items-center justify-center relative w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px] cursor-pointer overflow-hidden"
+                  >
+                    <CollectionFilePreview
+                      token={file}
+                      onFileClick={() => handleFileClick(idx)}
+                    />
+                    <div className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap md:max-w-fit px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A] absolute bottom-2 z-10">
+                      {truncateFilename(
+                        file.content.name ||
+                          file.cloudFrontDownloadLink ||
+                          getDisplayUrl(file.content.url).hostname ||
+                          "Unknown file",
+                        !isMobile
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Fixed download button at bottom - always visible */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-        {/* Background gradient for better visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent h-20 pointer-events-none" />
-
-        {/* Button container */}
-        <div className="relative flex justify-center pb-3 pt-3 pointer-events-auto">
-          <button
-            onClick={handleDownloadAll}
-            className="bg-blue-600 hover:bg-blue-700 text-white max-w-xs w-full justify-center px-8 py-3 rounded-full text-base shadow-lg transition flex items-center gap-2 mx-6"
-          >
-            <Image src={whiteDownloadIcon} alt="Download all" />
-            Download all
-          </button>
         </div>
       </div>
 

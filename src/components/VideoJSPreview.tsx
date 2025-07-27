@@ -149,10 +149,10 @@ export function VanillaVideoJSPreview({
       {isMov && !browserSupportsVideo ? (
         <div className="space-y-1 p-4">
           <h2 className="text-primary text-[15px] font-medium">
-            Typo URLs are in beta
+            Processing...
           </h2>
           <p className="text-xs text-[#7E7E7E]">
-            Currently, this file is only supported on Safari
+            Video is still processing, please try again in a few minutes.
           </p>
         </div>
       ) : (

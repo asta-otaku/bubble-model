@@ -16,36 +16,36 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
   const isMobile = useIsMobile();
   const [isDownloading, setIsDownloading] = React.useState(false);
   const params = useParams();
-
+  
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-
+    
     if (isDownloading) return;
     setIsDownloading(true);
 
-    try {
-      const publicId = params.slug as string;
-      if (!publicId) throw new Error("Message ID not found");
+  try {
+    const publicId = params.slug as string;
+    if (!publicId) throw new Error("Message ID not found");
 
-      const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webClient/single-file/${publicId}/download`;
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webClient/single-file/${publicId}/download`;
 
-      // Kick off download in new tab
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "";
-      a.target = "_blank";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+    // Kick off download in new tab
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } finally {
+    setIsDownloading(false);
+  }
+};
 
   return (
     <>
       {isMobile ? (
-        <button
+        <button 
           onClick={handleDownload}
           disabled={isDownloading}
           className="bg-transparent border-0 p-0 cursor-pointer"

@@ -81,11 +81,6 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
   if (isVideo && fileUrl) {
     const VIDEO_PLAYER_MODE =
       process.env.NEXT_PUBLIC_VIDEO_PLAYER_MODE || "native";
-    console.log(
-      "VIDEO_PLAYER_MODE CollectionFileModalPreview:",
-      VIDEO_PLAYER_MODE
-    );
-    console.log("token debugging CollectionFileModalPreview:", token);
 
     // Handle different data structures coming into this component
     let muxPlaybackId = null;
@@ -105,8 +100,6 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
       muxPlaybackId =
         token.content.referencedAttachment.muxDetailsForWebclient.muxPlaybackId;
     }
-    console.log("muxPlaybackId CollectionFileModalPreview:", muxPlaybackId);
-
     if (VIDEO_PLAYER_MODE === "mux") {
       return (
         <div className="w-full h-[85vh] flex flex-col items-center justify-center">
@@ -163,7 +156,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
   // Audio
   if (isAudio && fileUrl) {
     return (
-      <div className="max-w-[80%] mx-auto w-full h-[85vh] flex flex-col items-center justify-center">
+      <div className="w-full h-[85vh] flex flex-col items-center justify-center">
         <AudioPlayer
           audioUrl={fileUrl}
           filename={""}

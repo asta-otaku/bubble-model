@@ -6,9 +6,9 @@ import RenderLinkPreview from "./RenderLinkPreview";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Swiper as SwiperType } from "swiper";
 import { motion } from "framer-motion";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 import "swiper/css";
 import { formatTime } from "@/utils";
@@ -33,77 +33,62 @@ function TokenPreviewSpecial({
   setIsDraggingDisabled,
   direction,
 }: TokenPreviewSpecialProps) {
-  console.log(
-    "[TokenPreviewSpecial] Rendering with currentIndex:",
-    currentIndex,
-    "total tokens:",
-    allTokens.length
-  );
-
+  console.log('[TokenPreviewSpecial] Rendering with currentIndex:', currentIndex, 'total tokens:', allTokens.length);
+  
   const swiperRef = useRef<{ swiper: SwiperType }>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalImage, setModalImage] = useState({
-    url: "",
-    fallbackUrl: "",
-    alt: "",
-  });
+  const [modalImage, setModalImage] = useState({ url: "", fallbackUrl: "", alt: "" });
   const [startX, setStartX] = useState(0);
 
   useEffect(() => {
-    console.log(
-      "[TokenPreviewSpecial] useEffect - currentIndex changed:",
-      currentIndex
-    );
+    console.log('[TokenPreviewSpecial] useEffect - currentIndex changed:', currentIndex);
     if (swiperRef.current?.swiper) {
-      console.log("[TokenPreviewSpecial] Sliding to index:", currentIndex);
+      console.log('[TokenPreviewSpecial] Sliding to index:', currentIndex);
       swiperRef.current.swiper.slideTo(currentIndex, 300);
     }
   }, [currentIndex]);
 
-  const openImageModal = useCallback(
-    (url: string, fallbackUrl: string, alt: string) => {
-      console.log("[TokenPreviewSpecial] Opening image modal for:", url);
-      setModalImage({ url, fallbackUrl, alt });
-      setIsModalOpen(true);
-    },
-    []
-  );
+  const openImageModal = useCallback((url: string, fallbackUrl: string, alt: string) => {
+    console.log('[TokenPreviewSpecial] Opening image modal for:', url);
+    setModalImage({ url, fallbackUrl, alt });
+    setIsModalOpen(true);
+  }, []);
 
   const closeImageModal = useCallback(() => {
-    console.log("[TokenPreviewSpecial] Closing image modal");
+    console.log('[TokenPreviewSpecial] Closing image modal');
     setIsModalOpen(false);
   }, []);
 
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [modalPdf, setModalPdf] = useState({ pdfUrl: "", filename: "" });
-
+  
   const openPdfModal = useCallback((pdfUrl: string, filename: string) => {
-    console.log("[TokenPreviewSpecial] Opening PDF modal for:", filename);
+    console.log('[TokenPreviewSpecial] Opening PDF modal for:', filename);
     setModalPdf({ pdfUrl, filename });
     setIsPdfModalOpen(true);
   }, []);
 
-  const handleMouseEnter = useCallback(() => {
-    console.log("[TokenPreviewSpecial] Mouse entered - disabling drag");
-    setIsDraggingDisabled(true);
-  }, [setIsDraggingDisabled]);
+  const handleMouseEnter = useCallback(
+    () => {
+      console.log('[TokenPreviewSpecial] Mouse entered - disabling drag');
+      setIsDraggingDisabled(true);
+    },
+    [setIsDraggingDisabled]
+  );
 
-  const handleMouseLeave = useCallback(() => {
-    console.log("[TokenPreviewSpecial] Mouse left - enabling drag");
-    setIsDraggingDisabled(false);
-  }, [setIsDraggingDisabled]);
+  const handleMouseLeave = useCallback(
+    () => {
+      console.log('[TokenPreviewSpecial] Mouse left - enabling drag');
+      setIsDraggingDisabled(false);
+    },
+    [setIsDraggingDisabled]
+  );
 
   const handleSlideChange = useCallback(
     (swiper: SwiperType) => {
-      console.log(
-        "[TokenPreviewSpecial] Slide changed to:",
-        swiper.activeIndex
-      );
+      console.log('[TokenPreviewSpecial] Slide changed to:', swiper.activeIndex);
       if (swiper.activeIndex !== currentIndex) {
-        console.log(
-          "[TokenPreviewSpecial] Triggering onTokenSwipe with index:",
-          swiper.activeIndex
-        );
+        console.log('[TokenPreviewSpecial] Triggering onTokenSwipe with index:', swiper.activeIndex);
         onTokenSwipe(swiper.activeIndex);
       }
     },
@@ -113,16 +98,12 @@ function TokenPreviewSpecial({
   const RenderContent = useMemo(
     () =>
       ({ token }: { token: Message }) => {
-        console.log(
-          "[TokenPreviewSpecial] Rendering content for token type:",
-          token.type
-        );
-        const filename =
-          token.content.name || token.cloudFrontDownloadLink || "";
+        console.log('[TokenPreviewSpecial] Rendering content for token type:', token.type);
+        const filename = token.content.name || token.cloudFrontDownloadLink || "";
         const getFileExtension = (name: string) =>
           name.split(".").pop()?.toLowerCase() || "";
         const fileExtension = getFileExtension(filename);
-        console.log("[TokenPreviewSpecial] File extension:", fileExtension);
+        console.log('[TokenPreviewSpecial] File extension:', fileExtension);
 
         const isLink =
           token.type === "LINK" ||
@@ -141,7 +122,7 @@ function TokenPreviewSpecial({
         const isExcel = /^(xls|xlsx)$/i.test(fileExtension);
         const isJSON = /^json$/i.test(fileExtension);
 
-        console.log("[TokenPreviewSpecial] Content type detection:", {
+        console.log('[TokenPreviewSpecial] Content type detection:', {
           isLink,
           isTimestamp,
           isReference,
@@ -152,7 +133,7 @@ function TokenPreviewSpecial({
           isZip,
           isCSV,
           isExcel,
-          isJSON,
+          isJSON
         });
 
         const formatFileSize = (bytes?: number) => {
@@ -173,9 +154,7 @@ function TokenPreviewSpecial({
               token={token}
               setFaviconError={() => {}}
               faviconError={false}
-              openImageModal={(url: string, alt: string) =>
-                openImageModal(token.optimisedImageUrl || url, url, alt)
-              }
+              openImageModal={(url: string, alt: string) => openImageModal(token.optimisedImageUrl || url, url, alt)}
               getDisplayUrl={(url: string) => {
                 const { hostname, origin } = new URL(url);
                 return { hostname, origin };
@@ -210,9 +189,7 @@ function TokenPreviewSpecial({
               isExcel={isExcel}
               isJSON={isJSON}
               formatFileSize={formatFileSize}
-              openImageModal={(url: string, alt: string) =>
-                openImageModal(token.optimisedImageUrl || url, url, alt)
-              }
+              openImageModal={(url: string, alt: string) => openImageModal(token.optimisedImageUrl || url, url, alt)}
               openPdfModal={openPdfModal}
               thumbnailImage={
                 token.content.referencedAttachment?.thumbnailImage || ""
@@ -239,9 +216,7 @@ function TokenPreviewSpecial({
             isExcel={isExcel}
             isJSON={isJSON}
             formatFileSize={formatFileSize}
-            openImageModal={(url: string, alt: string) =>
-              openImageModal(token.optimisedImageUrl || url, url, alt)
-            }
+            openImageModal={(url: string, alt: string) => openImageModal(token.optimisedImageUrl || url, url, alt)}
             openPdfModal={openPdfModal}
             thumbnailImage={
               token.content.referencedAttachment?.thumbnailImage || ""

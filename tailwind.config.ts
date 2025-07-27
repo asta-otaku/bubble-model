@@ -12,10 +12,7 @@ const config: Config = {
         secondary: "#3076FF",
       },
       fontFamily: {
-        mono: ["var(--font-sf-mono)", "SF Mono", "sans-serif"],
-        sans: ["var(--font-sf-pro-display)", "SF Pro Display", "sans-serif"],
-        geist: ["var(--font-geist)", "sans-serif"],
-        "geist-mono": ["var(--font-geist-mono)", "monospace"],
+        mono: ["FS Mono", "sans-serif"],
       },
       backdropBlur: {
         "22": "22px",

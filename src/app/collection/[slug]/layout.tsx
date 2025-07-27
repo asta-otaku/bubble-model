@@ -22,23 +22,21 @@ export async function generateMetadata({
         headers: {
           "x-user-id": USER_ID,
           accept: "*/*",
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
       }
     );
 
     const collectionData: NewCollectionResponse = response.data;
 
-    const title =
-      collectionData.webClientCollectionDto.rootCollection.name || "Collection";
+    const title = collectionData.webClientCollectionDto.rootCollection.name || "Collection";
     const description = `Collection with ${collectionData.webClientCollectionDto.attachmentDtos.length} items`;
     const ownerName =
       `${collectionData.sharer.firstName || ""} ${
         collectionData.sharer.lastName || ""
       }`.trim() || "Unknown";
 
-    const imageUrl =
-      collectionData.previewImageUrl ||
+    const imageUrl = collectionData.previewImageUrl ||
       "https://typo-user-images-dev.s3.us-east-1.amazonaws.com/metadata-images/a81add1a-b2d9-4ac8-9e08-9a7fd8ad3cfc/.png";
 
     return {

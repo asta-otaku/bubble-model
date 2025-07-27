@@ -2,9 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* @font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYTHIN.ttf") format("truetype");
+  font-weight: 300;
+} */
+
+@font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYREGULAR.OTF") format("opentype");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYMEDIUM.OTF") format("opentype");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "FS PRO Display";
+  src: url("./fonts/SFPRO/SFPRODISPLAYBOLD.OTF") format("opentype");
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "FS Mono";
+  src: url("./fonts/SFMONO/SFMonoRegular.otf") format("opentype");
+}
+
 @layer base {
   * {
-    font-family: var(--font-sf-pro-display), "SF Pro Display", sans-serif;
+    font-family: "FS PRO Display", sans-serif;
     font-weight: 400;
     margin: 0;
     padding: 0;
@@ -138,7 +167,7 @@ body.scrubbing-active {
 
   color: var(--label);
   font-feature-settings: "case" on;
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   /* Fallback to sans-serif */
   font-size: 17px;
   font-style: normal;
@@ -166,7 +195,7 @@ body.scrubbing-active {
 
   color: var(--label);
   font-feature-settings: "case" on;
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   /* Fallback to sans-serif */
   font-size: 17px;
   font-style: normal;
@@ -208,7 +237,7 @@ body.scrubbing-active {
   text-align: center;
   color: var(--label, #191919);
   font-feature-settings: "case" on;
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   /* Fallback to sans-serif */
   font-size: 17px;
   font-style: normal;
@@ -245,7 +274,7 @@ body.scrubbing-active {
   flex-grow: 1;
   color: var(--label);
   font-feature-settings: "case" on;
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   /* Fallback to sans-serif */
   font-size: 17px;
   font-style: normal;
@@ -313,7 +342,7 @@ body.scrubbing-active {
   /* Adjust the height as needed */
   color: var(--secondaryLabel);
   text-align: center;
-  font-family: var(--font-sf-pro-display), "SF Pro Display", sans-serif;
+  font-family: "SF Pro Display", sans-serif;
   /* Fallback to sans-serif */
   font-size: 28px;
   font-style: normal;
@@ -336,7 +365,7 @@ body.scrubbing-active {
   /* Adjust the height as needed */
   color: var(--secondaryLabel);
   text-align: left;
-  font-family: var(--font-sf-pro-display), "SF Pro Display";
+  font-family: SF Pro Display;
   font-size: 1.375rem;
   font-style: normal;
   font-weight: 600;
@@ -353,7 +382,7 @@ body.scrubbing-active {
   /* Match the width of the styled dropdown */
   width: 100%;
   color: var(--label, #191919);
-  font-family: var(--font-sf-pro-display), "SF Pro Display", sans-serif;
+  font-family: "SF Pro Display", sans-serif;
   /* Fallback to sans-serif */
   font-size: 28px;
   font-style: normal;
@@ -399,7 +428,7 @@ body.scrubbing-active {
 .error-message {
   color: red;
   text-align: center;
-  font-family: var(--font-sf-pro-display), SF Pro Text;
+  font-family: SF Pro Text;
   font-size: 0.9375rem;
   font-style: normal;
   font-weight: 400;
@@ -524,7 +553,7 @@ body.scrubbing-active {
 .navbar-textbox {
   color: var(--secondaryLabel, #7e7e7e);
   text-align: center;
-  font-family: var(--font-sf-pro-display), Helvetica, sans-serif;
+  font-family: Helvetica, sans-serif;
   font-size: 16px;
   font-style: normal;
   font-weight: 400;
@@ -600,7 +629,7 @@ body.scrubbing-active {
   color: var(--label, #191919);
   text-align: center;
   font-feature-settings: "case" on;
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   /* Add sans-serif as a fallback */
   font-size: 15px;
   font-style: normal;
@@ -653,7 +682,7 @@ body.scrubbing-active {
   align-self: stretch;
   text-align: center;
   color: var(--secondaryLabel, #7e7e7e);
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   font-size: 17px;
   font-style: normal;
   font-weight: 400;
@@ -888,7 +917,7 @@ body.scrubbing-active {
 
 .text-box {
   color: var(--label, #191919);
-  font-family: var(--font-sf-pro-display), "SF Pro Text", sans-serif;
+  font-family: "SF Pro Text", sans-serif;
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -983,7 +1012,7 @@ p {
   border: 1px solid var(--border, rgba(25, 25, 25, 0.1));
   background: var(--background-solid, #fff);
   box-sizing: border-box;
-  font-family: var(--font-sf-pro-display), "SFPro", Arial;
+  font-family: "SFPro", Arial;
 
   position: relative;
   overflow: hidden;
@@ -1018,7 +1047,7 @@ p {
 
 .tokenText {
   font-size: 0.75rem;
-  font-family: var(--font-sf-pro-display), "SFPro", Arial;
+  font-family: "SfPro", Arial;
 
   font-style: normal;
   font-weight: 400;
@@ -1034,7 +1063,7 @@ p {
 
 p.token-text {
   color: var(--label, #191919);
-  font-family: var(--font-sf-pro-display), "SFPro", Arial;
+  font-family: "SFPro", Arial;
 }
 
 .thumbnail {
@@ -1097,7 +1126,7 @@ p.token-text {
 .link-text {
   color: var(--label, #191919);
   /* CaptionBold */
-  font-family: var(--font-sf-pro-display), "SFPro Bold", "Arial";
+  font-family: "SFPro Bold", "Arial";
 
   font-size: 0.75rem;
   line-height: 1rem;
@@ -1117,7 +1146,7 @@ p.token-text {
   gap: 0.625rem;
   font-size: 0.75rem;
   line-height: 1rem;
-  font-family: var(--font-sf-mono), "SF Mono", Arial;
+  font-family: "SF Mono", Arial;
 
   cursor: pointer;
   color: var(--label, #191919);
@@ -1182,7 +1211,7 @@ p.token-text {
 .super-title {
   color: #000;
   text-align: center;
-  font-family: var(--font-sf-pro-display), "SF Pro Display", sans-serif;
+  font-family: "SF Pro Display", sans-serif;
   font-size: 18px;
   font-style: normal;
   font-weight: 700;

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import { truncateFilename } from "./TruncateText";
@@ -9,6 +9,11 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import CollectionFileModalPreview from "./CollectionFileModalPreview";
 import useIsMobile from "@/utils";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper as SwiperType } from "swiper";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 interface CollectionFileModalProps {
   isOpen: boolean;
@@ -27,6 +32,7 @@ export default function CollectionFileModal({
 }: CollectionFileModalProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const swiperRef = useRef<{ swiper: SwiperType }>(null);
 
   const currentFile = files[currentIndex];
 
@@ -51,6 +57,23 @@ export default function CollectionFileModal({
 
     return dots;
   }, [files, currentIndex]);
+
+  // Update swiper when currentIndex changes
+  useEffect(() => {
+    if (swiperRef.current?.swiper && isOpen) {
+      swiperRef.current.swiper.slideTo(currentIndex, 300);
+    }
+  }, [currentIndex, isOpen]);
+
+  // Handle slide change from swiper
+  const handleSlideChange = useCallback(
+    (swiper: SwiperType) => {
+      if (swiper.activeIndex !== currentIndex) {
+        onIndexChange(swiper.activeIndex);
+      }
+    },
+    [currentIndex, onIndexChange]
+  );
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -99,15 +122,15 @@ export default function CollectionFileModal({
 
   const goToPrevious = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (currentIndex > 0) {
-      onIndexChange(currentIndex - 1);
+    if (swiperRef.current?.swiper && currentIndex > 0) {
+      swiperRef.current.swiper.slidePrev(300);
     }
   };
 
   const goToNext = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    if (currentIndex < files.length - 1) {
-      onIndexChange(currentIndex + 1);
+    if (swiperRef.current?.swiper && currentIndex < files.length - 1) {
+      swiperRef.current.swiper.slideNext(300);
     }
   };
 
@@ -174,7 +197,14 @@ export default function CollectionFileModal({
                         return (
                           <button
                             key={actualIndex}
-                            onClick={() => onIndexChange(actualIndex)}
+                            onClick={() => {
+                              if (swiperRef.current?.swiper) {
+                                swiperRef.current.swiper.slideTo(
+                                  actualIndex,
+                                  300
+                                );
+                              }
+                            }}
                             className={`rounded-full transition-all ${
                               actualIndex === currentIndex
                                 ? "bg-gradient-to-b from-[#7E7E7E] to-[#191919E5] px-3 py-1"
@@ -231,31 +261,53 @@ export default function CollectionFileModal({
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                className="relative max-w-full max-h-full w-full h-full"
+              <Swiper
+                ref={swiperRef}
+                spaceBetween={0}
+                slidesPerView={1}
+                autoHeight
+                watchSlidesProgress={true}
+                onSlideChange={handleSlideChange}
+                onTouchStart={() => setIsHovered(true)}
+                onTouchEnd={() => setIsHovered(false)}
+                allowTouchMove={true}
+                resistance={true}
+                resistanceRatio={0.85}
+                speed={300}
+                className="w-full h-full"
+                initialSlide={currentIndex}
               >
-                <div className="flex items-center justify-center relative">
-                  <CollectionFileModalPreview
-                    token={currentFile}
-                    disableModals={true}
-                  />
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
-                    <div className="px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A]">
-                      {truncateFilename(
-                        currentFile.content.name ||
-                          getDisplayUrl(currentFile.content.url).hostname ||
-                          "Untitled",
-                        true
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                {files.map((file, index) => {
+                  return (
+                    <SwiperSlide key={index}>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.3 }}
+                        className="relative max-w-full max-h-full w-full h-full flex items-center justify-center"
+                      >
+                        <div className="flex items-center justify-center relative w-full h-full">
+                          <CollectionFileModalPreview
+                            token={file}
+                            disableModals={true}
+                          />
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+                            <div className="px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A]">
+                              {truncateFilename(
+                                file.content.name ||
+                                  getDisplayUrl(file.content.url).hostname ||
+                                  "Untitled",
+                                true
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </SwiperSlide>
+                  );
+                })}
+              </Swiper>
             </div>
 
             {/* Navigation Arrows for Large Screens */}
