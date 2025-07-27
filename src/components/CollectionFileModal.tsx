@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import { truncateFilename } from "./TruncateText";
 import Image from "next/image";
@@ -117,20 +117,6 @@ export default function CollectionFileModal({
       console.error("Download failed:", error);
     } finally {
       setIsDownloading(false);
-    }
-  };
-
-  const goToPrevious = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (swiperRef.current?.swiper && currentIndex > 0) {
-      swiperRef.current.swiper.slidePrev(300);
-    }
-  };
-
-  const goToNext = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (swiperRef.current?.swiper && currentIndex < files.length - 1) {
-      swiperRef.current.swiper.slideNext(300);
     }
   };
 
@@ -292,7 +278,11 @@ export default function CollectionFileModal({
                             token={file}
                             disableModals={true}
                           />
-                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+                          <div
+                            className={`absolute bottom-2 left-1/2 -translate-x-1/2 z-10 transition-opacity duration-200 ${
+                              isHovered ? "opacity-100" : "opacity-0"
+                            }`}
+                          >
                             <div className="px-2 py-1 bg-[#EBEBEBBF] text-xs text-secondary rounded-full text-center border border-[#1919191A]">
                               {truncateFilename(
                                 file.content.name ||
@@ -309,37 +299,6 @@ export default function CollectionFileModal({
                 })}
               </Swiper>
             </div>
-
-            {/* Navigation Arrows for Large Screens */}
-            {files.length > 1 && (
-              <>
-                <button
-                  onClick={goToPrevious}
-                  disabled={currentIndex === 0}
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-black/50 text-white transition-all ${
-                    currentIndex === 0
-                      ? "opacity-25 cursor-not-allowed"
-                      : "hover:bg-black/70 opacity-0 hover:opacity-100"
-                  } ${isHovered ? "opacity-100" : ""}`}
-                  aria-label="Previous file"
-                >
-                  <ChevronLeft className="text-sm md:text-base lg:text-lg" />
-                </button>
-
-                <button
-                  onClick={goToNext}
-                  disabled={currentIndex === files.length - 1}
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-black/50 text-white transition-all ${
-                    currentIndex === files.length - 1
-                      ? "opacity-25 cursor-not-allowed"
-                      : "hover:bg-black/70 opacity-0 hover:opacity-100"
-                  } ${isHovered ? "opacity-100" : ""}`}
-                  aria-label="Next file"
-                >
-                  <ChevronRight className="text-sm md:text-base lg:text-lg" />
-                </button>
-              </>
-            )}
           </div>
         </motion.div>
       )}

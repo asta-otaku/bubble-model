@@ -1,11 +1,15 @@
 import { Message } from "@/utils/BubbleSpecialInterfaces";
-import BubbleAudioPlayer from "./BubbleAudioPlayer";
 import MuxVideoPreview from "./MuxVideoPreview";
 import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
 import NativeVideoPreview from "./NativeVideoPreview";
 import JsonPreview from "./JsonPreview";
 import RenderLinkPreview from "./RenderLinkPreview";
+import audioThumbnail from "@/assets/audioThumbnail.svg";
+import docThumbnail from "@/assets/docThumbnail.svg";
+import linkThumbnail from "@/assets/linkThumbnail.svg";
 import { formatTime } from "@/utils";
+import { ScrollMode, SpecialZoomLevel, Viewer } from "@react-pdf-viewer/core";
+import { Worker } from "@react-pdf-viewer/core";
 
 interface CollectionFilePreviewProps {
   token: Message;
@@ -153,35 +157,28 @@ function CollectionFilePreview({
   // Audio Preview
   if (isAudio && fileUrl) {
     return (
-      <>
-        <div className="w-full h-full flex flex-col items-center justify-center">
-          <BubbleAudioPlayer
-            audioUrl={fileUrl}
-            filename={filename}
-            fileSize={fileSize}
-            startTime={startTimestamp}
-          />
-        </div>
-      </>
+      <img
+        src={audioThumbnail.src}
+        alt="Audio"
+        className="w-full h-full object-cover"
+      />
     );
   }
 
   // PDF Preview
   if (isPDF && fileUrl) {
     return (
-      <>
-        <div
-          className="w-full h-full flex flex-col items-center justify-center cursor-pointer"
-          onClick={() => {}}
-        >
-          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-2">
-            <span className="text-red-500 text-lg">📄</span>
+      <div className="w-full overflow-hidden cursor-pointer h-full object-cover">
+        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+          <div className="h-full w-full object-cover relative group">
+            <Viewer
+              fileUrl={fileUrl}
+              defaultScale={SpecialZoomLevel.ActualSize}
+              scrollMode={ScrollMode.Page}
+            />
           </div>
-          <span className="text-xs text-gray-700 text-center px-2">
-            {filename}
-          </span>
-        </div>
-      </>
+        </Worker>
+      </div>
     );
   }
 
@@ -198,80 +195,21 @@ function CollectionFilePreview({
 
   // Referenced Link Preview
   if (isLink) {
-    const getDisplayUrl = (url: string) => {
-      try {
-        const parsed = new URL(url);
-        return { hostname: parsed.hostname, origin: parsed.origin };
-      } catch (error) {
-        return { hostname: "", origin: "" };
-      }
-    };
-
     return (
-      <>
-        <div className="w-full h-full flex flex-col items-center justify-center">
-          <RenderLinkPreview
-            getDisplayUrl={getDisplayUrl}
-            token={{
-              ...token,
-              content: {
-                ...token.content,
-                url: token.content.referencedAttachment.url,
-              },
-            }}
-            setFaviconError={() => {}}
-            faviconError={false}
-            openImageModal={() => {}}
-          />
-        </div>
-      </>
+      <img
+        src={linkThumbnail.src}
+        alt="Link"
+        className="w-full h-full object-cover"
+      />
     );
   }
 
-  // Other file types
-  const getFileIcon = () => {
-    if (isZip) return "📦";
-    if (isCSV) return "📊";
-    if (isExcel) return "📈";
-    return "📄";
-  };
-
-  const getFileTitle = () => {
-    if (isZip) return "Archive";
-    if (isCSV) return "CSV";
-    if (isExcel) return "Excel";
-    return "File";
-  };
-
-  const getFileColor = () => {
-    if (isZip) return "text-amber-500";
-    if (isCSV) return "text-green-500";
-    if (isExcel) return "text-emerald-500";
-    return "text-gray-500";
-  };
-
   return (
-    <>
-      <div className="w-full h-full flex flex-col items-center justify-center">
-        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-          <span className={`text-lg ${getFileColor()}`}>{getFileIcon()}</span>
-        </div>
-        <span className="text-xs text-gray-700 text-center px-2">
-          {filename}
-        </span>
-        {fileUrl && (
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 bg-transparent border border-solid border-[#1919191A] text-xs text-[#191919] px-2 py-1 rounded-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            Open {getFileTitle()}
-          </a>
-        )}
-      </div>
-    </>
+    <img
+      src={docThumbnail.src}
+      alt="Document"
+      className="w-full h-full object-cover"
+    />
   );
 }
 

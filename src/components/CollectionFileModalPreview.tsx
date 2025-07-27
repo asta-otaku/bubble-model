@@ -66,7 +66,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
       <img
         src={fileUrl}
         alt={filename}
-        className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl cursor-pointer"
+        className="max-w-full max-h-[80vh] object-contain rounded-2xl cursor-pointer"
         loading="eager"
         onClick={
           disableModals && onImageClick
@@ -251,7 +251,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
+    <div className="w-full h-[85vh] flex flex-col items-center justify-center">
       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
         <span className={`text-2xl ${getFileColor()}`}>{getFileIcon()}</span>
       </div>
