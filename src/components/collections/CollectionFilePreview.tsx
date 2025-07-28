@@ -1,12 +1,11 @@
+import React from "react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
-import MuxVideoPreview from "./MuxVideoPreview";
-import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
-import NativeVideoPreview from "./NativeVideoPreview";
-import JsonPreview from "./JsonPreview";
-import RenderLinkPreview from "./RenderLinkPreview";
-import audioThumbnail from "@/assets/audioThumbnail.svg";
-import docThumbnail from "@/assets/docThumbnail.svg";
-import linkThumbnail from "@/assets/linkThumbnail.svg";
+import { getFileType, getFileExtension } from "@/utils/fileTypeUtils";
+import { ThumbnailService } from "@/utils/thumbnailService";
+import MuxVideoPreview from "../MuxVideoPreview";
+import MuxVideoJSPreview, { VanillaVideoJSPreview } from "../VideoJSPreview";
+import NativeVideoPreview from "../NativeVideoPreview";
+import JsonPreview from "../JsonPreview";
 import { formatTime } from "@/utils";
 import { ScrollMode, SpecialZoomLevel, Viewer } from "@react-pdf-viewer/core";
 import { Worker } from "@react-pdf-viewer/core";
@@ -16,45 +15,19 @@ interface CollectionFilePreviewProps {
   onFileClick?: () => void;
 }
 
-function CollectionFilePreview({
-  token,
-  onFileClick,
-}: CollectionFilePreviewProps) {
+function CollectionFilePreview({ token }: CollectionFilePreviewProps) {
   const filename = token.content.name || token.cloudFrontDownloadLink || "";
-  const getFileExtension = (name: string) =>
-    name.split(".").pop()?.toLowerCase() || "";
-  const fileExtension = getFileExtension(filename);
-
-  const isLink = token.type === "LINK" && token.content.url;
-  const isImage = /^(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(fileExtension);
-  const isVideo = /^(mp4|webm|ogg|mov|avi|MOV)$/i.test(fileExtension);
-  const isAudio = /^(mp3|wav|ogg|m4a)$/i.test(fileExtension);
-  const isPDF = /^pdf$/i.test(fileExtension);
-  const isZip = /^(zip|rar|7z)$/i.test(fileExtension);
-  const isCSV = /^csv$/i.test(fileExtension);
-  const isExcel = /^(xls|xlsx)$/i.test(fileExtension);
-  const isJSON = /^json$/i.test(fileExtension);
-
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return "";
-    const units = ["B", "KB", "MB", "GB"];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  };
+  const fileType = getFileType(token);
+  const isLink = fileType === "link";
+  const isImage = fileType === "image";
+  const isVideo = fileType === "video";
+  const isAudio = fileType === "audio";
+  const isPDF = fileType === "pdf";
+  const isJSON = fileType === "json";
 
   const fileUrl = isImage
     ? token.optimisedImageUrl
     : token.cloudFrontDownloadLink;
-  const fileSize = formatFileSize(
-    token.type === "REFERENCE" || token.type === "TIMESTAMP"
-      ? token.content?.referencedAttachment?.size
-      : token.metaData?.size
-  );
 
   const thumbnailImage =
     token.content?.referencedAttachment?.thumbnailImage || "";
@@ -107,7 +80,7 @@ function CollectionFilePreview({
         <MuxVideoPreview
           muxPlaybackId={muxPlaybackId}
           fileUrl={fileUrl}
-          fileExtension={fileExtension}
+          fileExtension={getFileExtension(filename)}
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
           width={videoWidth}
@@ -128,7 +101,7 @@ function CollectionFilePreview({
         videoComponent = (
           <VanillaVideoJSPreview
             fileUrl={fileUrl}
-            fileExtension={fileExtension}
+            fileExtension={getFileExtension(filename)}
             thumbnailImage={thumbnailImage}
             startTimestamp={startTimestamp}
             isFileSpecial
@@ -139,7 +112,7 @@ function CollectionFilePreview({
       videoComponent = (
         <NativeVideoPreview
           fileUrl={fileUrl}
-          fileExtension={fileExtension}
+          fileExtension={getFileExtension(filename)}
           thumbnailImage={thumbnailImage}
           startTimestamp={startTimestamp}
           isFileSpecial
@@ -158,7 +131,7 @@ function CollectionFilePreview({
   if (isAudio && fileUrl) {
     return (
       <img
-        src={audioThumbnail.src}
+        src={ThumbnailService.getFileThumbnail(token)}
         alt="Audio"
         className="w-full h-full object-cover"
       />
@@ -197,7 +170,7 @@ function CollectionFilePreview({
   if (isLink) {
     return (
       <img
-        src={linkThumbnail.src}
+        src={ThumbnailService.getFileThumbnail(token)}
         alt="Link"
         className="w-full h-full object-cover"
       />
@@ -206,7 +179,7 @@ function CollectionFilePreview({
 
   return (
     <img
-      src={docThumbnail.src}
+      src={ThumbnailService.getFileThumbnail(token)}
       alt="Document"
       className="w-full h-full object-cover"
     />

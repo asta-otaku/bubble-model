@@ -1,13 +1,15 @@
-import AudioPlayer from "./AudioPlayer";
+import AudioPlayer from "@/components/AudioPlayer";
 import { Worker, Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { ScrollMode } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import RenderLinkPreview from "./RenderLinkPreview";
-import FileMuxVideoPreview from "./FileMuxVideoPreview";
-import MuxVideoJSPreview, { VanillaVideoJSPreview } from "./VideoJSPreview";
-import NativeVideoPreview from "./NativeVideoPreview";
-import JsonPreview from "./JsonPreview";
+import RenderLinkPreview from "@/components/RenderLinkPreview";
+import FileMuxVideoPreview from "@/components/FileMuxVideoPreview";
+import MuxVideoJSPreview, {
+  VanillaVideoJSPreview,
+} from "@/components/VideoJSPreview";
+import NativeVideoPreview from "@/components/NativeVideoPreview";
+import JsonPreview from "@/components/JsonPreview";
 import { formatTime } from "@/utils";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import React from "react";

@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
-import { truncateFilename } from "./TruncateText";
+import { truncateFilename } from "../TruncateText";
 import Image from "next/image";
 import whiteDownloadIcon from "@/assets/whiteDownloadIcon.svg";
 import "@react-pdf-viewer/core/lib/styles/index.css";
