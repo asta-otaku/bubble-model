@@ -475,7 +475,7 @@ const page = () => {
     if (!activeSubCollection || !parentLevel) return null;
 
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center gap-2 text-sm text-gray-600 z-[100]">
         <button
           onClick={handleBackToParent}
           className="flex items-center gap-1 hover:text-gray-900 transition-colors"
@@ -548,7 +548,7 @@ const page = () => {
               href="https://www.typo.inc"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-11 h-11 justify-center items-center gap-2.5 flex-shrink-0"
+              className="flex w-11 h-11 justify-center items-center gap-2.5 flex-shrink-0 z-[100]"
             >
               <Image
                 src={blackTypo}
