@@ -27,6 +27,7 @@ export default function MuxVideoPreview({
   width,
   height,
   isFileSpecial,
+  showPlayButtonOnly = false,
   accentColor = "rgba(235, 235, 235, 0.75)",
 }: {
   muxPlaybackId?: null | string;
@@ -38,6 +39,7 @@ export default function MuxVideoPreview({
   height?: number;
   accentColor?: string;
   isFileSpecial?: boolean;
+  showPlayButtonOnly?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -125,6 +127,8 @@ export default function MuxVideoPreview({
     position: "absolute",
     top: "0",
     left: "0",
+    // Disable pointer events when in preview mode
+    pointerEvents: showPlayButtonOnly ? "none" : "auto",
   };
 
   const playButtonStyle: CustomCSSProperties = {
@@ -137,14 +141,9 @@ export default function MuxVideoPreview({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    // Re-enable pointer events for the play button in preview mode
+    pointerEvents: showPlayButtonOnly ? "auto" : "auto",
   };
-
-  // const muteButtonStyle: CustomCSSProperties = {
-  //   "--media-control-background": "rgba(38, 38, 38, 0.75)",
-  //   "--media-control-hover-background": "rgba(38, 38, 38, 0.75)",
-  //   "borderRadius": "50%",
-  //   "padding": "0.3em",
-  // };
 
   const fullscreenButtonStyle: CustomCSSProperties = {
     "--media-control-background": "rgba(38, 38, 38, 0.75)",
@@ -171,6 +170,61 @@ export default function MuxVideoPreview({
     "--media-preview-time-padding": "4px 8px",
   };
 
+  // If showPlayButtonOnly is true, render a simplified version
+  if (showPlayButtonOnly) {
+    return (
+      <div
+        ref={containerRef}
+        className={`${
+          isFileSpecial
+            ? "w-full h-full"
+            : "max-w-xs w-full h-full overflow-hidden rounded-[14px]"
+        } cursor-pointer`}
+      >
+        {dimensions.width > 0 && (
+          <div
+            className={`relative w-full ${isFileSpecial ? "h-full" : ""}`}
+            style={isFileSpecial ? { height: "100%" } : { paddingBottom }}
+          >
+            {/* Static thumbnail with play button overlay */}
+            <img
+              src={`https://image.mux.com/${muxPlaybackId}/thumbnail.png`}
+              alt="Video thumbnail"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                objectFit: isFileSpecial ? "cover" : "contain",
+              }}
+            />
+
+            {/* Play button overlay */}
+            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200">
+              <div
+                style={playButtonStyle}
+                className="flex items-center justify-center"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  width="30"
+                  height="30"
+                  className="text-white"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Normal playable video mode
   return (
     <div
       ref={containerRef}
@@ -254,7 +308,6 @@ export default function MuxVideoPreview({
                   justifyContent: "flex-end",
                 }}
               >
-                {/* <MediaMuteButton style={muteButtonStyle} /> */}
                 <MediaFullscreenButton style={fullscreenButtonStyle}>
                   <span slot="enter">
                     <svg

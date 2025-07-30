@@ -16,6 +16,7 @@ export default function FileMuxVideoPreview({
   width,
   height,
   isFileSpecial,
+  setCurrentMediaRef,
   accentColor = "rgba(235, 235, 235, 0.75)",
 }: {
   muxPlaybackId?: null | string;
@@ -27,6 +28,9 @@ export default function FileMuxVideoPreview({
   height?: number;
   accentColor?: string;
   isFileSpecial?: boolean;
+  setCurrentMediaRef?: (
+    mediaElement: HTMLVideoElement | HTMLAudioElement | null
+  ) => void;
 }) {
   // If no muxPlaybackId is provided, fall back to the native video preview.
   if (!muxPlaybackId) {
@@ -77,9 +81,14 @@ export default function FileMuxVideoPreview({
     }
   }, [startTimestamp]);
 
-  const paddingBottom =
-    width && height ? `${(height / width) * 100}%` : "56.25%";
+  // Set current media ref when video element is available
+  useEffect(() => {
+    if (setCurrentMediaRef && videoRef.current) {
+      setCurrentMediaRef(videoRef.current);
+    }
+  }, [setCurrentMediaRef]);
 
+  // Regular video content for non-special files
   const videoContent = (
     <div className="w-full h-full flex items-center justify-center">
       <div
@@ -92,7 +101,7 @@ export default function FileMuxVideoPreview({
         style={isFileSpecial ? { maxHeight: "85vh" } : {}}
       >
         {dimensions.width > 0 && (
-          <div className="relative w-full" style={{ paddingBottom }}>
+          <div className="relative w-full">
             {/* ---- YT-skinned media-controller ---- */}
             {ytTpl && (
               <MediaTheme
@@ -124,12 +133,5 @@ export default function FileMuxVideoPreview({
     </div>
   );
 
-  if (isFileSpecial) {
-    return (
-      <div style={{ maxHeight: "85vh", width: "100%", overflow: "auto" }}>
-        {videoContent}
-      </div>
-    );
-  }
   return videoContent;
 }

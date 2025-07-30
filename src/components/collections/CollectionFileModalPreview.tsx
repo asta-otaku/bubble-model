@@ -19,6 +19,9 @@ interface CollectionFileModalPreviewProps {
   disableModals?: boolean;
   onImageClick?: (url: string, alt: string) => void;
   onPdfClick?: (url: string, filename: string) => void;
+  setCurrentMediaRef?: (
+    mediaElement: HTMLVideoElement | HTMLAudioElement | null
+  ) => void;
 }
 
 const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
@@ -26,6 +29,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
   disableModals = false,
   onImageClick,
   onPdfClick,
+  setCurrentMediaRef,
 }) => {
   const filename = token.content.name || token.cloudFrontDownloadLink || "";
   const getFileExtension = (name: string) =>
@@ -112,6 +116,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
             thumbnailImage={thumbnailImage}
             startTimestamp={startTimestamp}
             isFileSpecial={true}
+            setCurrentMediaRef={setCurrentMediaRef}
           />
         </div>
       );
@@ -123,6 +128,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
               muxPlaybackId={muxPlaybackId}
               startTimestamp={startTimestamp}
               isFileSpecial={true}
+              setCurrentMediaRef={setCurrentMediaRef}
             />
           </div>
         );
@@ -135,6 +141,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
               thumbnailImage={thumbnailImage}
               startTimestamp={startTimestamp}
               isFileSpecial={true}
+              setCurrentMediaRef={setCurrentMediaRef}
             />
           </div>
         );
@@ -149,6 +156,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
             thumbnailImage={thumbnailImage}
             startTimestamp={startTimestamp}
             isFileSpecial={true}
+            setCurrentMediaRef={setCurrentMediaRef}
           />
         </div>
       );
@@ -166,6 +174,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
           startTime={startTimestamp}
           isFileSpecial={true}
           isBubbleSpecial={false}
+          setCurrentMediaRef={setCurrentMediaRef}
         />
       </div>
     );

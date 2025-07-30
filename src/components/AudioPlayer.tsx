@@ -16,6 +16,9 @@ interface AudioPlayerProps {
   startTime?: string;
   isFileSpecial?: boolean;
   isBubbleSpecial?: boolean;
+  setCurrentMediaRef?: (
+    mediaElement: HTMLVideoElement | HTMLAudioElement | null
+  ) => void;
 }
 const PEAKS_CDN = process.env.NEXT_PUBLIC_PEAKS_CDN!;
 
@@ -26,6 +29,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   startTime,
   isFileSpecial,
   isBubbleSpecial,
+  setCurrentMediaRef,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState("00:00");
@@ -52,9 +56,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     normalize: true,
     interact: true,
     // Add performance options
-    backend: 'MediaElement', // Better streaming support
+    backend: "MediaElement", // Better streaming support
     mediaControls: false,
-    autoplay: false
+    autoplay: false,
   });
 
   useEffect(() => {
@@ -67,7 +71,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     // Configure wavesurfer for better loading performance
     if (wavesurfer.options) {
       // Enable backend options for faster loading
-      wavesurfer.options.backend = 'MediaElement';
+      wavesurfer.options.backend = "MediaElement";
       wavesurfer.options.mediaControls = false;
       wavesurfer.options.autoplay = false;
     }
@@ -80,7 +84,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       })
       .then((data: { peaks: number[] }) => {
         if (canceled) return;
-        
+
         // Load with peaks data
         wavesurfer.load(audioUrl, [data.peaks]);
       })
@@ -233,6 +237,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       }
     };
   }, [isScrubbing, isFileSpecial, isBubbleSpecial]);
+
+  // Set current media ref when audio element is available
+  useEffect(() => {
+    if (setCurrentMediaRef && wavesurfer) {
+      // Get the underlying HTML audio element from wavesurfer
+      const audioElement = wavesurfer.getMediaElement();
+      if (audioElement) {
+        setCurrentMediaRef(audioElement);
+      }
+    }
+  }, [setCurrentMediaRef, wavesurfer]);
 
   // Setup real-time scrubbing for file-special view
   useEffect(() => {

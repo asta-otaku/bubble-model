@@ -85,6 +85,7 @@ function CollectionFilePreview({ token }: CollectionFilePreviewProps) {
           startTimestamp={startTimestamp}
           width={videoWidth}
           isFileSpecial
+          showPlayButtonOnly
           height={videoHeight}
         />
       );

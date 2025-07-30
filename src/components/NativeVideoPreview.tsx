@@ -8,12 +8,16 @@ export default function NativeVideoPreview({
   thumbnailImage,
   startTimestamp,
   isFileSpecial,
+  setCurrentMediaRef,
 }: {
   fileUrl: string;
   fileExtension: string;
   thumbnailImage: string;
   startTimestamp?: string;
   isFileSpecial?: boolean;
+  setCurrentMediaRef?: (
+    mediaElement: HTMLVideoElement | HTMLAudioElement | null
+  ) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [browserSupportsVideo, setBrowserSupportsVideo] = useState(false);
@@ -30,6 +34,13 @@ export default function NativeVideoPreview({
       videoRef.current.currentTime = startSeconds;
     }
   }, [startTimestamp]);
+
+  // Set current media ref when video element is available
+  useEffect(() => {
+    if (setCurrentMediaRef && videoRef.current) {
+      setCurrentMediaRef(videoRef.current);
+    }
+  }, [setCurrentMediaRef]);
 
   const containerClass = "overflow-hidden rounded-[14px] w-full h-full";
   const videoClass = isFileSpecial ? "w-full h-full" : "w-full h-full";
@@ -62,7 +73,7 @@ export default function NativeVideoPreview({
               Processing...
             </h2>
             <p className="text-xs text-[#7E7E7E]">
-            Video is still processing, please try again in a few minutes.
+              Video is still processing, please try again in a few minutes.
             </p>
           </div>
         )}

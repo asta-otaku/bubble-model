@@ -33,8 +33,39 @@ export default function CollectionFileModal({
   const [isHovered, setIsHovered] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const swiperRef = useRef<{ swiper: SwiperType }>(null);
+  const currentMediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(
+    null
+  );
 
   const currentFile = files[currentIndex];
+
+  // Function to pause all media
+  const pauseAllMedia = useCallback(() => {
+    // Pause current media if it exists
+    if (currentMediaRef.current) {
+      currentMediaRef.current.pause();
+      currentMediaRef.current = null;
+    }
+
+    // Also pause any other media elements that might be playing
+    const allMediaElements = document.querySelectorAll("video, audio");
+    allMediaElements.forEach((media) => {
+      if (
+        media instanceof HTMLVideoElement ||
+        media instanceof HTMLAudioElement
+      ) {
+        media.pause();
+      }
+    });
+  }, []);
+
+  // Function to set current media ref
+  const setCurrentMediaRef = useCallback(
+    (mediaElement: HTMLVideoElement | HTMLAudioElement | null) => {
+      currentMediaRef.current = mediaElement;
+    },
+    []
+  );
 
   // Pagination logic for navigation dots - show 3 dots on each side
   const visibleDots = useMemo(() => {
@@ -69,10 +100,12 @@ export default function CollectionFileModal({
   const handleSlideChange = useCallback(
     (swiper: SwiperType) => {
       if (swiper.activeIndex !== currentIndex) {
+        // Pause all media before changing slides
+        pauseAllMedia();
         onIndexChange(swiper.activeIndex);
       }
     },
-    [currentIndex, onIndexChange]
+    [currentIndex, onIndexChange, pauseAllMedia]
   );
 
   useEffect(() => {
@@ -81,9 +114,11 @@ export default function CollectionFileModal({
         onClose();
       }
       if (event.key === "ArrowLeft" && currentIndex > 0) {
+        pauseAllMedia();
         onIndexChange(currentIndex - 1);
       }
       if (event.key === "ArrowRight" && currentIndex < files.length - 1) {
+        pauseAllMedia();
         onIndexChange(currentIndex + 1);
       }
     };
@@ -95,7 +130,14 @@ export default function CollectionFileModal({
     return () => {
       document.removeEventListener("keydown", handleEsc);
     };
-  }, [isOpen, onClose, currentIndex, files.length, onIndexChange]);
+  }, [
+    isOpen,
+    onClose,
+    currentIndex,
+    files.length,
+    onIndexChange,
+    pauseAllMedia,
+  ]);
 
   const handleDownload = async () => {
     if (!currentFile) return;
@@ -277,6 +319,7 @@ export default function CollectionFileModal({
                           <CollectionFileModalPreview
                             token={file}
                             disableModals={true}
+                            setCurrentMediaRef={setCurrentMediaRef}
                           />
                           <div
                             className={`absolute bottom-2 left-1/2 -translate-x-1/2 z-10 transition-opacity duration-200 ${

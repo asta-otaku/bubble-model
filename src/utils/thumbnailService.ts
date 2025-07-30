@@ -175,22 +175,22 @@ export class ThumbnailService {
     subCollections: any[] = [], 
     maxTotal: number = 3
   ) {
-    let allPreviews = [...processedFiles];
+    // Process subcollections first
+    const subCollectionPreviews = subCollections
+      .slice(0, maxTotal)
+      .map((sub: any) => ({
+        thumbnail: THUMBNAIL_ASSETS.subCollection,
+        isImage: false,
+        isSubCollection: true,
+        fileType: 'subCollection' as const,
+        title: sub.rootCollection?.name || "Untitled",
+      }));
 
-    // Add subcollection thumbnails if there are subcollections
-    if (subCollections.length > 0) {
-      const subCollectionPreviews = subCollections
-        .slice(0, maxTotal - processedFiles.length)
-        .map((sub: any) => ({
-          thumbnail: THUMBNAIL_ASSETS.subCollection,
-          isImage: false,
-          isSubCollection: true,
-          fileType: 'subCollection' as const,
-          title: sub.rootCollection?.name || "Untitled",
-        }));
-      allPreviews = [...allPreviews, ...subCollectionPreviews];
-    }
+    // Add processed files after, up to remaining space
+    const remainingSpace = maxTotal - subCollectionPreviews.length;
+    const filePreviews = processedFiles.slice(0, remainingSpace);
 
-    return allPreviews;
+    // Combine with subcollections first
+    return [...subCollectionPreviews, ...filePreviews];
   }
 } 
