@@ -128,7 +128,6 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
               muxPlaybackId={muxPlaybackId}
               startTimestamp={startTimestamp}
               isFileSpecial={true}
-              setCurrentMediaRef={setCurrentMediaRef}
             />
           </div>
         );
@@ -141,7 +140,6 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
               thumbnailImage={thumbnailImage}
               startTimestamp={startTimestamp}
               isFileSpecial={true}
-              setCurrentMediaRef={setCurrentMediaRef}
             />
           </div>
         );

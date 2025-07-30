@@ -28,7 +28,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({
         onClick={onBackToParent}
         className="flex items-center gap-1 hover:text-gray-900 transition-colors"
       >
-        <ChevronLeft size={16} />
+        <ChevronLeft className="min-w-4 min-h-4 max-w-4 max-h-4" />
         <span className="text-inherit max-w-20 md:max-w-full w-full truncate">
           {truncateFilename(parentLevel.name, isMobile)}
         </span>

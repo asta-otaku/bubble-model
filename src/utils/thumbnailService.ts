@@ -128,7 +128,7 @@ export class ThumbnailService {
       case "image":
         return getImageThumbnail(file) || this.getThumbnailUrl(file);
       case "video":
-        return THUMBNAIL_ASSETS.video;
+        return this.getThumbnailUrl(file) || THUMBNAIL_ASSETS.video;
       case "audio":
         return THUMBNAIL_ASSETS.audio;
       case "link":
