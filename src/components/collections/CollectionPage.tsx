@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AttachmentDto } from "@/utils/BubbleSpecialInterfaces";
 import { useCollectionData } from "./useCollectionData";
 import { useNavigationState } from "./useNavigationState";
-import { useScrollState } from "./useScrollState";
 import { useModalState } from "./useModalState";
 import { useDisplayData } from "./useDisplayData";
 import CollectionNavbar from "./CollectionNavbar";
@@ -30,8 +29,36 @@ const CollectionPage: React.FC = () => {
     handleBackToParent,
   } = useNavigationState(subCollections, collectionTitle);
 
-  // Scroll state management
-  const { showTopGradient, showBottomGradient, contentRef } = useScrollState();
+  // Scroll state management - force it to work with polling + event listeners
+  const [showTopGradient, setShowTopGradient] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let animationFrame: number;
+
+    const checkScroll = () => {
+      if (contentRef.current) {
+        const scrollTop = contentRef.current.scrollTop;
+        const shouldShow = scrollTop > 20;
+
+        if (shouldShow !== showTopGradient) {
+          setShowTopGradient(shouldShow);
+        }
+      }
+
+      // Keep checking
+      animationFrame = requestAnimationFrame(checkScroll);
+    };
+
+    // Start checking immediately
+    animationFrame = requestAnimationFrame(checkScroll);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [showTopGradient]);
 
   // Modal state management
   const {
@@ -131,7 +158,10 @@ const CollectionPage: React.FC = () => {
           }}
         />
         <div className="flex-1 relative">
-          <div className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative">
+          <div
+            className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative"
+            ref={contentRef}
+          >
             <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-center h-full">
               <div className="text-center">
                 <p className="text-gray-500 text-lg">
@@ -160,11 +190,6 @@ const CollectionPage: React.FC = () => {
 
       {/* Content area with gradient overlays */}
       <div className="flex-1 relative">
-        {/* Bottom gradient overlay for download button area */}
-        {showBottomGradient && (
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/90 via-gray-50/70 to-transparent z-10 pointer-events-none backdrop-blur-sm" />
-        )}
-
         {/* Scrollable content - takes full height with top padding for navbar */}
         <div
           className="p-6 pt-32 h-screen overflow-auto hide-scrollbar relative"
@@ -192,7 +217,6 @@ const CollectionPage: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* Modal for files or subcollection files */}
       <CollectionFileModal
         isOpen={isModalOpen}

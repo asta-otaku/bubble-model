@@ -52,7 +52,7 @@ const CollectionNavbar: React.FC<CollectionNavbarProps> = ({
     <nav
       className={`fixed top-0 left-0 right-0 px-3 md:px-6 py-4 md:py-6 flex justify-between items-center z-50 transition-all duration-300 ${
         showTopGradient
-          ? "h-28 bg-gradient-to-b from-white/90 via-gray-50/70 to-transparent backdrop-blur-sm"
+          ? "bg-gradient-to-b from-white to-transparent"
           : "bg-transparent"
       }`}
     >
