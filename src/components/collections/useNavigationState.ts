@@ -21,23 +21,40 @@ export const useNavigationState = (subCollections: any[], collectionTitle: strin
 
   // Helper to find subcollection by ID recursively
   const findSubCollectionById = (id: string): any | null => {
-    if (!subCollections || subCollections.length === 0) {
+    try {
+      if (!subCollections || subCollections.length === 0) {
+        console.log("No subcollections available");
+        return null;
+      }
+
+      if (!id) {
+        console.log("No ID provided to findSubCollectionById");
+        return null;
+      }
+
+      const findInSubs = (subs: any[]): any | null => {
+        for (const sub of subs) {
+          if (sub.rootCollection?.id === id) {
+            console.log("Found subcollection:", sub.rootCollection?.name);
+            return sub;
+          }
+          if (sub.subCollections && sub.subCollections.length > 0) {
+            const found = findInSubs(sub.subCollections);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      const result = findInSubs(subCollections);
+      if (!result) {
+        console.log("Subcollection not found for ID:", id);
+      }
+      return result;
+    } catch (error) {
+      console.error("Error in findSubCollectionById:", error);
       return null;
     }
-
-    const findInSubs = (subs: any[]): any | null => {
-      for (const sub of subs) {
-        if (sub.rootCollection?.id === id) {
-          return sub;
-        }
-        if (sub.subCollections) {
-          const found = findInSubs(sub.subCollections);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    return findInSubs(subCollections);
   };
 
   // Helper to find parent of a subcollection
@@ -84,7 +101,8 @@ export const useNavigationState = (subCollections: any[], collectionTitle: strin
   // Update browser history without changing URL
   const updateHistoryState = (
     subCollection: any | null,
-    parent: ParentLevel | null
+    parent: ParentLevel | null,
+    useReplaceState: boolean = false
   ) => {
     const state: NavigationState = {
       activeSubCollectionId: subCollection?.rootCollection?.id || null,
@@ -92,51 +110,75 @@ export const useNavigationState = (subCollections: any[], collectionTitle: strin
       parentLevel: parent,
     };
 
-    // Push new history entry to enable back/forward navigation
-    window.history.pushState(state, "", pathname);
+    // Use replaceState for initial load and fallbacks to avoid excessive history entries
+    if (useReplaceState) {
+      window.history.replaceState(state, "", pathname);
+    } else {
+      window.history.pushState(state, "", pathname);
+    }
     console.log("History state updated:", state);
   };
 
   // Handle browser back/forward navigation
   const handlePopState = (event: PopStateEvent) => {
-    console.log("PopState event triggered:", event.state);
-    const state = event.state as NavigationState | null;
+    try {
+      console.log("PopState event triggered:", event.state);
+      const state = event.state as NavigationState | null;
 
-    if (state?.activeSubCollectionId) {
-      const subCollection = findSubCollectionById(state.activeSubCollectionId);
-      if (subCollection) {
-        setActiveSubCollection(subCollection);
-        setParentLevel(state.parentLevel);
-        console.log(
-          "Restored subcollection:",
-          subCollection.rootCollection?.name
-        );
+      if (state?.activeSubCollectionId) {
+        const subCollection = findSubCollectionById(state.activeSubCollectionId);
+        if (subCollection) {
+          setActiveSubCollection(subCollection);
+          setParentLevel(state.parentLevel);
+          console.log(
+            "Restored subcollection:",
+            subCollection.rootCollection?.name
+          );
+        } else {
+          // If subcollection not found, fall back to main collection
+          setActiveSubCollection(null);
+          setParentLevel(null);
+          updateHistoryState(null, null, true); // Use replaceState for fallbacks
+          console.log("Subcollection not found, falling back to main collection");
+        }
       } else {
-        // If subcollection not found, fall back to main collection
         setActiveSubCollection(null);
         setParentLevel(null);
-        updateHistoryState(null, null);
-        console.log("Subcollection not found, falling back to main collection");
+        console.log("No active subcollection, showing main collection");
       }
-    } else {
+    } catch (error) {
+      console.error("Error handling popstate:", error);
+      // Fallback to main collection on error
       setActiveSubCollection(null);
       setParentLevel(null);
-      console.log("No active subcollection, showing main collection");
+      updateHistoryState(null, null, true);
     }
   };
 
   // When a subcollection card is clicked, show its contents and update history
   const handleSubCollectionClick = (sub: any) => {
-    // Set the current level as parent for the new subcollection
-    const newParent = {
-      id: activeSubCollection?.rootCollection?.id || "root",
-      name: activeSubCollection?.rootCollection?.name || collectionTitle,
-      type: activeSubCollection ? "subcollection" : "collection",
-    };
+    try {
+      console.log("Navigating to subcollection:", sub.rootCollection?.name, sub.rootCollection?.id);
+      
+      // Set the current level as parent for the new subcollection
+      const newParent = {
+        id: activeSubCollection?.rootCollection?.id || "root",
+        name: activeSubCollection?.rootCollection?.name || collectionTitle,
+        type: activeSubCollection ? "subcollection" : "collection",
+      };
 
-    setParentLevel(newParent);
-    setActiveSubCollection(sub);
-    updateHistoryState(sub, newParent);
+      console.log("Setting parent level:", newParent);
+      
+      setParentLevel(newParent);
+      setActiveSubCollection(sub);
+      updateHistoryState(sub, newParent);
+    } catch (error) {
+      console.error("Error in handleSubCollectionClick:", error);
+      // Fallback to main collection on error
+      setActiveSubCollection(null);
+      setParentLevel(null);
+      updateHistoryState(null, null, true);
+    }
   };
 
   // Back to parent collection/subcollection
@@ -160,14 +202,14 @@ export const useNavigationState = (subCollections: any[], collectionTitle: strin
           // Fallback to main collection
           setActiveSubCollection(null);
           setParentLevel(null);
-          updateHistoryState(null, null);
+          updateHistoryState(null, null, true); // Use replaceState for fallbacks
         }
       }
     } else {
       // Fallback to main collection
       setActiveSubCollection(null);
       setParentLevel(null);
-      updateHistoryState(null, null);
+      updateHistoryState(null, null, true); // Use replaceState for fallbacks
     }
   };
 
@@ -178,7 +220,7 @@ export const useNavigationState = (subCollections: any[], collectionTitle: strin
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [subCollections]);
+  }, []); // Remove dependency to prevent memory leaks
 
   // Initialize history state on first load
   useEffect(() => {
@@ -201,7 +243,7 @@ export const useNavigationState = (subCollections: any[], collectionTitle: strin
           setActiveSubCollection(subCollection);
           setParentLevel(currentState.parentLevel);
         } else {
-          updateHistoryState(null, null);
+          updateHistoryState(null, null, true); // Use replaceState for fallbacks
         }
       }
     }

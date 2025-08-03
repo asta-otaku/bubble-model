@@ -4,12 +4,12 @@ import { useParams } from "next/navigation";
 import {
   Message,
   NewCollectionResponse,
-  AttachmentDto,
 } from "@/utils/BubbleSpecialInterfaces";
 import { convertUnixNanoToReadable } from "@/utils/getDateTime";
+import { convertAttachmentToMessage } from "@/utils/attachmentConverter";
 
-const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_COLLECTION_URL;
-const USER_ID = process.env.NEXT_PUBLIC_USER_ID;
+const SPECIAL_BUBBLE_BASE_URL = process.env.NEXT_PUBLIC_COLLECTION_URL || "";
+const USER_ID = process.env.NEXT_PUBLIC_USER_ID || "";
 
 interface CollectionData {
   files: Message[];
@@ -31,57 +31,7 @@ export const useCollectionData = (): CollectionData => {
   const [collectionDate, setCollectionDate] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Helper function to convert AttachmentDto to Message format
-  const convertAttachmentToMessage = (attachment: AttachmentDto): Message => {
-    const textAttachment = attachment.textAttachment;
-    const attachedContent = textAttachment.attachedContent;
 
-    // Determine if it's a link
-    const isLink = textAttachment.type === 0;
-
-    return {
-      index: textAttachment.index,
-      type: isLink ? "LINK" : "FILE",
-      cloudFrontDownloadLink: textAttachment.cloudFrontDownloadLink,
-      optimisedImageUrl: textAttachment.optimisedImageUrl,
-      metaData: textAttachment.metaData,
-      muxDetailsForWebclient:
-        textAttachment.muxDetailsForWebclient || undefined,
-      content: {
-        contentId: attachedContent.id,
-        startTime: 0,
-        referencedAttachment: {
-          thumbnailImage: attachedContent.thumbnailImage,
-          name: attachedContent.name,
-          size: attachedContent.size,
-          width: attachedContent.width,
-          height: attachedContent.height,
-          muxPlaybackId: attachedContent.muxPlaybackId || "",
-          muxDetailsForWebclient:
-            textAttachment.muxDetailsForWebclient || undefined,
-          id: attachedContent.id,
-          url: isLink
-            ? attachedContent.url
-            : textAttachment.cloudFrontDownloadLink,
-          optimisedImageUrl: textAttachment.optimisedImageUrl,
-        },
-        thumbnailImage: attachedContent.thumbnailImage,
-        name: attachedContent.name,
-        size: attachedContent.size,
-        width: attachedContent.width,
-        height: attachedContent.height,
-        muxPlaybackId: attachedContent.muxPlaybackId || "",
-        muxDetailsForWebclient:
-          textAttachment.muxDetailsForWebclient || undefined,
-        id: attachedContent.id,
-        url: isLink
-          ? attachedContent.url
-          : textAttachment.cloudFrontDownloadLink,
-        userId: "",
-        optimisedImageUrl: textAttachment.optimisedImageUrl,
-      },
-    };
-  };
 
   // Helper to extract only immediate subcollections (not nested ones)
   const extractImmediateSubCollections = (collectionDto: any): any[] => {

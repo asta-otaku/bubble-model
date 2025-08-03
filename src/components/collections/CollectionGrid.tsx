@@ -3,7 +3,7 @@ import { Message } from "@/utils/BubbleSpecialInterfaces";
 import { truncateFilename } from "@/components/TruncateText";
 import { getDisplayUrl } from "@/utils/fileTypeUtils";
 import useIsMobile from "@/utils";
-import SubCollectionCard from "./SubCollectionCard";
+import SubCollectionGridItem from "./SubCollectionGridItem";
 import CollectionFilePreview from "./CollectionFilePreview";
 import { AttachmentDto } from "@/utils/BubbleSpecialInterfaces";
 
@@ -27,35 +27,15 @@ const CollectionGrid: React.FC<CollectionGridProps> = ({
   return (
     <div className="flex flex-wrap gap-x-1 gap-y-2 md:gap-x-2 justify-center">
       {/* Render subcollections first */}
-      {displaySubCollections.map((sub: any, idx: number) => {
-        const previewFiles = (sub.attachmentDtos || [])
-          .slice(0, 3)
-          .map(convertAttachmentToMessage);
-        const previewImages = previewFiles.map(
-          (file: any) =>
-            file.content.optimisedImageUrl ||
-            file.content.thumbnailImage ||
-            file.cloudFrontDownloadLink
-        );
-        const fileCount = (sub.attachmentDtos || []).length;
-        const subCollectionCount = (sub.subCollections || []).length;
-        const itemCount = fileCount + subCollectionCount;
-        const title =
-          sub.rootCollection?.name ||
-          getDisplayUrl(sub.rootCollection?.url).hostname ||
-          "Untitled";
-        return (
-          <SubCollectionCard
-            key={sub.rootCollection?.id || idx}
-            title={title}
-            itemCount={itemCount}
-            previewFiles={previewFiles}
-            previewImages={previewImages}
-            subCollections={sub.subCollections || []}
-            onClick={() => onSubCollectionClick(sub)}
-          />
-        );
-      })}
+      {displaySubCollections.map((sub: any, idx: number) => (
+        <SubCollectionGridItem
+          key={sub.rootCollection?.id || idx}
+          sub={sub}
+          index={idx}
+          convertAttachmentToMessage={convertAttachmentToMessage}
+          onSubCollectionClick={onSubCollectionClick}
+        />
+      ))}
       {/* Render files */}
       {displayFiles.map((file: any, idx: number) => (
         <div

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Message } from "@/utils/BubbleSpecialInterfaces";
 import { getFileType, getFileExtension } from "@/utils/fileTypeUtils";
 import { ThumbnailService } from "@/utils/thumbnailService";
@@ -16,22 +16,54 @@ interface CollectionFilePreviewProps {
 }
 
 function CollectionFilePreview({ token }: CollectionFilePreviewProps) {
-  const filename = token.content.name || token.cloudFrontDownloadLink || "";
-  const fileType = getFileType(token);
-  const isLink = fileType === "link";
-  const isImage = fileType === "image";
-  const isVideo = fileType === "video";
-  const isAudio = fileType === "audio";
-  const isPDF = fileType === "pdf";
-  const isJSON = fileType === "json";
+  // Memoize expensive computations
+  const fileData = useMemo(() => {
+    const filename = token.content?.name || token.cloudFrontDownloadLink || "";
+    const fileType = getFileType(token);
+    const isLink = fileType === "link";
+    const isImage = fileType === "image";
+    const isVideo = fileType === "video";
+    const isAudio = fileType === "audio";
+    const isPDF = fileType === "pdf";
+    const isJSON = fileType === "json";
 
-  const fileUrl = isImage
-    ? token.optimisedImageUrl
-    : token.cloudFrontDownloadLink;
+    const fileUrl = isImage
+      ? token.optimisedImageUrl
+      : token.cloudFrontDownloadLink;
 
-  const thumbnailImage =
-    token.content?.referencedAttachment?.thumbnailImage || "";
-  const startTimestamp = formatTime(token.content.startTime || 0) || undefined;
+    const thumbnailImage =
+      token.content?.referencedAttachment?.thumbnailImage || "";
+    const startTimestamp =
+      formatTime(token.content?.startTime || 0) || undefined;
+
+    return {
+      filename,
+      fileType,
+      isLink,
+      isImage,
+      isVideo,
+      isAudio,
+      isPDF,
+      isJSON,
+      fileUrl,
+      thumbnailImage,
+      startTimestamp,
+    };
+  }, [token]);
+
+  const {
+    filename,
+    fileType,
+    isLink,
+    isImage,
+    isVideo,
+    isAudio,
+    isPDF,
+    isJSON,
+    fileUrl,
+    thumbnailImage,
+    startTimestamp,
+  } = fileData;
 
   // Image Preview
   if (isImage && fileUrl) {
@@ -75,32 +107,44 @@ function CollectionFilePreview({ token }: CollectionFilePreviewProps) {
       token.content?.height || token.content?.referencedAttachment?.height;
 
     let videoComponent;
-    if (VIDEO_PLAYER_MODE === "mux") {
-      videoComponent = (
-        <MuxVideoPreview
-          muxPlaybackId={muxPlaybackId}
-          fileUrl={fileUrl}
-          fileExtension={getFileExtension(filename)}
-          thumbnailImage={thumbnailImage}
-          startTimestamp={startTimestamp}
-          width={videoWidth}
-          isFileSpecial
-          showPlayButtonOnly
-          height={videoHeight}
-        />
-      );
-    } else if (VIDEO_PLAYER_MODE === "videojs") {
-      if (muxPlaybackId) {
+    try {
+      if (VIDEO_PLAYER_MODE === "mux") {
         videoComponent = (
-          <MuxVideoJSPreview
+          <MuxVideoPreview
             muxPlaybackId={muxPlaybackId}
+            fileUrl={fileUrl}
+            fileExtension={getFileExtension(filename)}
+            thumbnailImage={thumbnailImage}
             startTimestamp={startTimestamp}
+            width={videoWidth}
             isFileSpecial
+            showPlayButtonOnly
+            height={videoHeight}
           />
         );
+      } else if (VIDEO_PLAYER_MODE === "videojs") {
+        if (muxPlaybackId) {
+          videoComponent = (
+            <MuxVideoJSPreview
+              muxPlaybackId={muxPlaybackId}
+              startTimestamp={startTimestamp}
+              isFileSpecial
+            />
+          );
+        } else {
+          videoComponent = (
+            <VanillaVideoJSPreview
+              fileUrl={fileUrl}
+              fileExtension={getFileExtension(filename)}
+              thumbnailImage={thumbnailImage}
+              startTimestamp={startTimestamp}
+              isFileSpecial
+            />
+          );
+        }
       } else {
         videoComponent = (
-          <VanillaVideoJSPreview
+          <NativeVideoPreview
             fileUrl={fileUrl}
             fileExtension={getFileExtension(filename)}
             thumbnailImage={thumbnailImage}
@@ -109,15 +153,12 @@ function CollectionFilePreview({ token }: CollectionFilePreviewProps) {
           />
         );
       }
-    } else {
+    } catch (error) {
+      console.error("Error rendering video component:", error);
       videoComponent = (
-        <NativeVideoPreview
-          fileUrl={fileUrl}
-          fileExtension={getFileExtension(filename)}
-          thumbnailImage={thumbnailImage}
-          startTimestamp={startTimestamp}
-          isFileSpecial
-        />
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <p className="text-gray-500 text-sm">Video preview unavailable</p>
+        </div>
       );
     }
 
@@ -158,13 +199,22 @@ function CollectionFilePreview({ token }: CollectionFilePreviewProps) {
 
   // JSON Preview
   if (isJSON && fileUrl) {
-    return (
-      <>
-        <div className="w-full h-full flex flex-col items-center justify-center">
-          <JsonPreview url={fileUrl} />
+    try {
+      return (
+        <>
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <JsonPreview url={fileUrl} />
+          </div>
+        </>
+      );
+    } catch (error) {
+      console.error("Error rendering JSON preview:", error);
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <p className="text-gray-500 text-sm">JSON preview unavailable</p>
         </div>
-      </>
-    );
+      );
+    }
   }
 
   // Referenced Link Preview

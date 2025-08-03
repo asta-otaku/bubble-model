@@ -22,40 +22,60 @@ export const useDisplayData = (
   convertAttachmentToMessage: (attachment: AttachmentDto) => Message
 ): DisplayData => {
   return useMemo(() => {
-    const displayFiles = activeSubCollection
-      ? (activeSubCollection.attachmentDtos || []).map(convertAttachmentToMessage)
-      : files;
-    
-    const displaySubCollections = activeSubCollection
-      ? activeSubCollection.subCollections || []
-      : subCollections;
-    
-    const displayTitle = activeSubCollection
-      ? activeSubCollection.rootCollection?.name ||
-        getDisplayUrl(activeSubCollection.rootCollection?.url).hostname ||
-        "Untitled"
-      : collectionTitle;
-    
-    const displayOwner = activeSubCollection ? collectionOwner : collectionOwner;
-    
-    const displayDate = activeSubCollection
-      ? convertUnixNanoToReadable(activeSubCollection.rootCollection?.createdAt)
-      : collectionDate;
+    try {
+      console.log("useDisplayData - activeSubCollection:", activeSubCollection?.rootCollection?.name);
+      
+      const displayFiles = activeSubCollection
+        ? (activeSubCollection.attachmentDtos || []).map(convertAttachmentToMessage)
+        : files;
+      
+      const displaySubCollections = activeSubCollection
+        ? (activeSubCollection.subCollections || []).filter((sub: any) => sub && sub.rootCollection)
+        : subCollections;
+      
+      const displayTitle = activeSubCollection
+        ? activeSubCollection.rootCollection?.name ||
+          getDisplayUrl(activeSubCollection.rootCollection?.url || "").hostname ||
+          "Untitled"
+        : collectionTitle;
+      
+      const displayOwner = activeSubCollection ? collectionOwner : collectionOwner;
+      
+      const displayDate = activeSubCollection
+        ? convertUnixNanoToReadable(activeSubCollection.rootCollection?.createdAt || 0)
+        : collectionDate;
 
-    return {
-      displayFiles,
-      displaySubCollections,
-      displayTitle,
-      displayOwner,
-      displayDate,
-    };
+      console.log("useDisplayData - result:", {
+        displayFilesCount: displayFiles.length,
+        displaySubCollectionsCount: displaySubCollections.length,
+        displayTitle
+      });
+
+      return {
+        displayFiles,
+        displaySubCollections,
+        displayTitle,
+        displayOwner,
+        displayDate,
+      };
+    } catch (error) {
+      console.error("Error in useDisplayData:", error);
+      // Return safe fallback values
+      return {
+        displayFiles: files,
+        displaySubCollections: subCollections,
+        displayTitle: collectionTitle,
+        displayOwner: collectionOwner,
+        displayDate: collectionDate,
+      };
+    }
   }, [
     files,
     subCollections,
     collectionTitle,
     collectionOwner,
     collectionDate,
-    activeSubCollection,
+    activeSubCollection?.rootCollection?.id, // Only depend on ID to prevent unnecessary recalculations
     convertAttachmentToMessage,
   ]);
 }; 

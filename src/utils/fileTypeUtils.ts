@@ -53,21 +53,26 @@ export const getFileType = (file: any): FileType => {
   return "document";
 };
 
-// Safe URL validation
+// Safe URL validation with scheme restrictions
 export const isValidUrl = (url: string): boolean => {
   try {
-    new URL(url);
-    return true;
+    const parsedUrl = new URL(url);
+    // Only allow http, https, and data URLs for images
+    const allowedSchemes = ['http:', 'https:', 'data:'];
+    return allowedSchemes.includes(parsedUrl.protocol);
   } catch {
     return false;
   }
 };
 
-// Extract hostname from URL safely
+// Extract hostname from URL safely with sanitization
 export const getDisplayUrl = (url: string): { hostname: string; origin: string } => {
   try {
     const parsed = new URL(url);
-    return { hostname: parsed.hostname, origin: parsed.origin };
+    // Sanitize hostname to prevent XSS
+    const sanitizedHostname = parsed.hostname.replace(/[<>]/g, '');
+    const sanitizedOrigin = parsed.origin.replace(/[<>]/g, '');
+    return { hostname: sanitizedHostname, origin: sanitizedOrigin };
   } catch (error) {
     return { hostname: "", origin: "" };
   }

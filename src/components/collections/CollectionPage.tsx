@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AttachmentDto } from "@/utils/BubbleSpecialInterfaces";
 import { useCollectionData } from "./useCollectionData";
 import { useNavigationState } from "./useNavigationState";
 import { useModalState } from "./useModalState";
@@ -9,6 +8,7 @@ import CollectionLoadingState from "./CollectionLoadingState";
 import CollectionHeader from "./CollectionHeader";
 import CollectionGrid from "./CollectionGrid";
 import CollectionFileModal from "./CollectionFileModal";
+import { convertAttachmentToMessage } from "@/utils/attachmentConverter";
 
 const CollectionPage: React.FC = () => {
   // Data fetching and state management
@@ -69,58 +69,6 @@ const CollectionPage: React.FC = () => {
     handleFileClick,
     closeModal,
   } = useModalState(activeSubCollection);
-
-  // Helper function to convert AttachmentDto to Message format
-  const convertAttachmentToMessage = (attachment: AttachmentDto) => {
-    const textAttachment = attachment.textAttachment;
-    const attachedContent = textAttachment.attachedContent;
-
-    // Determine if it's a link
-    const isLink = textAttachment.type === 0;
-
-    return {
-      index: textAttachment.index,
-      type: isLink ? ("LINK" as const) : ("FILE" as const),
-      cloudFrontDownloadLink: textAttachment.cloudFrontDownloadLink,
-      optimisedImageUrl: textAttachment.optimisedImageUrl,
-      metaData: textAttachment.metaData,
-      muxDetailsForWebclient:
-        textAttachment.muxDetailsForWebclient || undefined,
-      content: {
-        contentId: attachedContent.id,
-        startTime: 0,
-        referencedAttachment: {
-          thumbnailImage: attachedContent.thumbnailImage,
-          name: attachedContent.name,
-          size: attachedContent.size,
-          width: attachedContent.width,
-          height: attachedContent.height,
-          muxPlaybackId: attachedContent.muxPlaybackId || "",
-          muxDetailsForWebclient:
-            textAttachment.muxDetailsForWebclient || undefined,
-          id: attachedContent.id,
-          url: isLink
-            ? attachedContent.url
-            : textAttachment.cloudFrontDownloadLink,
-          optimisedImageUrl: textAttachment.optimisedImageUrl,
-        },
-        thumbnailImage: attachedContent.thumbnailImage,
-        name: attachedContent.name,
-        size: attachedContent.size,
-        width: attachedContent.width,
-        height: attachedContent.height,
-        muxPlaybackId: attachedContent.muxPlaybackId || "",
-        muxDetailsForWebclient:
-          textAttachment.muxDetailsForWebclient || undefined,
-        id: attachedContent.id,
-        url: isLink
-          ? attachedContent.url
-          : textAttachment.cloudFrontDownloadLink,
-        userId: "",
-        optimisedImageUrl: textAttachment.optimisedImageUrl,
-      },
-    };
-  };
 
   // Calculate display data
   const {
