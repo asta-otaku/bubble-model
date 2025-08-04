@@ -47,21 +47,7 @@ const CollectionFileModalPreview: React.FC<CollectionFileModalPreviewProps> = ({
   const fileUrl = isImage
     ? token.optimisedImageUrl
     : token.cloudFrontDownloadLink;
-  const fileSize = (() => {
-    const bytes =
-      token.type === "REFERENCE" || token.type === "TIMESTAMP"
-        ? token.content?.referencedAttachment?.size
-        : token.metaData?.size;
-    if (!bytes) return "";
-    const units = ["B", "KB", "MB", "GB"];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  })();
+
   const thumbnailImage =
     token.content?.referencedAttachment?.thumbnailImage || "";
   const startTimestamp = formatTime(token.content.startTime || 0) || undefined;
